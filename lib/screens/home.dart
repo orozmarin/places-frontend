@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:http/http.dart' as http;
+import 'package:gastrorate/models/restaurant.dart';
 
 class Home extends StatefulWidget {
-  const Home({super.key});
+  const Home({super.key, required this.restaurants});
+
+  final List<Restaurant>? restaurants;
 
   @override
   State<StatefulWidget> createState() => _HomeState();
@@ -26,40 +27,14 @@ class _HomeState extends State<Home> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                ElevatedButton(onPressed: handleFetchTap, child: const Text("Fetch Data")),
-                ElevatedButton(onPressed: handleResetTap, child: const Text("Reset")),
+
               ],
             ),
             Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [Flexible(child: Text(message, maxLines: 20, style: const TextStyle(fontSize: 18.0)))])
+                children: [Flexible(child: Text(widget.restaurants!.isNotEmpty ? widget.restaurants![0].name : "empty", maxLines: 20, style: const TextStyle(fontSize: 18.0)))])
           ],
         )));
   }
 
-  handleFetchTap() async {
-    var someData = await fetch();
-
-    setState(() {
-      message = someData;
-    });
-  }
-
-  handleResetTap() {
-    setState(() {
-      message = "";
-    });
-  }
-
-  Future<String> fetch() async {
-    try {
-      var client = http.Client();
-      Uri apiUrl = Uri.parse("${dotenv.env['API_BASE_URI']}/restaurants/find");
-      var response = await client.get(apiUrl);
-      return response.body;
-    } catch (error) {
-      print("Error during API request: $error");
-      return "Error during API request: $error";
-    }
-  }
 }
