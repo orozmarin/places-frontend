@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:gastrorate/models/restaurant.dart';
 
 class Home extends StatefulWidget {
-  const Home({super.key, required this.restaurants});
+  const Home({super.key, required this.restaurants, required this.onFindAllRestaurants});
 
+  final Function() onFindAllRestaurants;
   final List<Restaurant>? restaurants;
 
   @override
@@ -11,30 +12,65 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  String message = "";
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text("Example"),
-        ),
-        body: Center(
-            child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-
-              ],
-            ),
-            Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [Flexible(child: Text(widget.restaurants!.isNotEmpty ? widget.restaurants![0].name : "empty", maxLines: 20, style: const TextStyle(fontSize: 18.0)))])
-          ],
-        )));
+      appBar: AppBar(
+        title: const Text("Home"),
+      ),
+      body: Center(
+          child: widget.restaurants != null && widget.restaurants!.isNotEmpty
+              ? Column(
+                  children: [
+                    Expanded(
+                      child: ListView.builder(
+                        itemBuilder: (context, index) {
+                          Restaurant restaurant = widget.restaurants![index];
+                          return Card(
+                            elevation: 3,
+                            child: ListTile(
+                              title: Text(
+                                restaurant.name,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                ),
+                              ),
+                              subtitle: Text(
+                                "${restaurant.address}, ${restaurant.city}, ${restaurant.country}",
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                ),
+                              ),
+                              onTap: () {
+                                // Add any onTap functionality here
+                              },
+                            ),
+                          );
+                        },
+                        itemCount: widget.restaurants!.length,
+                      ),
+                    ),
+                  ],
+                )
+              : Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: <Widget>[
+                    Image.asset(
+                      'assets/logo.png',
+                      height: 500,
+                      width: 500,
+                    ),
+                    SizedBox(
+                      height: 50,
+                      width: 200,
+                      child: ElevatedButton(
+                        onPressed: widget.onFindAllRestaurants,
+                        child: const Text("Proceed", style: TextStyle(fontSize: 18),),
+                      ),
+                    )
+                  ],
+                )),
+    );
   }
-
 }
