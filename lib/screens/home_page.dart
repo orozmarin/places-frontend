@@ -12,6 +12,7 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return StoreConnector<AppState, ViewModel>(
       vm: () => Factory(this),
+      onInit: (Store<AppState> store) => store.dispatch(FetchRestaurantsAction()),
       builder: (BuildContext context, ViewModel vm) => Home(
         restaurants: vm.restaurants,
         onFindAllRestaurants: vm.onFindAllRestaurants,
