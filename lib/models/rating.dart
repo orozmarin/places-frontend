@@ -4,10 +4,10 @@ part 'rating.g.dart';
 
 @JsonSerializable(explicitToJson: true)
 class Rating {
-  final double ambientRating;
-  final double foodRating;
-  final double priceRating;
-  final double restaurantRating;
+  double? ambientRating;
+  double? foodRating;
+  double? priceRating;
+  double? restaurantRating;
 
   // Constructor
 
@@ -16,11 +16,11 @@ class Rating {
   Map<String, dynamic> toJson() => _$RatingToJson(this);
 
 //<editor-fold desc="Data Methods">
-  const Rating({
-    required this.ambientRating,
-    required this.foodRating,
-    required this.priceRating,
-    required this.restaurantRating,
+  Rating({
+    this.ambientRating,
+    this.foodRating,
+    this.priceRating,
+    this.restaurantRating,
   });
 
   @override
@@ -62,10 +62,10 @@ class Rating {
 
   Map<String, dynamic> toMap() {
     return {
-      'ambientRating': this.ambientRating,
-      'foodRating': this.foodRating,
-      'priceRating': this.priceRating,
-      'restaurantRating': this.restaurantRating,
+      'ambientRating': ambientRating,
+      'foodRating': foodRating,
+      'priceRating': priceRating,
+      'restaurantRating': restaurantRating,
     };
   }
 

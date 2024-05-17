@@ -1,11 +1,18 @@
-import 'dart:async';
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:gastrorate/models/rating.dart';
+import 'package:gastrorate/models/restaurant.dart';
+import 'package:gastrorate/theme/my_colors.dart';
+import 'package:gastrorate/widgets/horizontal_spacer.dart';
+import 'package:gastrorate/widgets/input_field.dart';
+import 'package:gastrorate/widgets/page_body_card.dart';
+import 'package:gastrorate/widgets/rating_summary_card.dart';
+import 'package:gastrorate/widgets/restaurant_rating_dialog.dart';
+import 'package:gastrorate/widgets/vertical_spacer.dart';
 
 class PlaceInputForm extends StatefulWidget {
-  const PlaceInputForm({super.key});
+  PlaceInputForm({super.key, required this.restaurant});
+
+  Restaurant restaurant;
 
   @override
   State<StatefulWidget> createState() => _PlaceInputFormState();
@@ -13,51 +20,150 @@ class PlaceInputForm extends StatefulWidget {
 
 class _PlaceInputFormState extends State<PlaceInputForm> {
   @override
-  Widget build(BuildContext context) {
-    Completer<GoogleMapController> _controller = Completer();
-
-    return const Scaffold(
-      //appBar: AppBar(title: const Text("Add new Place"),),
-      body: Stack(
-        children: <Widget>[
-          GoogleMap(
-            myLocationEnabled: true,
-            initialCameraPosition: CameraPosition(
-              target: LatLng(10, 10),
-              zoom: 12,
-            ),
-          ),
-          Positioned(top: 40, left: 20, right: 20,child: LocationSearchBox(),)
-        ],
-      ),
-    );
+  void initState() {
+    super.initState();
   }
-}
-
-class LocationSearchBox extends StatelessWidget {
-  const LocationSearchBox({
-    super.key,
-  });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8),
-      child: TextField(
-        decoration: InputDecoration(
-            filled: true,
-            fillColor: Colors.white,
-            hintText: 'Search your Place',
-            suffixIcon: const Icon(Icons.search),
-            contentPadding: const EdgeInsets.only(left: 20, bottom: 5, right: 5),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Colors.white),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Colors.white),
-            )),
+    final screenWidth = MediaQuery.of(context).size.width;
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("New restaurant"),
+      ),
+      body: PageBodyCard(
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(24.0, 32.0, 24.0, 0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              InputField(
+                labelText: "Name",
+                hintText: "Enter name",
+                onChanged: (p0) {},
+                isSmallInputField: true,
+              ),
+              const VerticalSpacer(8),
+              InputField(
+                labelText: "Street and number",
+                hintText: "Enter address",
+                onChanged: (p0) {},
+                isSmallInputField: true,
+              ),
+              const VerticalSpacer(8),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  InputField(
+                    width: screenWidth * 0.5,
+                    labelText: "City",
+                    hintText: "Enter city",
+                    onChanged: (p0) {},
+                    isSmallInputField: true,
+                  ),
+                  const HorizontalSpacer(20),
+                  InputField(
+                    width: screenWidth * 0.3,
+                    labelText: "Postal code",
+                    hintText: "Enter postal code",
+                    onChanged: (p0) {},
+                    isSmallInputField: true,
+                  ),
+                ],
+              ),
+              const VerticalSpacer(8),
+              InputField(
+                labelText: "Country",
+                hintText: "Country",
+                onChanged: (p0) {},
+                isSmallInputField: true,
+              ),
+              const VerticalSpacer(8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Column(
+                    children: [
+                      Text("1st Rating", style: Theme.of(context).textTheme.bodyLarge),
+                      widget.restaurant.firstRating == null
+                          ? IconButton(
+                              icon: const Icon(
+                                size: 50,
+                                semanticLabel: "Add",
+                                Icons.add_circle,
+                                color: MyColors.primaryColor,
+                              ),
+                              onPressed: () {
+                                widget.restaurant.firstRating ??=
+                                    Rating(ambientRating: 1, foodRating: 1, priceRating: 1);
+                                showModalBottomSheet(
+                                  context: context,
+                                  builder: (BuildContext context) => RestaurantRatingDialog(
+                                    rating: widget.restaurant.firstRating!,
+                                  ),
+                                );
+                                setState(() {});
+                              },
+                            )
+                          : RatingSummaryCard(
+                              rating: widget.restaurant.firstRating!,
+                              onEditRating: () {
+                                showModalBottomSheet(
+                                  context: context,
+                                  builder: (BuildContext context) => RestaurantRatingDialog(
+                                    rating: widget.restaurant.firstRating!,
+                                  ),
+                                );
+                                setState(() {});
+                              },
+                            )
+                    ],
+                  ),
+                  const HorizontalSpacer(12),
+                  Column(
+                    children: [
+                      Text("2nd Rating", style: Theme.of(context).textTheme.bodyLarge),
+                      widget.restaurant.secondRating == null
+                          ? IconButton(
+                              icon: const Icon(
+                                size: 50,
+                                semanticLabel: "Add",
+                                Icons.add_circle,
+                                color: MyColors.primaryColor,
+                              ),
+                              onPressed: () {
+                                widget.restaurant.secondRating ??=
+                                    Rating(ambientRating: 1, foodRating: 1, priceRating: 1);
+                                showModalBottomSheet(
+                                  context: context,
+                                  builder: (BuildContext context) => RestaurantRatingDialog(
+                                    rating: widget.restaurant.secondRating!,
+                                  ),
+                                );
+                                setState(() {});
+                              },
+                            )
+                          : RatingSummaryCard(
+                              rating: widget.restaurant.secondRating!,
+                              onEditRating: () {
+                                showModalBottomSheet(
+                                  context: context,
+                                  builder: (BuildContext context) => RestaurantRatingDialog(
+                                    rating: widget.restaurant.secondRating!,
+                                  ),
+                                );
+                                setState(() {});
+                              },
+                            )
+                    ],
+                  ),
+                ],
+              ),
+              //TODO add photo upload
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -5,14 +5,14 @@ part 'restaurant.g.dart';
 
 @JsonSerializable(explicitToJson: true)
 class Restaurant {
-  String id;
-  String name;
-  String address;
-  String city;
-  String country;
-  Rating firstRating;
-  Rating secondRating;
-  double restaurantRating;
+  String? id;
+  String? name;
+  String? address;
+  String? city;
+  String? country;
+  Rating? firstRating;
+  Rating? secondRating;
+  double? restaurantRating;
 
   factory Restaurant.fromJson(Map<String, dynamic> json) => _$RestaurantFromJson(json);
 
@@ -20,14 +20,14 @@ class Restaurant {
 
 //<editor-fold desc="Data Methods">
   Restaurant({
-    required this.id,
-    required this.name,
-    required this.address,
-    required this.city,
-    required this.country,
-    required this.firstRating,
-    required this.secondRating,
-    required this.restaurantRating,
+     this.id,
+     this.name,
+     this.address,
+     this.city,
+     this.country,
+     this.firstRating,
+     this.secondRating,
+     this.restaurantRating,
   });
 
   @override

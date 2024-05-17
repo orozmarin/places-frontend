@@ -25,7 +25,7 @@ Map<String, dynamic> _$RestaurantToJson(Restaurant instance) =>
       'address': instance.address,
       'city': instance.city,
       'country': instance.country,
-      'firstRating': instance.firstRating.toJson(),
-      'secondRating': instance.secondRating.toJson(),
+      'firstRating': instance.firstRating!.toJson(),
+      'secondRating': instance.secondRating!.toJson(),
       'restaurantRating': instance.restaurantRating,
     };
