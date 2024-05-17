@@ -34,7 +34,7 @@ class _HomeState extends State<Home> {
                     elevation: 3,
                     child: ListTile(
                       title: Text(
-                        restaurant.name,
+                        restaurant.name ?? "",
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
@@ -90,7 +90,7 @@ class _HomeState extends State<Home> {
             PageTransition<PlaceInputForm>(
                 curve: Curves.easeIn,
                 type: PageTransitionType.rightToLeft,
-                child: const PlaceInputForm()),
+                child: PlaceInputForm(restaurant: Restaurant(),)),
       ),
       ),
     );
