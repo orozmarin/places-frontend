@@ -1,0 +1,1 @@
+const double kInputBorderRadius = 10.0;
