@@ -24,4 +24,10 @@ class RestaurantManager{
     final Response<List<dynamic>> response = await client.get(url);
     return (response.data as List<dynamic>).map((dynamic restaurant) => Restaurant.fromJson(restaurant)).toList();
   }
+
+  Future<Restaurant> saveOrUpdatePlace(Restaurant restaurant) async {
+    String url = dotenv.env['API_BASE_URI'].toString() + SAVE_OR_UPDATE_RESTAURANT;
+    final Response<dynamic> response = await client.post(url, data: restaurant.toJson());
+    return Restaurant.fromJson(response.data);
+  }
 }
