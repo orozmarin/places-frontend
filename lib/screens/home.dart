@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:gastrorate/models/restaurant.dart';
+import 'package:gastrorate/screens/new_place_page.dart';
 import 'package:gastrorate/theme/my_colors.dart';
-import 'package:gastrorate/widgets/place_input_form.dart';
+import 'package:gastrorate/screens/new_place.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:page_transition/page_transition.dart';
 
@@ -46,9 +47,13 @@ class _HomeState extends State<Home> {
                           fontSize: 14,
                         ),
                       ),
-                      onTap: () {
-                        // Add any onTap functionality here
-                      },
+                      onTap: () => Navigator.push(
+                        context,
+                        PageTransition<NewPlace>(
+                            curve: Curves.easeIn,
+                            type: PageTransitionType.rightToLeft,
+                            child: NewPlacePage(foundRestaurant: restaurant,)),
+                      ),
                     ),
                   );
                 },
@@ -87,10 +92,10 @@ class _HomeState extends State<Home> {
         iconSize: 50,
         onPressed: () => Navigator.push(
             context,
-            PageTransition<PlaceInputForm>(
+            PageTransition<NewPlace>(
                 curve: Curves.easeIn,
                 type: PageTransitionType.rightToLeft,
-                child: PlaceInputForm(restaurant: Restaurant(),)),
+                child: NewPlacePage(foundRestaurant: Restaurant(),)),
       ),
       ),
     );
