@@ -12,4 +12,7 @@ class MyColors{
   static Color disabledGreyButtonForegroundColor = Colors.black87;
   static Color greyButtonBckColor = Colors.grey;
 
+  static Color colorRed = Colors.red;
+  static Color colorGreen = Colors.green;
+
 }

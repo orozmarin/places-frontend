@@ -1,16 +1,18 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:gastrorate/models/restaurant.dart';
+import 'package:gastrorate/screens/new_place.dart';
 import 'package:gastrorate/screens/new_place_page.dart';
 import 'package:gastrorate/theme/my_colors.dart';
-import 'package:gastrorate/screens/new_place.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:page_transition/page_transition.dart';
 
 class Home extends StatefulWidget {
-  const Home({super.key, required this.restaurants, required this.onFindAllRestaurants});
+  const Home({super.key, required this.restaurants, required this.onFindAllRestaurants, required this.onDeletePlace});
 
   final Function() onFindAllRestaurants;
   final List<Restaurant>? restaurants;
+  final Function(Restaurant restaurant) onDeletePlace;
 
   @override
   State<StatefulWidget> createState() => _HomeState();
@@ -47,12 +49,20 @@ class _HomeState extends State<Home> {
                           fontSize: 14,
                         ),
                       ),
+                      trailing: IconButton.outlined(
+                          onPressed: () {
+                            widget.onDeletePlace(restaurant);
+                            setState(() {});
+                          },
+                          icon: const Icon(CupertinoIcons.delete)),
                       onTap: () => Navigator.push(
                         context,
                         PageTransition<NewPlace>(
                             curve: Curves.easeIn,
                             type: PageTransitionType.rightToLeft,
-                            child: NewPlacePage(foundRestaurant: restaurant,)),
+                            child: NewPlacePage(
+                              foundRestaurant: restaurant,
+                            )),
                       ),
                     ),
                   );
@@ -91,12 +101,14 @@ class _HomeState extends State<Home> {
         ),
         iconSize: 50,
         onPressed: () => Navigator.push(
-            context,
-            PageTransition<NewPlace>(
-                curve: Curves.easeIn,
-                type: PageTransitionType.rightToLeft,
-                child: NewPlacePage(foundRestaurant: Restaurant(),)),
-      ),
+          context,
+          PageTransition<NewPlace>(
+              curve: Curves.easeIn,
+              type: PageTransitionType.rightToLeft,
+              child: NewPlacePage(
+                foundRestaurant: Restaurant(),
+              )),
+        ),
       ),
     );
   }
