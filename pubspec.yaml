@@ -46,6 +46,7 @@ dependencies:
   page_transition: ^2.1.0
   uuid: ^4.3.3
   numberpicker: ^2.1.2
+  fluttertoast: ^8.2.5
 
 dev_dependencies:
   flutter_test:

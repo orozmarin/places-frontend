@@ -16,6 +16,7 @@ class HomePage extends StatelessWidget {
       builder: (BuildContext context, ViewModel vm) => Home(
         restaurants: vm.restaurants,
         onFindAllRestaurants: vm.onFindAllRestaurants,
+        onDeletePlace: vm.onDeletePlace,
       ),
     );
   }
@@ -28,14 +29,16 @@ class Factory extends VmFactory<AppState, HomePage, ViewModel> {
   ViewModel? fromStore() => ViewModel(
         restaurants: state.restaurantsState.restaurants,
         onFindAllRestaurants: () => dispatch(FetchRestaurantsAction()),
+        onDeletePlace: (restaurant) => dispatch(DeletePlaceAction(restaurant)),
       );
 }
 
 class ViewModel extends Vm {
   final List<Restaurant>? restaurants;
   final Function() onFindAllRestaurants;
+  final Function(Restaurant restaurant) onDeletePlace;
 
-  ViewModel({required this.restaurants, required this.onFindAllRestaurants});
+  ViewModel({required this.restaurants, required this.onFindAllRestaurants, required this.onDeletePlace});
 
   @override
   bool operator ==(Object other) =>
@@ -44,8 +47,9 @@ class ViewModel extends Vm {
           other is ViewModel &&
           runtimeType == other.runtimeType &&
           restaurants == other.restaurants &&
-          onFindAllRestaurants == other.onFindAllRestaurants;
+          onFindAllRestaurants == other.onFindAllRestaurants &&
+          onDeletePlace == other.onDeletePlace;
 
   @override
-  int get hashCode => super.hashCode ^ restaurants.hashCode ^ onFindAllRestaurants.hashCode;
+  int get hashCode => super.hashCode ^ restaurants.hashCode ^ onFindAllRestaurants.hashCode ^ onDeletePlace.hashCode;
 }
