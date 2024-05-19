@@ -2,6 +2,7 @@ import 'package:async_redux/async_redux.dart';
 import 'package:gastrorate/models/restaurant.dart';
 import 'package:gastrorate/service/restaurant_manager.dart';
 import 'package:gastrorate/store/app_state.dart';
+import 'package:gastrorate/tools/toast_helper_web.dart';
 
 class FetchRestaurantsAction extends ReduxAction<AppState>{
   FetchRestaurantsAction();
@@ -54,6 +55,18 @@ class SaveRestaurantSuccessAction extends ReduxAction<AppState>{
   @override
   Future<AppState?> reduce() async{
     return state.copyWith(restaurantsState: state.restaurantsState.copyWith(currentRestaurant: payload));
+  }
+}
+
+class DeletePlaceAction extends ReduxAction<AppState>{
+  DeletePlaceAction(this.payload);
+  final Restaurant payload;
+
+  @override
+  Future<AppState?> reduce() async{
+    await RestaurantManager().deletePlace(payload.id!);
+    dispatch(FetchRestaurantsAction());
+    return null;
   }
 }
 
