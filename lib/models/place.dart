@@ -1,10 +1,10 @@
 import 'package:gastrorate/models/rating.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-part 'restaurant.g.dart';
+part 'place.g.dart';
 
 @JsonSerializable(explicitToJson: true)
-class Restaurant {
+class Place {
   String? id;
   String? name;
   String? address;
@@ -13,16 +13,16 @@ class Restaurant {
   String? country;
   Rating? firstRating;
   Rating? secondRating;
-  double? restaurantRating;
+  double? placeRating;
 
-  factory Restaurant.fromJson(Map<String, dynamic> json) => _$RestaurantFromJson(json);
+  factory Place.fromJson(Map<String, dynamic> json) => _$PlaceFromJson(json);
 
-  Map<String, dynamic> toJson() => _$RestaurantToJson(this);
+  Map<String, dynamic> toJson() => _$PlaceToJson(this);
 
 //<editor-fold desc="Data Methods">
 
 
-  Restaurant({
+  Place({
     this.id,
     this.name,
     this.address,
@@ -31,14 +31,14 @@ class Restaurant {
     this.country,
     this.firstRating,
     this.secondRating,
-    this.restaurantRating,
+    this.placeRating,
   });
 
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          (other is Restaurant &&
+          (other is Place &&
               runtimeType == other.runtimeType &&
               id == other.id &&
               name == other.name &&
@@ -48,7 +48,7 @@ class Restaurant {
               country == other.country &&
               firstRating == other.firstRating &&
               secondRating == other.secondRating &&
-              restaurantRating == other.restaurantRating
+              placeRating == other.placeRating
           );
 
 
@@ -62,12 +62,12 @@ class Restaurant {
       country.hashCode ^
       firstRating.hashCode ^
       secondRating.hashCode ^
-      restaurantRating.hashCode;
+      placeRating.hashCode;
 
 
   @override
   String toString() {
-    return 'Restaurant{' +
+    return 'Place{' +
         ' id: $id,' +
         ' name: $name,' +
         ' address: $address,' +
@@ -76,12 +76,12 @@ class Restaurant {
         ' country: $country,' +
         ' firstRating: $firstRating,' +
         ' secondRating: $secondRating,' +
-        ' restaurantRating: $restaurantRating,' +
+        ' placeRating: $placeRating,' +
         '}';
   }
 
 
-  Restaurant copyWith({
+  Place copyWith({
     String? id,
     String? name,
     String? address,
@@ -90,9 +90,9 @@ class Restaurant {
     String? country,
     Rating? firstRating,
     Rating? secondRating,
-    double? restaurantRating,
+    double? placeRating,
   }) {
-    return Restaurant(
+    return Place(
       id: id ?? this.id,
       name: name ?? this.name,
       address: address ?? this.address,
@@ -101,7 +101,7 @@ class Restaurant {
       country: country ?? this.country,
       firstRating: firstRating ?? this.firstRating,
       secondRating: secondRating ?? this.secondRating,
-      restaurantRating: restaurantRating ?? this.restaurantRating,
+      placeRating: placeRating ?? this.placeRating,
     );
   }
 
@@ -116,12 +116,12 @@ class Restaurant {
       'country': this.country,
       'firstRating': this.firstRating,
       'secondRating': this.secondRating,
-      'restaurantRating': this.restaurantRating,
+      'placeRating': this.placeRating,
     };
   }
 
-  factory Restaurant.fromMap(Map<String, dynamic> map) {
-    return Restaurant(
+  factory Place.fromMap(Map<String, dynamic> map) {
+    return Place(
       id: map['id'] as String,
       name: map['name'] as String,
       address: map['address'] as String,
@@ -130,7 +130,7 @@ class Restaurant {
       country: map['country'] as String,
       firstRating: map['firstRating'] as Rating,
       secondRating: map['secondRating'] as Rating,
-      restaurantRating: map['restaurantRating'] as double,
+      placeRating: map['placeRating'] as double,
     );
   }
 

@@ -7,7 +7,7 @@ part of 'app_state.dart';
 // **************************************************************************
 
 abstract class _$AppStateCWProxy {
-  AppState restaurantsState(RestaurantsState restaurantsState);
+  AppState placesState(PlacesState placesState);
 
   /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `AppState(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
   ///
@@ -16,7 +16,7 @@ abstract class _$AppStateCWProxy {
   /// AppState(...).copyWith(id: 12, name: "My name")
   /// ````
   AppState call({
-    RestaurantsState? restaurantsState,
+    PlacesState? placesState,
   });
 }
 
@@ -27,8 +27,8 @@ class _$AppStateCWProxyImpl implements _$AppStateCWProxy {
   final AppState _value;
 
   @override
-  AppState restaurantsState(RestaurantsState restaurantsState) =>
-      this(restaurantsState: restaurantsState);
+  AppState placesState(PlacesState placesState) =>
+      this(placesState: placesState);
 
   @override
 
@@ -39,14 +39,14 @@ class _$AppStateCWProxyImpl implements _$AppStateCWProxy {
   /// AppState(...).copyWith(id: 12, name: "My name")
   /// ````
   AppState call({
-    Object? restaurantsState = const $CopyWithPlaceholder(),
+    Object? placesState = const $CopyWithPlaceholder(),
   }) {
     return AppState(
-      restaurantsState: restaurantsState == const $CopyWithPlaceholder() ||
-              restaurantsState == null
-          ? _value.restaurantsState
+      placesState: placesState == const $CopyWithPlaceholder() ||
+              placesState == null
+          ? _value.placesState
           // ignore: cast_nullable_to_non_nullable
-          : restaurantsState as RestaurantsState,
+          : placesState as PlacesState,
     );
   }
 }
@@ -62,10 +62,10 @@ extension $AppStateCopyWith on AppState {
 // **************************************************************************
 
 AppState _$AppStateFromJson(Map<String, dynamic> json) => AppState(
-      restaurantsState: RestaurantsState.fromJson(
-          json['restaurantsState'] as Map<String, dynamic>),
+      placesState: PlacesState.fromJson(
+          json['placesState'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$AppStateToJson(AppState instance) => <String, dynamic>{
-      'restaurantsState': instance.restaurantsState,
+      'placesState': instance.placesState,
     };

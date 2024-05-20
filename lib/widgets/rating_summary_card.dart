@@ -19,7 +19,7 @@ class RatingSummaryCard extends StatefulWidget {
 class _RatingSummaryCardState extends State<RatingSummaryCard> {
   @override
   Widget build(BuildContext context) {
-    double restaurantRating = widget.rating.ambientRating! + widget.rating.priceRating! + widget.rating.foodRating!;
+    double placeRating = widget.rating.ambientRating! + widget.rating.priceRating! + widget.rating.foodRating!;
     return Card(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8.0),
@@ -31,7 +31,7 @@ class _RatingSummaryCardState extends State<RatingSummaryCard> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(
-              "Overall: $restaurantRating/30",
+              "Overall: $placeRating/30",
               style: Theme.of(context).textTheme.bodyLarge,
             ),
             const VerticalSpacer(8),

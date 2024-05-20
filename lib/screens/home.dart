@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:gastrorate/models/restaurant.dart';
+import 'package:gastrorate/models/place.dart';
 import 'package:gastrorate/screens/new_place.dart';
 import 'package:gastrorate/screens/new_place_page.dart';
 import 'package:gastrorate/theme/my_colors.dart';
@@ -8,11 +8,11 @@ import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:page_transition/page_transition.dart';
 
 class Home extends StatefulWidget {
-  const Home({super.key, required this.restaurants, required this.onFindAllRestaurants, required this.onDeletePlace});
+  const Home({super.key, required this.places, required this.onFindAllPlaces, required this.onDeletePlace});
 
-  final Function() onFindAllRestaurants;
-  final List<Restaurant>? restaurants;
-  final Function(Restaurant restaurant) onDeletePlace;
+  final Function() onFindAllPlaces;
+  final List<Place>? places;
+  final Function(Place place) onDeletePlace;
 
   @override
   State<StatefulWidget> createState() => _HomeState();
@@ -32,26 +32,26 @@ class _HomeState extends State<Home> {
             Expanded(
               child: ListView.builder(
                 itemBuilder: (context, index) {
-                  Restaurant restaurant = widget.restaurants![index];
+                  Place place = widget.places![index];
                   return Card(
                     elevation: 3,
                     child: ListTile(
                       title: Text(
-                        restaurant.name ?? "",
+                        place.name ?? "",
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
                         ),
                       ),
                       subtitle: Text(
-                        "${restaurant.city}, ${restaurant.country}",
+                        "${place.city}, ${place.country}",
                         style: const TextStyle(
                           fontSize: 14,
                         ),
                       ),
                       trailing: IconButton.filledTonal(
                           onPressed: () {
-                            widget.onDeletePlace(restaurant);
+                            widget.onDeletePlace(place);
                             setState(() {});
                           }, color: MyColors.colorRed,
                           icon: MyIcons.deleteIcon),
@@ -62,13 +62,13 @@ class _HomeState extends State<Home> {
                                 curve: Curves.easeIn,
                                 type: PageTransitionType.rightToLeft,
                                 child: NewPlacePage(
-                                  foundRestaurant: restaurant,
+                                  foundPlace: place,
                                 )),
                           ),
                     ),
                   );
                 },
-                itemCount: widget.restaurants!.length,
+                itemCount: widget.places!.length,
               ),
             ),
           ],
@@ -108,7 +108,7 @@ class _HomeState extends State<Home> {
                   curve: Curves.easeIn,
                   type: PageTransitionType.rightToLeft,
                   child: NewPlacePage(
-                    foundRestaurant: Restaurant(),
+                    foundPlace: Place(),
                   )),
             ),
       ),
