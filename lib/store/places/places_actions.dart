@@ -2,6 +2,7 @@ import 'package:async_redux/async_redux.dart';
 import 'package:gastrorate/models/place.dart';
 import 'package:gastrorate/service/place_manager.dart';
 import 'package:gastrorate/store/app_state.dart';
+import 'package:gastrorate/tools/toast_helper_web.dart';
 
 class FetchPlacesAction extends ReduxAction<AppState>{
   FetchPlacesAction();

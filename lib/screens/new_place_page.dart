@@ -14,7 +14,7 @@ class NewPlacePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return StoreConnector<AppState, ViewModel>(
       vm: () => Factory(this),
-      onInit: (Store<AppState> store) => store.dispatch(InitNewPlaceAction(foundPlace)),
+      onInit: (Store<AppState> store) async => await store.dispatch(InitNewPlaceAction(foundPlace)),
       builder: (BuildContext context, ViewModel vm) => NewPlace(
         place: vm.foundPlace,
         onSavePlace: vm.onSavePlace,
