@@ -103,7 +103,7 @@ class _NewPlaceState extends State<NewPlace> {
                   Text("Ratings", style: Theme.of(context).textTheme.headlineSmall),
                   const VerticalSpacer(8),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       widget.restaurant.firstRating == null
                           ? IconButton(
@@ -116,24 +116,16 @@ class _NewPlaceState extends State<NewPlace> {
                               onPressed: () {
                                 widget.restaurant.firstRating ??=
                                     Rating(ambientRating: 1, foodRating: 1, priceRating: 1);
-                                showModalBottomSheet(
-                                  context: context,
-                                  builder: (BuildContext context) => RestaurantRatingDialog(
-                                    rating: widget.restaurant.firstRating!,
-                                  ),
-                                );
-                                setState(() {});
+                                showRatingDialog(widget.restaurant.firstRating!);
                               },
                             )
                           : RatingSummaryCard(
                               rating: widget.restaurant.firstRating!,
                               onEditRating: () {
-                                showModalBottomSheet(
-                                  context: context,
-                                  builder: (BuildContext context) => RestaurantRatingDialog(
-                                    rating: widget.restaurant.firstRating!,
-                                  ),
-                                );
+                                showRatingDialog(widget.restaurant.firstRating!);
+                              },
+                              onDeleteRating: () {
+                                widget.restaurant.firstRating = null;
                                 setState(() {});
                               },
                             ),
@@ -149,24 +141,16 @@ class _NewPlaceState extends State<NewPlace> {
                               onPressed: () {
                                 widget.restaurant.secondRating ??=
                                     Rating(ambientRating: 1, foodRating: 1, priceRating: 1);
-                                showModalBottomSheet(
-                                  context: context,
-                                  builder: (BuildContext context) => RestaurantRatingDialog(
-                                    rating: widget.restaurant.secondRating!,
-                                  ),
-                                );
-                                setState(() {});
+                                showRatingDialog(widget.restaurant.secondRating!);
                               },
                             )
                           : RatingSummaryCard(
                               rating: widget.restaurant.secondRating!,
                               onEditRating: () {
-                                showModalBottomSheet(
-                                  context: context,
-                                  builder: (BuildContext context) => RestaurantRatingDialog(
-                                    rating: widget.restaurant.secondRating!,
-                                  ),
-                                );
+                                showRatingDialog(widget.restaurant.secondRating!);
+                              },
+                              onDeleteRating: () {
+                                widget.restaurant.secondRating = null;
                                 setState(() {});
                               },
                             ),
@@ -189,6 +173,40 @@ class _NewPlaceState extends State<NewPlace> {
           },
         ),
       ),
+    );
+  }
+
+  void showRatingDialog(Rating rating) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom, // Ensures space for the keyboard
+          ),
+          child: IntrinsicHeight(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const VerticalSpacer(18),
+                RestaurantRatingDialog(
+                  rating: rating,
+                ),
+                const VerticalSpacer(9),
+                ButtonComponent(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    setState(() {});
+                  },
+                  text: "Save",
+                ),
+                const VerticalSpacer(8),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

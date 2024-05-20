@@ -2,7 +2,6 @@ import 'package:async_redux/async_redux.dart';
 import 'package:gastrorate/models/restaurant.dart';
 import 'package:gastrorate/service/restaurant_manager.dart';
 import 'package:gastrorate/store/app_state.dart';
-import 'package:gastrorate/tools/toast_helper_web.dart';
 
 class FetchRestaurantsAction extends ReduxAction<AppState>{
   FetchRestaurantsAction();
