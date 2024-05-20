@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:gastrorate/models/rating.dart';
 import 'package:gastrorate/widgets/horizontal_spacer.dart';
@@ -16,6 +17,7 @@ class RatingSummaryCard extends StatefulWidget {
 class _RatingSummaryCardState extends State<RatingSummaryCard> {
   @override
   Widget build(BuildContext context) {
+    double restaurantRating = widget.rating.ambientRating! + widget.rating.priceRating! + widget.rating.foodRating!;
     return Card(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8.0),
@@ -26,19 +28,23 @@ class _RatingSummaryCardState extends State<RatingSummaryCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            IconButton(
-              icon: Icon(Icons.edit),
-              onPressed: () {
-                widget.onEditRating();
-                setState(() {});
-              },
-            ),
+            Row(
+              children: [
+              Text("$restaurantRating/30", style: Theme.of(context).textTheme.headlineSmall,),
+              IconButton(
+                icon: const Icon(Icons.edit),
+                onPressed: () {
+                  widget.onEditRating();
+                  setState(() {});
+                },
+              ),
+            ],),
             const Row(
               children: [
                 Icon(Icons.people, color: Colors.blue),
                 HorizontalSpacer(8),
                 Text(
-                  "Ambient rating:",
+                  "Experience rating:",
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
               ],
