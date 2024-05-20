@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gastrorate/models/rating.dart';
-import 'package:gastrorate/widgets/default_button.dart';
 import 'package:gastrorate/widgets/dialog_wrapper.dart';
-import 'package:gastrorate/widgets/vertical_spacer.dart';
 
 class RestaurantRatingDialog extends StatefulWidget {
   final Rating rating;
@@ -55,13 +53,6 @@ class _RestaurantRatingDialogState extends State<RestaurantRatingDialog> {
             setState(() {
               widget.rating.priceRating = value;
             });
-          },
-        ),
-        const VerticalSpacer(24),
-        ButtonComponent.smallButton(
-          text: "Save",
-          onPressed: () {
-            Navigator.pop(context);
           },
         ),
       ],
