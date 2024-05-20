@@ -18,7 +18,7 @@ class _RestaurantRatingDialogState extends State<RestaurantRatingDialog> {
   Widget build(BuildContext context) {
     return DialogWrapperWidget(
       children: [
-        Text("Ambient/personnel rating: ${widget.rating.ambientRating}"),
+        Text("Experience rating: ${widget.rating.ambientRating}"),
         Slider(
           label: "${widget.rating.ambientRating}",
           divisions: 18,
