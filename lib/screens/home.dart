@@ -1,9 +1,9 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:gastrorate/models/restaurant.dart';
 import 'package:gastrorate/screens/new_place.dart';
 import 'package:gastrorate/screens/new_place_page.dart';
 import 'package:gastrorate/theme/my_colors.dart';
+import 'package:gastrorate/theme/my_icons.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:page_transition/page_transition.dart';
 
@@ -27,7 +27,7 @@ class _HomeState extends State<Home> {
       appBar: AppBar(title: const Text("Home")),
       body: Center(
         child: //
-            Column(
+        Column(
           children: [
             Expanded(
               child: ListView.builder(
@@ -44,26 +44,27 @@ class _HomeState extends State<Home> {
                         ),
                       ),
                       subtitle: Text(
-                        "${restaurant.address}, ${restaurant.city}, ${restaurant.country}",
+                        "${restaurant.city}, ${restaurant.country}",
                         style: const TextStyle(
                           fontSize: 14,
                         ),
                       ),
-                      trailing: IconButton.outlined(
+                      trailing: IconButton.filledTonal(
                           onPressed: () {
                             widget.onDeletePlace(restaurant);
                             setState(() {});
-                          },
-                          icon: const Icon(CupertinoIcons.delete)),
-                      onTap: () => Navigator.push(
-                        context,
-                        PageTransition<NewPlace>(
-                            curve: Curves.easeIn,
-                            type: PageTransitionType.rightToLeft,
-                            child: NewPlacePage(
-                              foundRestaurant: restaurant,
-                            )),
-                      ),
+                          }, color: MyColors.colorRed,
+                          icon: MyIcons.deleteIcon),
+                      onTap: () =>
+                          Navigator.push(
+                            context,
+                            PageTransition<NewPlace>(
+                                curve: Curves.easeIn,
+                                type: PageTransitionType.rightToLeft,
+                                child: NewPlacePage(
+                                  foundRestaurant: restaurant,
+                                )),
+                          ),
                     ),
                   );
                 },
@@ -100,15 +101,16 @@ class _HomeState extends State<Home> {
           color: MyColors.primaryColor,
         ),
         iconSize: 50,
-        onPressed: () => Navigator.push(
-          context,
-          PageTransition<NewPlace>(
-              curve: Curves.easeIn,
-              type: PageTransitionType.rightToLeft,
-              child: NewPlacePage(
-                foundRestaurant: Restaurant(),
-              )),
-        ),
+        onPressed: () =>
+            Navigator.push(
+              context,
+              PageTransition<NewPlace>(
+                  curve: Curves.easeIn,
+                  type: PageTransitionType.rightToLeft,
+                  child: NewPlacePage(
+                    foundRestaurant: Restaurant(),
+                  )),
+            ),
       ),
     );
   }
