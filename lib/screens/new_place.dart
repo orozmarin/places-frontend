@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:gastrorate/models/place.dart';
 import 'package:gastrorate/models/rating.dart';
-import 'package:gastrorate/models/restaurant.dart';
 import 'package:gastrorate/theme/my_colors.dart';
 import 'package:gastrorate/widgets/default_button.dart';
 import 'package:gastrorate/widgets/horizontal_spacer.dart';
 import 'package:gastrorate/widgets/input_field.dart';
 import 'package:gastrorate/widgets/page_body_card.dart';
 import 'package:gastrorate/widgets/rating_summary_card.dart';
-import 'package:gastrorate/widgets/restaurant_rating_dialog.dart';
+import 'package:gastrorate/widgets/place_rating_dialog.dart';
 import 'package:gastrorate/widgets/vertical_spacer.dart';
 
 class NewPlace extends StatefulWidget {
-  NewPlace({super.key, required this.restaurant, required this.onSavePlace});
+  NewPlace({super.key, required this.place, required this.onSavePlace});
 
-  Restaurant restaurant;
-  final Function(Restaurant restaurant) onSavePlace;
+  Place place;
+  final Function(Place place) onSavePlace;
 
   @override
   State<StatefulWidget> createState() => _NewPlaceState();
@@ -31,7 +31,7 @@ class _NewPlaceState extends State<NewPlace> {
     final screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: AppBar(
-        title: const Text("New restaurant"),
+        title: const Text("New place"),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -45,9 +45,9 @@ class _NewPlaceState extends State<NewPlace> {
                   InputField(
                     labelText: "Name",
                     hintText: "Enter name",
-                    initialValue: widget.restaurant.name,
+                    initialValue: widget.place.name,
                     onChanged: (value) {
-                      widget.restaurant.name = value;
+                      widget.place.name = value;
                     },
                     isSmallInputField: true,
                   ),
@@ -55,9 +55,9 @@ class _NewPlaceState extends State<NewPlace> {
                   InputField(
                     labelText: "Street and number",
                     hintText: "Enter address",
-                    initialValue: widget.restaurant.address,
+                    initialValue: widget.place.address,
                     onChanged: (value) {
-                      widget.restaurant.address = value;
+                      widget.place.address = value;
                     },
                     isSmallInputField: true,
                   ),
@@ -69,9 +69,9 @@ class _NewPlaceState extends State<NewPlace> {
                         width: screenWidth * 0.5,
                         labelText: "City",
                         hintText: "Enter city",
-                        initialValue: widget.restaurant.city,
+                        initialValue: widget.place.city,
                         onChanged: (value) {
-                          widget.restaurant.city = value;
+                          widget.place.city = value;
                         },
                         isSmallInputField: true,
                       ),
@@ -81,9 +81,9 @@ class _NewPlaceState extends State<NewPlace> {
                         labelText: "Postal code",
                         hintText: "Enter postal code",
                         initialValue:
-                            widget.restaurant.postalCode != null ? widget.restaurant.postalCode.toString() : '',
+                            widget.place.postalCode != null ? widget.place.postalCode.toString() : '',
                         onChanged: (value) {
-                          widget.restaurant.postalCode = int.parse(value ?? '');
+                          widget.place.postalCode = int.parse(value ?? '');
                         },
                         isSmallInputField: true,
                       ),
@@ -93,9 +93,9 @@ class _NewPlaceState extends State<NewPlace> {
                   InputField(
                     labelText: "Country",
                     hintText: "Country",
-                    initialValue: widget.restaurant.country,
+                    initialValue: widget.place.country,
                     onChanged: (value) {
-                      widget.restaurant.country = value;
+                      widget.place.country = value;
                     },
                     isSmallInputField: true,
                   ),
@@ -105,7 +105,7 @@ class _NewPlaceState extends State<NewPlace> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      widget.restaurant.firstRating == null
+                      widget.place.firstRating == null
                           ? IconButton(
                               icon: const Icon(
                                 size: 50,
@@ -114,23 +114,23 @@ class _NewPlaceState extends State<NewPlace> {
                                 color: MyColors.primaryColor,
                               ),
                               onPressed: () {
-                                widget.restaurant.firstRating ??=
+                                widget.place.firstRating ??=
                                     Rating(ambientRating: 1, foodRating: 1, priceRating: 1);
-                                showRatingDialog(widget.restaurant.firstRating!);
+                                showRatingDialog(widget.place.firstRating!);
                               },
                             )
                           : RatingSummaryCard(
-                              rating: widget.restaurant.firstRating!,
+                              rating: widget.place.firstRating!,
                               onEditRating: () {
-                                showRatingDialog(widget.restaurant.firstRating!);
+                                showRatingDialog(widget.place.firstRating!);
                               },
                               onDeleteRating: () {
-                                widget.restaurant.firstRating = null;
+                                widget.place.firstRating = null;
                                 setState(() {});
                               },
                             ),
                       const HorizontalSpacer(8),
-                      widget.restaurant.secondRating == null
+                      widget.place.secondRating == null
                           ? IconButton(
                               icon: const Icon(
                                 size: 50,
@@ -139,18 +139,18 @@ class _NewPlaceState extends State<NewPlace> {
                                 color: MyColors.primaryColor,
                               ),
                               onPressed: () {
-                                widget.restaurant.secondRating ??=
+                                widget.place.secondRating ??=
                                     Rating(ambientRating: 1, foodRating: 1, priceRating: 1);
-                                showRatingDialog(widget.restaurant.secondRating!);
+                                showRatingDialog(widget.place.secondRating!);
                               },
                             )
                           : RatingSummaryCard(
-                              rating: widget.restaurant.secondRating!,
+                              rating: widget.place.secondRating!,
                               onEditRating: () {
-                                showRatingDialog(widget.restaurant.secondRating!);
+                                showRatingDialog(widget.place.secondRating!);
                               },
                               onDeleteRating: () {
-                                widget.restaurant.secondRating = null;
+                                widget.place.secondRating = null;
                                 setState(() {});
                               },
                             ),
@@ -168,7 +168,7 @@ class _NewPlaceState extends State<NewPlace> {
         child: ButtonComponent(
           text: "Save",
           onPressed: () {
-            widget.onSavePlace(widget.restaurant);
+            widget.onSavePlace(widget.place);
             Navigator.pop(context);
           },
         ),
@@ -190,7 +190,7 @@ class _NewPlaceState extends State<NewPlace> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const VerticalSpacer(18),
-                RestaurantRatingDialog(
+                PlaceRatingDialog(
                   rating: rating,
                 ),
                 const VerticalSpacer(9),

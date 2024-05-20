@@ -1,22 +1,22 @@
 import 'package:async_redux/async_redux.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:gastrorate/models/restaurant.dart';
+import 'package:gastrorate/models/place.dart';
 import 'package:gastrorate/screens/new_place.dart';
 import 'package:gastrorate/store/app_state.dart';
-import 'package:gastrorate/store/restaurants/restaurants_actions.dart';
+import 'package:gastrorate/store/places/places_actions.dart';
 
 class NewPlacePage extends StatelessWidget {
-  const NewPlacePage({super.key, required this.foundRestaurant});
+  const NewPlacePage({super.key, required this.foundPlace});
 
-  final Restaurant foundRestaurant;
+  final Place foundPlace;
 
   @override
   Widget build(BuildContext context) {
     return StoreConnector<AppState, ViewModel>(
       vm: () => Factory(this),
-      onInit: (Store<AppState> store) => store.dispatch(InitNewPlaceAction(foundRestaurant)),
+      onInit: (Store<AppState> store) => store.dispatch(InitNewPlaceAction(foundPlace)),
       builder: (BuildContext context, ViewModel vm) => NewPlace(
-        restaurant: vm.foundRestaurant,
+        place: vm.foundPlace,
         onSavePlace: vm.onSavePlace,
       ),
     );
@@ -28,16 +28,16 @@ class Factory extends VmFactory<AppState, NewPlacePage, ViewModel> {
 
   @override
   ViewModel? fromStore() => ViewModel(
-        foundRestaurant: state.restaurantsState.currentRestaurant ?? Restaurant(),
-        onSavePlace: (Restaurant restaurant) => dispatch(SaveOrUpdatePlaceAction(restaurant)),
+        foundPlace: state.placesState.place ?? Place(),
+        onSavePlace: (Place place) => dispatch(SaveOrUpdatePlaceAction(place)),
       );
 }
 
 class ViewModel extends Vm {
-  final Restaurant foundRestaurant;
-  final Function(Restaurant restaurant) onSavePlace;
+  final Place foundPlace;
+  final Function(Place place) onSavePlace;
 
-  ViewModel({required this.foundRestaurant, required this.onSavePlace});
+  ViewModel({required this.foundPlace, required this.onSavePlace});
 
   @override
   bool operator ==(Object other) =>
@@ -45,9 +45,9 @@ class ViewModel extends Vm {
       super == other &&
           other is ViewModel &&
           runtimeType == other.runtimeType &&
-          foundRestaurant == other.foundRestaurant &&
+          foundPlace == other.foundPlace &&
           onSavePlace == other.onSavePlace;
 
   @override
-  int get hashCode => super.hashCode ^ foundRestaurant.hashCode ^ onSavePlace.hashCode;
+  int get hashCode => super.hashCode ^ foundPlace.hashCode ^ onSavePlace.hashCode;
 }

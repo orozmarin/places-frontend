@@ -7,7 +7,7 @@ class Rating {
   double? ambientRating;
   double? foodRating;
   double? priceRating;
-  double? restaurantRating;
+  double? placeRating;
 
   // Constructor
 
@@ -20,7 +20,7 @@ class Rating {
     this.ambientRating,
     this.foodRating,
     this.priceRating,
-    this.restaurantRating,
+    this.placeRating,
   });
 
   @override
@@ -31,10 +31,10 @@ class Rating {
           ambientRating == other.ambientRating &&
           foodRating == other.foodRating &&
           priceRating == other.priceRating &&
-          restaurantRating == other.restaurantRating);
+          placeRating == other.placeRating);
 
   @override
-  int get hashCode => ambientRating.hashCode ^ foodRating.hashCode ^ priceRating.hashCode ^ restaurantRating.hashCode;
+  int get hashCode => ambientRating.hashCode ^ foodRating.hashCode ^ priceRating.hashCode ^ placeRating.hashCode;
 
   @override
   String toString() {
@@ -42,7 +42,7 @@ class Rating {
         ' ambientRating: $ambientRating,' +
         ' foodRating: $foodRating,' +
         ' priceRating: $priceRating,' +
-        ' restaurantRating: $restaurantRating,' +
+        ' placeRating: $placeRating,' +
         '}';
   }
 
@@ -50,13 +50,13 @@ class Rating {
     double? ambientRating,
     double? foodRating,
     double? priceRating,
-    double? restaurantRating,
+    double? placeRating,
   }) {
     return Rating(
       ambientRating: ambientRating ?? this.ambientRating,
       foodRating: foodRating ?? this.foodRating,
       priceRating: priceRating ?? this.priceRating,
-      restaurantRating: restaurantRating ?? this.restaurantRating,
+      placeRating: placeRating ?? this.placeRating,
     );
   }
 
@@ -65,7 +65,7 @@ class Rating {
       'ambientRating': ambientRating,
       'foodRating': foodRating,
       'priceRating': priceRating,
-      'restaurantRating': restaurantRating,
+      'placeRating': placeRating,
     };
   }
 
@@ -74,7 +74,7 @@ class Rating {
       ambientRating: map['ambientRating'] as double,
       foodRating: map['foodRating'] as double,
       priceRating: map['priceRating'] as double,
-      restaurantRating: map['restaurantRating'] as double,
+      placeRating: map['placeRating'] as double,
     );
   }
 

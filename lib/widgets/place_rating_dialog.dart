@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:gastrorate/models/rating.dart';
 import 'package:gastrorate/widgets/dialog_wrapper.dart';
 
-class RestaurantRatingDialog extends StatefulWidget {
+class PlaceRatingDialog extends StatefulWidget {
   final Rating rating;
 
-  const RestaurantRatingDialog({Key? key, required this.rating}) : super(key: key);
+  const PlaceRatingDialog({Key? key, required this.rating}) : super(key: key);
 
   @override
-  _RestaurantRatingDialogState createState() => _RestaurantRatingDialogState();
+  _PlaceRatingDialogState createState() => _PlaceRatingDialogState();
 }
 
-class _RestaurantRatingDialogState extends State<RestaurantRatingDialog> {
+class _PlaceRatingDialogState extends State<PlaceRatingDialog> {
   @override
   Widget build(BuildContext context) {
     return DialogWrapperWidget(
