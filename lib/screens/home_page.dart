@@ -1,9 +1,9 @@
 import 'package:async_redux/async_redux.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:gastrorate/models/restaurant.dart';
+import 'package:gastrorate/models/place.dart';
 import 'package:gastrorate/screens/home.dart';
 import 'package:gastrorate/store/app_state.dart';
-import 'package:gastrorate/store/restaurants/restaurants_actions.dart';
+import 'package:gastrorate/store/places/places_actions.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -12,10 +12,10 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return StoreConnector<AppState, ViewModel>(
       vm: () => Factory(this),
-      onInit: (Store<AppState> store) => store.dispatch(FetchRestaurantsAction()),
+      onInit: (Store<AppState> store) => store.dispatch(FetchPlacesAction()),
       builder: (BuildContext context, ViewModel vm) => Home(
-        restaurants: vm.restaurants,
-        onFindAllRestaurants: vm.onFindAllRestaurants,
+        places: vm.places,
+        onFindAllPlaces: vm.onFindAllPlaces,
         onDeletePlace: vm.onDeletePlace,
       ),
     );
@@ -27,18 +27,18 @@ class Factory extends VmFactory<AppState, HomePage, ViewModel> {
 
   @override
   ViewModel? fromStore() => ViewModel(
-        restaurants: state.restaurantsState.restaurants,
-        onFindAllRestaurants: () => dispatch(FetchRestaurantsAction()),
-        onDeletePlace: (restaurant) => dispatch(DeletePlaceAction(restaurant)),
+        places: state.placesState.places,
+        onFindAllPlaces: () => dispatch(FetchPlacesAction()),
+        onDeletePlace: (place) => dispatch(DeletePlaceAction(place)),
       );
 }
 
 class ViewModel extends Vm {
-  final List<Restaurant>? restaurants;
-  final Function() onFindAllRestaurants;
-  final Function(Restaurant restaurant) onDeletePlace;
+  final List<Place>? places;
+  final Function() onFindAllPlaces;
+  final Function(Place place) onDeletePlace;
 
-  ViewModel({required this.restaurants, required this.onFindAllRestaurants, required this.onDeletePlace});
+  ViewModel({required this.places, required this.onFindAllPlaces, required this.onDeletePlace});
 
   @override
   bool operator ==(Object other) =>
@@ -46,10 +46,10 @@ class ViewModel extends Vm {
       super == other &&
           other is ViewModel &&
           runtimeType == other.runtimeType &&
-          restaurants == other.restaurants &&
-          onFindAllRestaurants == other.onFindAllRestaurants &&
+          places == other.places &&
+          onFindAllPlaces == other.onFindAllPlaces &&
           onDeletePlace == other.onDeletePlace;
 
   @override
-  int get hashCode => super.hashCode ^ restaurants.hashCode ^ onFindAllRestaurants.hashCode ^ onDeletePlace.hashCode;
+  int get hashCode => super.hashCode ^ places.hashCode ^ onFindAllPlaces.hashCode ^ onDeletePlace.hashCode;
 }

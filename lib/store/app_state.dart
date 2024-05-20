@@ -1,6 +1,6 @@
 
 import 'package:copy_with_extension/copy_with_extension.dart';
-import 'package:gastrorate/store/restaurants/restaurants_state.dart';
+import 'package:gastrorate/store/places/places_state.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'app_state.g.dart';
@@ -8,10 +8,10 @@ part 'app_state.g.dart';
 @CopyWith()
 @JsonSerializable()
 class AppState{
-  final RestaurantsState restaurantsState;
+  final PlacesState placesState;
 
   AppState.init()
-  : restaurantsState = RestaurantsState.init();
+  : placesState = PlacesState.init();
 
   factory AppState.fromJson(Map<String, dynamic> json) => _$AppStateFromJson(json);
 
@@ -19,39 +19,39 @@ class AppState{
 
 //<editor-fold desc="Data Methods">
   const AppState({
-    required this.restaurantsState,
+    required this.placesState,
   });
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is AppState && runtimeType == other.runtimeType && restaurantsState == other.restaurantsState);
+      (other is AppState && runtimeType == other.runtimeType && placesState == other.placesState);
 
   @override
-  int get hashCode => restaurantsState.hashCode;
+  int get hashCode => placesState.hashCode;
 
   @override
   String toString() {
-    return 'AppState{ restaurantsState: $restaurantsState,}';
+    return 'AppState{ placesState: $placesState,}';
   }
 
   AppState copyWith({
-    RestaurantsState? restaurantsState,
+    PlacesState? placesState,
   }) {
     return AppState(
-      restaurantsState: restaurantsState ?? this.restaurantsState,
+      placesState: placesState ?? this.placesState,
     );
   }
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'restaurantsState': this.restaurantsState,
+      'placesState': this.placesState,
     };
   }
 
   factory AppState.fromMap(Map<String, dynamic> map) {
     return AppState(
-      restaurantsState: map['restaurantsState'] as RestaurantsState,
+      placesState: map['placesState'] as PlacesState,
     );
   }
 
