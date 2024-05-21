@@ -34,6 +34,7 @@ class _HomeState extends State<Home> {
                 itemBuilder: (context, index) {
                   Place place = widget.places![index];
                   return Card(
+
                     elevation: 3,
                     child: ListTile(
                       title: Text(
