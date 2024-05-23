@@ -1,5 +1,6 @@
 import 'package:async_redux/async_redux.dart';
 import 'package:flutter/material.dart';
+import 'package:gastrorate/router.dart';
 import 'package:gastrorate/screens/home_page.dart';
 import 'package:gastrorate/store/app_state.dart';
 
@@ -10,8 +11,9 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StoreProvider<AppState>(store: store, child: MaterialApp(
-      title: 'Flutter Demo',
+    return StoreProvider<AppState>(store: store, child: MaterialApp.router(
+      title: 'Places App',
+      routerConfig: goRouter,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         sliderTheme: const SliderThemeData(
@@ -21,7 +23,6 @@ class App extends StatelessWidget {
         visualDensity: VisualDensity.adaptivePlatformDensity,
         fontFamily: 'Open Sans',
       ),
-      home: const HomePage(),
     ));
 
   }

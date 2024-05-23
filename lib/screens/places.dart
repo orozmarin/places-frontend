@@ -4,69 +4,74 @@ import 'package:gastrorate/screens/new_place.dart';
 import 'package:gastrorate/screens/new_place_page.dart';
 import 'package:gastrorate/theme/my_colors.dart';
 import 'package:gastrorate/theme/my_icons.dart';
-import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:page_transition/page_transition.dart';
 
-class Home extends StatefulWidget {
-  const Home({super.key, required this.places, required this.onFindAllPlaces, required this.onDeletePlace});
+class Places extends StatefulWidget {
+  const Places(
+      {super.key,
+      required this.places,
+      required this.onFindAllPlaces,
+      required this.onDeletePlace,
+      required this.onInitPlaceForm});
 
   final Function() onFindAllPlaces;
   final List<Place>? places;
   final Function(Place place) onDeletePlace;
+  final Function(Place place) onInitPlaceForm;
 
   @override
-  State<StatefulWidget> createState() => _HomeState();
+  State<StatefulWidget> createState() => _PlacesState();
 }
 
-class _HomeState extends State<Home> {
-  int _selectedIndex = 0;
-
+class _PlacesState extends State<Places> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Home")),
+      appBar: AppBar(
+        title: const Text("Places", style: TextStyle(color: MyColors.navbarItemColor)),
+        backgroundColor: MyColors.appbarColor,
+      ),
       body: Center(
         child: //
-        Column(
+            Column(
           children: [
             Expanded(
               child: ListView.builder(
                 itemBuilder: (context, index) {
                   Place place = widget.places![index];
                   return Card(
-
                     elevation: 3,
                     child: ListTile(
-                      title: Text(
-                        place.name ?? "",
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
+                        title: Text(
+                          place.name ?? "",
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
                         ),
-                      ),
-                      subtitle: Text(
-                        "${place.city}, ${place.country}",
-                        style: const TextStyle(
-                          fontSize: 14,
+                        subtitle: Text(
+                          "${place.city}, ${place.country}",
+                          style: const TextStyle(
+                            fontSize: 14,
+                          ),
                         ),
-                      ),
-                      trailing: IconButton.filledTonal(
-                          onPressed: () {
-                            widget.onDeletePlace(place);
-                            setState(() {});
-                          }, color: MyColors.colorRed,
-                          icon: MyIcons.deleteIcon),
-                      onTap: () =>
+                        trailing: IconButton.filledTonal(
+                            onPressed: () {
+                              widget.onDeletePlace(place);
+                              setState(() {});
+                            },
+                            color: MyColors.colorRed,
+                            icon: MyIcons.deleteIcon),
+                        onTap: () {
+                          widget.onInitPlaceForm(place);
                           Navigator.push(
                             context,
                             PageTransition<NewPlace>(
                                 curve: Curves.easeIn,
                                 type: PageTransitionType.rightToLeft,
-                                child: NewPlacePage(
-                                  foundPlace: place,
-                                )),
-                          ),
-                    ),
+                                child: const NewPlacePage()),
+                          );
+                        }),
                   );
                 },
                 itemCount: widget.places!.length,
@@ -75,50 +80,19 @@ class _HomeState extends State<Home> {
           ],
         ),
       ),
-      bottomNavigationBar: Container(
-        color: MyColors.primaryColor,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-          child: GNav(
-            selectedIndex: _selectedIndex,
-            color: Colors.white,
-            activeColor: Colors.white,
-            tabBackgroundColor: MyColors.onPrimaryColor,
-            padding: const EdgeInsets.all(10),
-            gap: 8,
-            onTabChange: _navigateBottomBar,
-            tabs: const [
-              GButton(icon: Icons.home, text: "Home"),
-              GButton(icon: Icons.favorite_border, text: "Wishlist"),
-              GButton(icon: Icons.restaurant_menu, text: "Places"),
-              GButton(icon: Icons.settings, text: "Settings"),
-            ],
-          ),
-        ),
-      ),
       floatingActionButton: IconButton(
-        icon: const Icon(
-          Icons.add_circle,
-          color: MyColors.primaryColor,
-        ),
-        iconSize: 50,
-        onPressed: () =>
+          icon: const Icon(
+            Icons.add_circle,
+            color: MyColors.primaryDarkColor,
+          ),
+          iconSize: 50,
+          onPressed: () {
+            widget.onInitPlaceForm(Place());
             Navigator.push(
-              context,
-              PageTransition<NewPlace>(
-                  curve: Curves.easeIn,
-                  type: PageTransitionType.rightToLeft,
-                  child: NewPlacePage(
-                    foundPlace: Place(),
-                  )),
-            ),
-      ),
+                context,
+                PageTransition<NewPlace>(
+                    curve: Curves.easeIn, type: PageTransitionType.rightToLeft, child: const NewPlacePage()));
+          }),
     );
-  }
-
-  void _navigateBottomBar(int value) {
-    setState(() {
-      _selectedIndex = value;
-    });
   }
 }

@@ -6,15 +6,12 @@ import 'package:gastrorate/store/app_state.dart';
 import 'package:gastrorate/store/places/places_actions.dart';
 
 class NewPlacePage extends StatelessWidget {
-  const NewPlacePage({super.key, required this.foundPlace});
-
-  final Place foundPlace;
+  const NewPlacePage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return StoreConnector<AppState, ViewModel>(
       vm: () => Factory(this),
-      onInit: (Store<AppState> store) async => await store.dispatch(InitNewPlaceAction(foundPlace)),
       builder: (BuildContext context, ViewModel vm) => NewPlace(
         place: vm.foundPlace,
         onSavePlace: vm.onSavePlace,
