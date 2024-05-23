@@ -17,6 +17,7 @@ class HomePage extends StatelessWidget {
         places: vm.places,
         onFindAllPlaces: vm.onFindAllPlaces,
         onDeletePlace: vm.onDeletePlace,
+        onInitPlaceForm: vm.onInitPlaceForm,
       ),
     );
   }
@@ -30,6 +31,7 @@ class Factory extends VmFactory<AppState, HomePage, ViewModel> {
         places: state.placesState.places,
         onFindAllPlaces: () => dispatch(FetchPlacesAction()),
         onDeletePlace: (place) => dispatch(DeletePlaceAction(place)),
+        onInitPlaceForm: (Place place) => dispatch(InitNewPlaceAction(place)),
       );
 }
 
@@ -37,8 +39,13 @@ class ViewModel extends Vm {
   final List<Place>? places;
   final Function() onFindAllPlaces;
   final Function(Place place) onDeletePlace;
+  final Function(Place place) onInitPlaceForm;
 
-  ViewModel({required this.places, required this.onFindAllPlaces, required this.onDeletePlace});
+  ViewModel(
+      {required this.places,
+      required this.onFindAllPlaces,
+      required this.onDeletePlace,
+      required this.onInitPlaceForm});
 
   @override
   bool operator ==(Object other) =>
@@ -48,8 +55,10 @@ class ViewModel extends Vm {
           runtimeType == other.runtimeType &&
           places == other.places &&
           onFindAllPlaces == other.onFindAllPlaces &&
-          onDeletePlace == other.onDeletePlace;
+          onDeletePlace == other.onDeletePlace &&
+          onInitPlaceForm == other.onInitPlaceForm;
 
   @override
-  int get hashCode => super.hashCode ^ places.hashCode ^ onFindAllPlaces.hashCode ^ onDeletePlace.hashCode;
+  int get hashCode =>
+      super.hashCode ^ places.hashCode ^ onFindAllPlaces.hashCode ^ onDeletePlace.hashCode ^ onInitPlaceForm.hashCode;
 }
