@@ -16,6 +16,7 @@ Place _$PlaceFromJson(Map<String, dynamic> json) => Place(
       firstRating: Rating.fromJson(json['firstRating'] as Map<String, dynamic>),
       secondRating: Rating.fromJson(json['secondRating'] as Map<String, dynamic>),
       placeRating: (json['placeRating'] as num).toDouble(),
+      visitedAt: const CustomLocalDateTimeConverter().fromJson(json['visitedAt'] as String?),
     );
 
 Map<String, dynamic> _$PlaceToJson(Place instance) => <String, dynamic>{
@@ -28,4 +29,5 @@ Map<String, dynamic> _$PlaceToJson(Place instance) => <String, dynamic>{
       'firstRating': instance.firstRating!.toJson(),
       'secondRating': instance.secondRating!.toJson(),
       'placeRating': instance.placeRating,
+      'visitedAt': const CustomLocalDateTimeConverter().toJson(instance.visitedAt)
     };

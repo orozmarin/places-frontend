@@ -1,15 +1,17 @@
 import 'package:async_redux/async_redux.dart';
 import 'package:gastrorate/models/place.dart';
+import 'package:gastrorate/models/place_search_form.dart';
 import 'package:gastrorate/service/place_manager.dart';
 import 'package:gastrorate/store/app_state.dart';
-import 'package:gastrorate/tools/toast_helper_web.dart';
 
 class FetchPlacesAction extends ReduxAction<AppState>{
-  FetchPlacesAction();
+  FetchPlacesAction({this.placeSearchForm});
+  PlaceSearchForm? placeSearchForm;
 
   @override
   Future<AppState?> reduce() async{
-    List<Place>? places = await PlaceManager().findPlaces();
+    placeSearchForm ??= PlaceSearchForm(sortingMethod: PlaceSorting.DATE_DESC);
+    List<Place>? places = await PlaceManager().findPlaces(placeSearchForm!);
     dispatch(FetchPlacesSuccessAction(places));
     return null;
   }

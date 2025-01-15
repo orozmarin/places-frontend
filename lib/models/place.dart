@@ -1,4 +1,5 @@
 import 'package:gastrorate/models/rating.dart';
+import 'package:gastrorate/tools/custom_local_date_converter.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'place.g.dart';
@@ -14,13 +15,13 @@ class Place {
   Rating? firstRating;
   Rating? secondRating;
   double? placeRating;
+  DateTime? visitedAt;
 
   factory Place.fromJson(Map<String, dynamic> json) => _$PlaceFromJson(json);
 
   Map<String, dynamic> toJson() => _$PlaceToJson(this);
 
 //<editor-fold desc="Data Methods">
-
 
   Place({
     this.id,
@@ -32,6 +33,7 @@ class Place {
     this.firstRating,
     this.secondRating,
     this.placeRating,
+    this.visitedAt,
   });
 
 
@@ -48,7 +50,8 @@ class Place {
               country == other.country &&
               firstRating == other.firstRating &&
               secondRating == other.secondRating &&
-              placeRating == other.placeRating
+              placeRating == other.placeRating &&
+              visitedAt == other.visitedAt
           );
 
 
@@ -62,7 +65,8 @@ class Place {
       country.hashCode ^
       firstRating.hashCode ^
       secondRating.hashCode ^
-      placeRating.hashCode;
+      placeRating.hashCode ^
+      visitedAt.hashCode;
 
 
   @override
@@ -77,6 +81,7 @@ class Place {
         ' firstRating: $firstRating,' +
         ' secondRating: $secondRating,' +
         ' placeRating: $placeRating,' +
+        ' visitedAt: $visitedAt,' +
         '}';
   }
 
@@ -91,6 +96,7 @@ class Place {
     Rating? firstRating,
     Rating? secondRating,
     double? placeRating,
+    DateTime? visitedAt,
   }) {
     return Place(
       id: id ?? this.id,
@@ -102,6 +108,7 @@ class Place {
       firstRating: firstRating ?? this.firstRating,
       secondRating: secondRating ?? this.secondRating,
       placeRating: placeRating ?? this.placeRating,
+      visitedAt: visitedAt ?? this.visitedAt,
     );
   }
 
@@ -117,6 +124,7 @@ class Place {
       'firstRating': this.firstRating,
       'secondRating': this.secondRating,
       'placeRating': this.placeRating,
+      'visitedAt': this.visitedAt,
     };
   }
 
@@ -131,6 +139,7 @@ class Place {
       firstRating: map['firstRating'] as Rating,
       secondRating: map['secondRating'] as Rating,
       placeRating: map['placeRating'] as double,
+      visitedAt: map['visitedAt'] as DateTime,
     );
   }
 
