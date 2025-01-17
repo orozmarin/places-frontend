@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class LevelSlider extends StatefulWidget {
   final double value;
@@ -34,6 +35,7 @@ class _LevelSliderState extends State<LevelSlider> {
       quarterTurns: widget.quarterTurns ?? -1,
       child: SliderTheme(
         data: SliderThemeData(
+            valueIndicatorTextStyle: GoogleFonts.outfit(),
             activeTickMarkColor: Colors.transparent,
             inactiveTickMarkColor: Colors.transparent,
             thumbColor: widget.thumbColor ?? Theme.of(context).primaryColor,

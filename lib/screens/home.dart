@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:gastrorate/models/place.dart';
-import 'package:gastrorate/screens/new_place.dart';
-import 'package:gastrorate/screens/new_place_page.dart';
 import 'package:gastrorate/theme/my_colors.dart';
+import 'package:gastrorate/widgets/custom_text.dart';
 import 'package:gastrorate/widgets/place_card.dart';
-import 'package:page_transition/page_transition.dart';
 
 class Home extends StatefulWidget {
   const Home(
@@ -28,13 +26,20 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Home", style: TextStyle(color: MyColors.navbarItemColor)),
+        title: const CustomText("Home", style: TextStyle(color: MyColors.navbarItemColor)),
         backgroundColor: MyColors.appbarColor,
       ),
       body: Center(
-        child: //
-            Column(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Padding(
+              padding: const EdgeInsets.all(6),
+              child: CustomText(
+                "Recently added",
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
+            ),
             Expanded(
               child: ListView.builder(
                 itemBuilder: (context, index) {
@@ -59,10 +64,6 @@ class _HomeState extends State<Home> {
           iconSize: 50,
           onPressed: () {
             widget.onInitPlaceForm(Place());
-            Navigator.push(
-                context,
-                PageTransition<NewPlace>(
-                    curve: Curves.easeIn, type: PageTransitionType.rightToLeft, child: const NewPlacePage()));
           }),
     );
   }

@@ -1,8 +1,11 @@
 import 'package:async_redux/async_redux.dart';
+import 'package:gastrorate/models/from_where.dart';
 import 'package:gastrorate/models/place.dart';
 import 'package:gastrorate/models/place_search_form.dart';
+import 'package:gastrorate/router.dart';
 import 'package:gastrorate/service/place_manager.dart';
 import 'package:gastrorate/store/app_state.dart';
+import 'package:go_router/go_router.dart';
 
 class FetchPlacesAction extends ReduxAction<AppState>{
   FetchPlacesAction({this.placeSearchForm});
@@ -18,11 +21,13 @@ class FetchPlacesAction extends ReduxAction<AppState>{
 }
 
 class InitNewPlaceAction extends ReduxAction<AppState>{
-  InitNewPlaceAction(this.payload);
+  InitNewPlaceAction({required this.payload, required this.fromWhere});
   final Place payload;
+  final FromWhere fromWhere;
 
   @override
   Future<AppState?> reduce() async{
+    rootNavigatorKey.currentContext!.go('/${fromWhere.name}/details');
     return state.copyWith(placesState: state.placesState.copyWith(place: payload));
   }
 }

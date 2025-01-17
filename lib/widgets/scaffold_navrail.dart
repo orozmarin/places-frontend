@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gastrorate/theme/my_colors.dart';
+import 'package:gastrorate/widgets/custom_text.dart';
 
 class ScaffoldWithNavigationRail extends StatelessWidget {
   const ScaffoldWithNavigationRail({
@@ -25,19 +26,19 @@ class ScaffoldWithNavigationRail extends StatelessWidget {
             backgroundColor: MyColors.backgroundNavBarColor,
             destinations: const <NavigationRailDestination>[
               NavigationRailDestination(
-                label: Text('Home', style: TextStyle(color: MyColors.navbarItemColor),),
+                label: CustomText('Home', style: TextStyle(color: MyColors.navbarItemColor),),
                 icon: Icon(Icons.home, color: MyColors.navbarItemColor,),
               ),
               NavigationRailDestination(
-                label: Text('Places', style: TextStyle(color: MyColors.navbarItemColor),),
+                label: CustomText('Places', style: TextStyle(color: MyColors.navbarItemColor),),
                 icon: Icon(Icons.restaurant_menu, color: MyColors.navbarItemColor,),
               ),
               NavigationRailDestination(
-                label: Text('Wishlist', style: TextStyle(color: MyColors.navbarItemColor),),
+                label: CustomText('Wishlist', style: TextStyle(color: MyColors.navbarItemColor),),
                 icon: Icon(Icons.favorite_border, color: MyColors.navbarItemColor,),
               ),
               NavigationRailDestination(
-                label: Text('Settings', style: TextStyle(color: MyColors.navbarItemColor),),
+                label: CustomText('Settings', style: TextStyle(color: MyColors.navbarItemColor),),
                 icon: Icon(Icons.settings, color: MyColors.navbarItemColor,),
               ),
             ],

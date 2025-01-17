@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:gastrorate/models/from_where.dart';
 import 'package:gastrorate/models/place.dart';
-import 'package:gastrorate/screens/new_place.dart';
-import 'package:gastrorate/screens/new_place_page.dart';
 import 'package:gastrorate/theme/my_colors.dart';
 import 'package:gastrorate/theme/my_icons.dart';
-import 'package:page_transition/page_transition.dart';
+import 'package:gastrorate/widgets/custom_text.dart';
+import 'package:go_router/go_router.dart';
 
 class PlaceCard extends StatelessWidget {
   final Place place;
@@ -23,14 +23,14 @@ class PlaceCard extends StatelessWidget {
     return Card(
       elevation: 3,
       child: ListTile(
-        title: Text(
+        title: CustomText(
           place.name ?? "",
           style: const TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
         ),
-        subtitle: Text(
+        subtitle: CustomText(
           "${place.city}, ${place.country}",
           style: const TextStyle(
             fontSize: 14,
@@ -45,14 +45,6 @@ class PlaceCard extends StatelessWidget {
         ),
         onTap: () {
           onInitPlaceForm(place);
-          Navigator.push(
-            context,
-            PageTransition<NewPlace>(
-              curve: Curves.easeIn,
-              type: PageTransitionType.rightToLeft,
-              child: const NewPlacePage(),
-            ),
-          );
         },
       ),
     );
