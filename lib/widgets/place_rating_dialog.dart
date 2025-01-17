@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gastrorate/models/rating.dart';
+import 'package:gastrorate/widgets/custom_text.dart';
 import 'package:gastrorate/widgets/dialog_wrapper.dart';
 
 class PlaceRatingDialog extends StatefulWidget {
@@ -16,7 +17,7 @@ class _PlaceRatingDialogState extends State<PlaceRatingDialog> {
   Widget build(BuildContext context) {
     return DialogWrapperWidget(
       children: [
-        Text("Experience rating: ${widget.rating.ambientRating}"),
+        CustomText("Experience rating: ${widget.rating.ambientRating}"),
         Slider(
           label: "${widget.rating.ambientRating}",
           divisions: 18,
@@ -29,7 +30,7 @@ class _PlaceRatingDialogState extends State<PlaceRatingDialog> {
             });
           },
         ),
-        Text("Food rating: ${widget.rating.foodRating}"),
+        CustomText("Food rating: ${widget.rating.foodRating}"),
         Slider(
           label: "${widget.rating.foodRating}",
           divisions: 18,
@@ -42,7 +43,7 @@ class _PlaceRatingDialogState extends State<PlaceRatingDialog> {
             });
           },
         ),
-        Text("Price rating: ${widget.rating.priceRating}"),
+        CustomText("Price rating: ${widget.rating.priceRating}"),
         Slider(
           label: "${widget.rating.priceRating}",
           divisions: 18,

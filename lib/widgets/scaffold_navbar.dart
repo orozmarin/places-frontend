@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gastrorate/theme/my_colors.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 
 class ScaffoldWithNavigationBar extends StatelessWidget {
@@ -29,13 +30,25 @@ class ScaffoldWithNavigationBar extends StatelessWidget {
               padding: const EdgeInsets.all(10),
               gap: 8,
               onTabChange: onDestinationSelected,
-              tabs: const [
-                GButton(icon: Icons.home, text: "Home"),
-                GButton(icon: Icons.restaurant_menu, text: "Places"),
-                GButton(icon: Icons.favorite_border, text: "Wishlist"),
-                GButton(icon: Icons.settings, text: "Settings"),
-              ],
-            ),
+            tabs: [
+              GButton(
+                  icon: Icons.home,
+                  textStyle: GoogleFonts.outfit(textStyle: const TextStyle(color: MyColors.navbarItemColor)),
+                  text: "Home"),
+              GButton(
+                  icon: Icons.restaurant_menu,
+                  textStyle: GoogleFonts.outfit(textStyle: const TextStyle(color: MyColors.navbarItemColor)),
+                  text: "Places"),
+              GButton(
+                  icon: Icons.favorite_border,
+                  textStyle: GoogleFonts.outfit(textStyle: const TextStyle(color: MyColors.navbarItemColor)),
+                  text: "Wishlist"),
+              GButton(
+                  icon: Icons.settings,
+                  textStyle: GoogleFonts.outfit(textStyle: const TextStyle(color: MyColors.navbarItemColor)),
+                  text: "Settings"),
+            ],
+          ),
           ),
         ),
     );

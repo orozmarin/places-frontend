@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:gastrorate/theme/my_colors.dart';
 
+import '../widgets/custom_text.dart';
+
 class Wishlist extends StatefulWidget {
   const Wishlist({super.key});
 
@@ -13,11 +15,11 @@ class _WishlistState extends State<Wishlist> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Wishlist", style: TextStyle(color: MyColors.navbarItemColor)),
+        title: const CustomText("Wishlist", style: TextStyle(color: MyColors.navbarItemColor)),
         backgroundColor: MyColors.appbarColor,
       ),
       body: const Center(
-        child: Text("Your wishlist"),
+        child: CustomText("Your wishlist"),
       ),
     );
   }

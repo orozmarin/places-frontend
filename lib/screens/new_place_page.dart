@@ -25,13 +25,13 @@ class Factory extends VmFactory<AppState, NewPlacePage, ViewModel> {
 
   @override
   ViewModel? fromStore() => ViewModel(
-        foundPlace: state.placesState.place ?? Place(),
+        foundPlace: state.placesState.place,
         onSavePlace: (Place place) => dispatch(SaveOrUpdatePlaceAction(place)),
       );
 }
 
 class ViewModel extends Vm {
-  final Place foundPlace;
+  final Place? foundPlace;
   final Function(Place place) onSavePlace;
 
   ViewModel({required this.foundPlace, required this.onSavePlace});

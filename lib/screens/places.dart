@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:gastrorate/models/from_where.dart';
 import 'package:gastrorate/models/place.dart';
 import 'package:gastrorate/screens/new_place.dart';
 import 'package:gastrorate/screens/new_place_page.dart';
 import 'package:gastrorate/theme/my_colors.dart';
 import 'package:gastrorate/theme/my_icons.dart';
+import 'package:gastrorate/widgets/custom_text.dart';
+import 'package:gastrorate/widgets/place_card.dart';
+import 'package:go_router/go_router.dart';
 import 'package:page_transition/page_transition.dart';
 
 class Places extends StatefulWidget {
@@ -28,7 +32,7 @@ class _PlacesState extends State<Places> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Places", style: TextStyle(color: MyColors.navbarItemColor)),
+        title: const CustomText("Places", style: TextStyle(color: MyColors.navbarItemColor)),
         backgroundColor: MyColors.appbarColor,
       ),
       body: Center(
@@ -39,39 +43,10 @@ class _PlacesState extends State<Places> {
               child: ListView.builder(
                 itemBuilder: (context, index) {
                   Place place = widget.places![index];
-                  return Card(
-                    elevation: 3,
-                    child: ListTile(
-                        title: Text(
-                          place.name ?? "",
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
-                        ),
-                        subtitle: Text(
-                          "${place.city}, ${place.country}",
-                          style: const TextStyle(
-                            fontSize: 14,
-                          ),
-                        ),
-                        trailing: IconButton.filledTonal(
-                            onPressed: () {
-                              widget.onDeletePlace(place);
-                              setState(() {});
-                            },
-                            color: MyColors.colorRed,
-                            icon: MyIcons.deleteIcon),
-                        onTap: () {
-                          widget.onInitPlaceForm(place);
-                          Navigator.push(
-                            context,
-                            PageTransition<NewPlace>(
-                                curve: Curves.easeIn,
-                                type: PageTransitionType.rightToLeft,
-                                child: const NewPlacePage()),
-                          );
-                        }),
+                  return PlaceCard(
+                    place: place,
+                    onDeletePlace: widget.onDeletePlace,
+                    onInitPlaceForm: widget.onInitPlaceForm,
                   );
                 },
                 itemCount: widget.places!.length,
@@ -88,10 +63,6 @@ class _PlacesState extends State<Places> {
           iconSize: 50,
           onPressed: () {
             widget.onInitPlaceForm(Place());
-            Navigator.push(
-                context,
-                PageTransition<NewPlace>(
-                    curve: Curves.easeIn, type: PageTransitionType.rightToLeft, child: const NewPlacePage()));
           }),
     );
   }

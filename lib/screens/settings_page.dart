@@ -11,7 +11,6 @@ class SettingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return StoreConnector<AppState, ViewModel>(
       vm: () => Factory(this),
-      onInit: (Store<AppState> store) => store.dispatch(FetchPlacesAction()),
       builder: (BuildContext context, ViewModel vm) => const Settings(),
     );
   }

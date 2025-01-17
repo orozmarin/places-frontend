@@ -3,6 +3,7 @@ import 'package:gastrorate/models/place.dart';
 import 'package:gastrorate/models/rating.dart';
 import 'package:gastrorate/theme/my_colors.dart';
 import 'package:gastrorate/tools/toast_helper_web.dart';
+import 'package:gastrorate/widgets/custom_text.dart';
 import 'package:gastrorate/widgets/default_button.dart';
 import 'package:gastrorate/widgets/horizontal_spacer.dart';
 import 'package:gastrorate/widgets/input_field.dart';
@@ -12,9 +13,9 @@ import 'package:gastrorate/widgets/rating_summary_card.dart';
 import 'package:gastrorate/widgets/vertical_spacer.dart';
 
 class NewPlace extends StatefulWidget {
-  NewPlace({super.key, required this.place, required this.onSavePlace});
+  const NewPlace({super.key, required this.place, required this.onSavePlace});
 
-  Place place;
+  final Place? place;
   final Function(Place place) onSavePlace;
 
   @override
@@ -23,10 +24,14 @@ class NewPlace extends StatefulWidget {
 
 class _NewPlaceState extends State<NewPlace> {
   final _formKey = GlobalKey<FormState>();
+  Place currentPlace = Place();
 
   @override
   void initState() {
     super.initState();
+    if (widget.place != null){
+      currentPlace = widget.place!;
+    }
   }
 
   @override
@@ -34,7 +39,7 @@ class _NewPlaceState extends State<NewPlace> {
     final screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: AppBar(
-        title: const Text("New place"),
+        title: const CustomText("New place"),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -56,9 +61,9 @@ class _NewPlaceState extends State<NewPlace> {
                         }
                         return null;
                       },
-                      initialValue: widget.place.name,
+                      initialValue: currentPlace.name,
                       onChanged: (value) {
-                        widget.place.name = value;
+                        currentPlace.name = value;
                       },
                       isSmallInputField: true,
                     ),
@@ -72,9 +77,9 @@ class _NewPlaceState extends State<NewPlace> {
                         }
                         return null;
                       },
-                      initialValue: widget.place.address,
+                      initialValue: currentPlace.address,
                       onChanged: (value) {
-                        widget.place.address = value;
+                        currentPlace.address = value;
                       },
                       isSmallInputField: true,
                     ),
@@ -92,9 +97,9 @@ class _NewPlaceState extends State<NewPlace> {
                             }
                             return null;
                           },
-                          initialValue: widget.place.city,
+                          initialValue: currentPlace.city,
                           onChanged: (value) {
-                            widget.place.city = value;
+                            currentPlace.city = value;
                           },
                           isSmallInputField: true,
                         ),
@@ -113,9 +118,9 @@ class _NewPlaceState extends State<NewPlace> {
                             return null;
                           },
                           keyboardType: TextInputType.number,
-                          initialValue: widget.place.postalCode != null ? widget.place.postalCode.toString() : '',
+                          initialValue: currentPlace.postalCode != null ? currentPlace.postalCode.toString() : '',
                           onChanged: (value) {
-                            widget.place.postalCode = int.parse(value ?? '');
+                            currentPlace.postalCode = int.parse(value ?? '');
                           },
                           isSmallInputField: true,
                         ),
@@ -125,7 +130,7 @@ class _NewPlaceState extends State<NewPlace> {
                     InputField(
                       labelText: "Country",
                       hintText: "Country",
-                      initialValue: widget.place.country,
+                      initialValue: currentPlace.country,
                       validatorFunction: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please enter a country';
@@ -133,17 +138,17 @@ class _NewPlaceState extends State<NewPlace> {
                         return null;
                       },
                       onChanged: (value) {
-                        widget.place.country = value;
+                        currentPlace.country = value;
                       },
                       isSmallInputField: true,
                     ),
                     const VerticalSpacer(8),
-                    Text("Ratings", style: Theme.of(context).textTheme.headlineSmall),
+                    CustomText("Ratings", style: Theme.of(context).textTheme.headlineSmall),
                     const VerticalSpacer(8),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        widget.place.firstRating == null
+                        currentPlace.firstRating == null
                             ? IconButton(
                                 icon: const Icon(
                                   size: 50,
@@ -152,22 +157,22 @@ class _NewPlaceState extends State<NewPlace> {
                                   color: MyColors.primaryColor,
                                 ),
                                 onPressed: () {
-                                  widget.place.firstRating ??= Rating(ambientRating: 1, foodRating: 1, priceRating: 1);
-                                  showRatingDialog(widget.place.firstRating!);
+                                  currentPlace.firstRating ??= Rating(ambientRating: 1, foodRating: 1, priceRating: 1);
+                                  showRatingDialog(currentPlace.firstRating!);
                                 },
                               )
                             : RatingSummaryCard(
-                                rating: widget.place.firstRating!,
+                                rating: currentPlace.firstRating!,
                                 onEditRating: () {
-                                  showRatingDialog(widget.place.firstRating!);
+                                  showRatingDialog(currentPlace.firstRating!);
                                 },
                                 onDeleteRating: () {
-                                  widget.place.firstRating = null;
+                                  currentPlace.firstRating = null;
                                   setState(() {});
                                 },
                               ),
                         const HorizontalSpacer(8),
-                        widget.place.secondRating == null
+                        currentPlace.secondRating == null
                             ? IconButton(
                                 icon: const Icon(
                                   size: 50,
@@ -176,17 +181,17 @@ class _NewPlaceState extends State<NewPlace> {
                                   color: MyColors.primaryColor,
                                 ),
                                 onPressed: () {
-                                  widget.place.secondRating ??= Rating(ambientRating: 1, foodRating: 1, priceRating: 1);
-                                  showRatingDialog(widget.place.secondRating!);
+                                  currentPlace.secondRating ??= Rating(ambientRating: 1, foodRating: 1, priceRating: 1);
+                                  showRatingDialog(currentPlace.secondRating!);
                                 },
                               )
                             : RatingSummaryCard(
-                                rating: widget.place.secondRating!,
+                                rating: currentPlace.secondRating!,
                                 onEditRating: () {
-                                  showRatingDialog(widget.place.secondRating!);
+                                  showRatingDialog(currentPlace.secondRating!);
                                 },
                                 onDeleteRating: () {
-                                  widget.place.secondRating = null;
+                                  currentPlace.secondRating = null;
                                   setState(() {});
                                 },
                               ),
@@ -205,11 +210,11 @@ class _NewPlaceState extends State<NewPlace> {
         child: ButtonComponent(
           text: "Save",
           onPressed: () {
-            if (widget.place.firstRating == null || widget.place.secondRating == null)
+            if (currentPlace.firstRating == null || currentPlace.secondRating == null) {
               toastHelperWeb.showToastError(context, "Please add ratings of your place");
-            else if (_formKey.currentState!.validate()) {
+            } else if (_formKey.currentState!.validate()) {
               _formKey.currentState!.save();
-              widget.onSavePlace(widget.place);
+              widget.onSavePlace(currentPlace);
               toastHelperWeb.showToastSuccess(context, "Place saved!");
               Navigator.pop(context);
             }

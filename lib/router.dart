@@ -8,16 +8,16 @@ import 'package:gastrorate/screens/wishlist_page.dart';
 import 'package:gastrorate/widgets/scaffold_nested_navigation.dart';
 import 'package:go_router/go_router.dart';
 
-final _rootNavigatorKey = GlobalKey<NavigatorState>();
-final _shellNavigatorHomeKey = GlobalKey<NavigatorState>(debugLabel: 'homeShellKey');
-final _shellNavigatorPlacesKey = GlobalKey<NavigatorState>(debugLabel: 'placesShellKey');
-final _shellNavigatorWishlistKey = GlobalKey<NavigatorState>(debugLabel: 'wishlistShellKey');
-final _shellNavigatorSettingsKey = GlobalKey<NavigatorState>(debugLabel: 'settingsShellKey');
+final rootNavigatorKey = GlobalKey<NavigatorState>();
+final shellNavigatorHomeKey = GlobalKey<NavigatorState>(debugLabel: 'homeShellKey');
+final shellNavigatorPlacesKey = GlobalKey<NavigatorState>(debugLabel: 'placesShellKey');
+final shellNavigatorWishlistKey = GlobalKey<NavigatorState>(debugLabel: 'wishlistShellKey');
+final shellNavigatorSettingsKey = GlobalKey<NavigatorState>(debugLabel: 'settingsShellKey');
 
 // the one and only GoRouter instance
 final goRouter = GoRouter(
   initialLocation: '/home',
-  navigatorKey: _rootNavigatorKey,
+  navigatorKey: rootNavigatorKey,
   routes: [
     // Stateful nested navigation based on:
     // https://github.com/flutter/packages/blob/main/packages/go_router/example/lib/stateful_shell_route.dart
@@ -30,7 +30,7 @@ final goRouter = GoRouter(
       branches: [
         // first branch (A)
         StatefulShellBranch(
-          navigatorKey: _shellNavigatorHomeKey,
+          navigatorKey: shellNavigatorHomeKey,
           routes: [
             // top route inside branch
             GoRoute(
@@ -40,13 +40,18 @@ final goRouter = GoRouter(
               ),
               routes: [
                 // child route
+                GoRoute(
+                  path: 'details',
+                  builder: (context, state) =>
+                  const NewPlacePage(),
+                ),
               ],
             ),
           ],
         ),
         // second branch (B)
         StatefulShellBranch(
-          navigatorKey: _shellNavigatorPlacesKey,
+          navigatorKey: shellNavigatorPlacesKey,
           routes: [
             // top route inside branch
             GoRoute(
@@ -66,7 +71,7 @@ final goRouter = GoRouter(
           ],
         ),
         StatefulShellBranch(
-          navigatorKey: _shellNavigatorWishlistKey,
+          navigatorKey: shellNavigatorWishlistKey,
           routes: [
             // top route inside branch
             GoRoute(
@@ -81,7 +86,7 @@ final goRouter = GoRouter(
           ],
         ),
         StatefulShellBranch(
-          navigatorKey: _shellNavigatorSettingsKey,
+          navigatorKey: shellNavigatorSettingsKey,
           routes: [
             // top route inside branch
             GoRoute(
