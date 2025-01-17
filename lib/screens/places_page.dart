@@ -1,5 +1,6 @@
 import 'package:async_redux/async_redux.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:gastrorate/models/from_where.dart';
 import 'package:gastrorate/models/place.dart';
 import 'package:gastrorate/screens/home.dart';
 import 'package:gastrorate/screens/places.dart';
@@ -32,7 +33,7 @@ class Factory extends VmFactory<AppState, PlacesPage, ViewModel> {
     places: state.placesState.places,
     onFindAllPlaces: () => dispatch(FetchPlacesAction()),
     onDeletePlace: (place) => dispatch(DeletePlaceAction(place)),
-    onInitPlaceForm: (Place place) => dispatch(InitNewPlaceAction(place)),
+    onInitPlaceForm: (Place place) => dispatch(InitNewPlaceAction(payload: place, fromWhere: FromWhere.places)),
   );
 }
 

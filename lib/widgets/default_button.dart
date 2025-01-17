@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:gastrorate/theme/my_colors.dart';
 import 'package:gastrorate/theme/theme_helper.dart';
+import 'package:gastrorate/widgets/custom_text.dart';
 import 'package:gastrorate/widgets/horizontal_spacer.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class ButtonComponent extends StatelessWidget {
   final String? text;
@@ -107,6 +109,7 @@ class ButtonComponent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ButtonStyle buttonStyle = ButtonStyle(
+      textStyle: MaterialStateProperty.all(GoogleFonts.outfit()),
       shape: MaterialStateProperty.all<RoundedRectangleBorder>(
         RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(kInputBorderRadius),
@@ -168,7 +171,7 @@ class ButtonComponent extends StatelessWidget {
           if (iconData != null) Icon(iconData, size: 16),
           if (iconData != null && text != null) const HorizontalSpacer(8),
           if (text != null && textWidget == null)
-            Text(text!,
+            CustomText(text!,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                       color: isDisabled

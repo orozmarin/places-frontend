@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gastrorate/theme/my_colors.dart';
+import 'package:gastrorate/widgets/custom_text.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class InputField extends StatefulWidget {
   final String? labelText;
@@ -95,7 +97,7 @@ class _InputFieldState extends State<InputField> {
         ? Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: <Widget>[
-              Text(
+              CustomText(
                 '$textLength/${widget.maxLength}',
                 style: TextStyle(fontSize: 12, height: 1, color: Colors.black.withOpacity(0.5)),
               ),
@@ -120,6 +122,7 @@ class _InputFieldState extends State<InputField> {
         maxLength: widget.maxLength,
         enabled: widget.enabled,
         textAlign: (widget.textAlign != null) ? widget.textAlign! : TextAlign.start,
+        style: GoogleFonts.outfit(),
         controller: widget.controller,
         initialValue: widget.initialValue,
         autovalidateMode: widget.autovalidateMode,
@@ -159,6 +162,7 @@ class _InputFieldState extends State<InputField> {
           inputFormatters: widget.textInputFormatters,
           controller: widget.controller,
           initialValue: widget.initialValue,
+          style: GoogleFonts.outfit(),
           maxLength: widget.maxLength,
           maxLines: widget.maxLines,
           autovalidateMode: widget.autovalidateMode,
@@ -196,6 +200,11 @@ class _InputFieldState extends State<InputField> {
         fillColor: widget.fillColor,
         filled: widget.filled,
         hintText: widget.hintText,
+        counterStyle: GoogleFonts.outfit(),
+        suffixStyle: GoogleFonts.outfit(),
+        helperStyle: GoogleFonts.outfit(),
+        prefixStyle: GoogleFonts.outfit(),
+        hintStyle: GoogleFonts.outfit(),
         contentPadding: widget.alignLabelWithHint!
             ? const EdgeInsets.symmetric(horizontal: 26, vertical: 18)
             : const EdgeInsets.fromLTRB(16, 8, 16, 8),
@@ -204,6 +213,8 @@ class _InputFieldState extends State<InputField> {
                 ? null
                 : widget.labelText)
             : widget.labelText,
+        floatingLabelStyle: GoogleFonts.outfit(),
+        labelStyle: GoogleFonts.outfit(),
         floatingLabelBehavior:
             (widget.floatingLabelTextHidden!) ? FloatingLabelBehavior.never : FloatingLabelBehavior.auto,
         suffixIcon: widget.suffixIcon,
@@ -217,10 +228,19 @@ class _InputFieldState extends State<InputField> {
   InputDecoration buildFloatingInputDecoration(BuildContext context) {
     return InputDecoration(
       hintText: widget.hintText,
+      hintStyle: GoogleFonts.outfit(),
+      counterStyle: GoogleFonts.outfit(),
+      suffixStyle: GoogleFonts.outfit(),
+      helperStyle: GoogleFonts.outfit(),
+      prefixStyle: GoogleFonts.outfit(),
       alignLabelWithHint: widget.alignLabelWithHint,
       labelText: widget.labelText,
-      labelStyle: Theme.of(context).textTheme.bodyLarge!.copyWith(
-          color: _focusNode.hasFocus ? Colors.black : Colors.black.withOpacity(0.5), fontWeight: FontWeight.w400),
+      errorStyle: GoogleFonts.outfit(),
+      labelStyle: GoogleFonts.outfit(
+        textStyle: Theme.of(context).textTheme.bodyLarge!.copyWith(
+            color: _focusNode.hasFocus ? Colors.black : Colors.black.withOpacity(0.5), fontWeight: FontWeight.w400),
+      ),
+      floatingLabelStyle: GoogleFonts.outfit(),
       filled: true,
       isDense: true,
       suffixIcon: widget.suffixIcon,
@@ -241,10 +261,19 @@ class _InputFieldState extends State<InputField> {
 
   InputDecoration buildInputDecoration(BuildContext context) {
     return InputDecoration(
-      labelStyle: Theme.of(context).textTheme.bodyLarge!.copyWith(
-          color: _focusNode.hasFocus ? Colors.black : Colors.black.withOpacity(0.5), fontWeight: FontWeight.w500),
+      labelStyle: GoogleFonts.outfit(
+        textStyle: Theme.of(context).textTheme.bodyLarge!.copyWith(
+            color: _focusNode.hasFocus ? Colors.black : Colors.black.withOpacity(0.5), fontWeight: FontWeight.w500),
+      ),
       hintText: widget.hintText,
       labelText: widget.labelText,
+      hintStyle: GoogleFonts.outfit(),
+      counterStyle: GoogleFonts.outfit(),
+      suffixStyle: GoogleFonts.outfit(),
+      helperStyle: GoogleFonts.outfit(),
+      prefixStyle: GoogleFonts.outfit(),
+      floatingLabelStyle: GoogleFonts.outfit(),
+      errorStyle: GoogleFonts.outfit(),
       filled: true,
       isDense: true,
       fillColor: Colors.white,
