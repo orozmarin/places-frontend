@@ -211,11 +211,11 @@ class _NewPlaceState extends State<NewPlace> {
           text: "Save",
           onPressed: () {
             if (currentPlace.firstRating == null || currentPlace.secondRating == null) {
-              toastHelperWeb.showToastError(context, "Please add ratings of your place");
+              //toastHelperWeb.showToastError(context, "Please add ratings of your place");
             } else if (_formKey.currentState!.validate()) {
               _formKey.currentState!.save();
               widget.onSavePlace(currentPlace);
-              toastHelperWeb.showToastSuccess(context, "Place saved!");
+              //toastHelperWeb.showToastSuccess(context, "Place saved!");
               Navigator.pop(context);
             }
           },

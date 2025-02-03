@@ -1,7 +1,6 @@
 import 'package:async_redux/async_redux.dart';
 import 'package:flutter/material.dart';
 import 'package:gastrorate/router.dart';
-import 'package:gastrorate/screens/home_page.dart';
 import 'package:gastrorate/store/app_state.dart';
 
 import 'main.dart';
@@ -24,6 +23,6 @@ class App extends StatelessWidget {
         fontFamily: 'Open Sans',
       ),
     ));
-
   }
+
 }
