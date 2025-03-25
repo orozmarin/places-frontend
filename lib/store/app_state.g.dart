@@ -42,11 +42,11 @@ class _$AppStateCWProxyImpl implements _$AppStateCWProxy {
     Object? placesState = const $CopyWithPlaceholder(),
   }) {
     return AppState(
-      placesState: placesState == const $CopyWithPlaceholder() ||
-              placesState == null
-          ? _value.placesState
-          // ignore: cast_nullable_to_non_nullable
-          : placesState as PlacesState,
+      placesState:
+          placesState == const $CopyWithPlaceholder() || placesState == null
+              ? _value.placesState
+              // ignore: cast_nullable_to_non_nullable
+              : placesState as PlacesState,
     );
   }
 }
@@ -62,8 +62,8 @@ extension $AppStateCopyWith on AppState {
 // **************************************************************************
 
 AppState _$AppStateFromJson(Map<String, dynamic> json) => AppState(
-      placesState: PlacesState.fromJson(
-          json['placesState'] as Map<String, dynamic>),
+      placesState:
+          PlacesState.fromJson(json['placesState'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$AppStateToJson(AppState instance) => <String, dynamic>{
