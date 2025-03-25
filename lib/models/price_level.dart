@@ -1,0 +1,8 @@
+enum PriceLevel{
+  FREE,
+  INEXPENSIVE,
+  MODERATE,
+  EXPENSIVE,
+  VERY_EXPENSIVE,
+  UNKNOWN
+}
