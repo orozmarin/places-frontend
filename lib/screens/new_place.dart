@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:gastrorate/models/place.dart';
 import 'package:gastrorate/models/rating.dart';
 import 'package:gastrorate/theme/my_colors.dart';
-import 'package:gastrorate/tools/toast_helper_web.dart';
 import 'package:gastrorate/widgets/custom_text.dart';
 import 'package:gastrorate/widgets/default_button.dart';
 import 'package:gastrorate/widgets/horizontal_spacer.dart';
@@ -209,6 +208,7 @@ class _NewPlaceState extends State<NewPlace> {
         padding: const EdgeInsets.all(12),
         child: ButtonComponent(
           text: "Save",
+          isDisabled: currentPlace.firstRating == null || currentPlace.secondRating == null,
           onPressed: () {
             if (currentPlace.firstRating == null || currentPlace.secondRating == null) {
               //toastHelperWeb.showToastError(context, "Please add ratings of your place");
@@ -227,31 +227,29 @@ class _NewPlaceState extends State<NewPlace> {
   void showRatingDialog(Rating rating) {
     showModalBottomSheet(
       context: context,
+      backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (BuildContext context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom, // Ensures space for the keyboard
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
           ),
-          child: IntrinsicHeight(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const VerticalSpacer(18),
-                PlaceRatingDialog(
-                  rating: rating,
-                ),
-                const VerticalSpacer(9),
-                ButtonComponent(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    setState(() {});
-                  },
-                  text: "Save",
-                ),
-                const VerticalSpacer(8),
-              ],
-            ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const VerticalSpacer(18),
+              PlaceRatingDialog(rating: rating),
+              const VerticalSpacer(9),
+              ButtonComponent(
+                onPressed: () {
+                  Navigator.pop(context);
+                  setState(() {});
+                },
+                text: "Save",
+              ),
+              const VerticalSpacer(8),
+            ],
           ),
         );
       },

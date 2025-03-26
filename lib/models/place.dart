@@ -1,8 +1,12 @@
 import 'package:gastrorate/models/photo.dart';
 import 'package:gastrorate/models/place_opening_hours.dart';
+import 'package:gastrorate/models/place_opening_hours_period.dart';
+import 'package:gastrorate/models/place_opening_hours_time.dart';
 import 'package:gastrorate/models/place_review.dart';
 import 'package:gastrorate/models/price_level.dart';
 import 'package:gastrorate/models/rating.dart';
+import 'package:google_maps_place_picker_mb/google_maps_place_picker.dart';
+import 'package:html/dom.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'place.g.dart';
@@ -20,7 +24,7 @@ class Place {
   List<Photo>? photos;
   PriceLevel? priceLevel;
   List<PlaceReview>? reviews;
-  int? googleRating;
+  double? googleRating;
   String? url;
   String? webSiteUrl;
   Rating? firstRating;
@@ -51,6 +55,55 @@ class Place {
     this.placeRating,
     this.visitedAt,
   });
+
+  factory Place.fromPickResult(PickResult result) {
+    var document = Document.html(result.adrAddress ?? "");
+
+    return Place(
+      address: document.querySelector('.street-address')?.text ?? '',
+      postalCode: int.tryParse(document.querySelector('.postal-code')?.text ?? ''),
+      city: document.querySelector('.locality')?.text ?? '',
+      country: document.querySelector('.country-name')?.text ?? '',
+      name: result.name,
+      contactNumber: result.internationalPhoneNumber,
+      googleRating: result.rating as double?,
+      url: result.url,
+      webSiteUrl: result.website,
+      photos: result.photos
+          ?.map((photo) => Photo(
+        photoReference: photo.photoReference,
+        height: photo.height as int,
+        width: photo.width as int,
+        htmlAttributions: photo.htmlAttributions,
+      ))
+          .toList(),
+      reviews: result.reviews
+          ?.map((review) => PlaceReview(
+        text: review.text,
+        authorName: review.authorName,
+        authorUrl: review.authorUrl,
+        language: review.language,
+        profilePhotoUrl: review.profilePhotoUrl,
+        rating: review.rating as int,
+        relativeTimeDescription: review.relativeTimeDescription,
+        time: review.time as int,
+      ))
+          .toList(),
+      openingHours: result.openingHours == null
+          ? null
+          : PlaceOpeningHours(
+        openNow: result.openingHours?.openNow,
+        weekdayText: result.openingHours?.weekdayText,
+        periods: result.openingHours?.periods
+            .map((e) => PlaceOpeningHoursPeriod(
+          open: PlaceOpeningHoursTime(time: e.open?.time, day: e.open?.day),
+          close: PlaceOpeningHoursTime(time: e.close?.time, day: e.close?.day),
+        ))
+            .toList(),
+      ),
+      priceLevel: convertPriceLevelByName(result.priceLevel?.name),
+    );
+  }
 
   @override
   bool operator ==(Object other) =>
@@ -113,7 +166,7 @@ class Place {
     List<Photo>? photos,
     PriceLevel? priceLevel,
     List<PlaceReview>? reviews,
-    int? googleRating,
+    double? googleRating,
     String? url,
     String? webSiteUrl,
     Rating? firstRating,
@@ -181,7 +234,7 @@ class Place {
           map['priceLevel'] != null ? PriceLevel.values.firstWhere((e) => e.toString() == map['priceLevel']) : null,
       reviews:
           map['reviews'] != null ? List<PlaceReview>.from(map['reviews'].map((x) => PlaceReview.fromMap(x))) : null,
-      googleRating: map['googleRating'] as int?,
+      googleRating: map['googleRating'] as double?,
       url: map['url'] as String?,
       webSiteUrl: map['webSiteUrl'] as String?,
       firstRating: map['firstRating'] != null ? Rating.fromMap(map['firstRating']) : null,
