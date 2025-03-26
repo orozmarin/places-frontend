@@ -21,7 +21,7 @@ Place _$PlaceFromJson(Map<String, dynamic> json) => Place(
       priceLevel: $enumDecodeNullable(_$PriceLevelEnumMap, json['priceLevel']),
       reviews:
           (json['reviews'] as List<dynamic>?)?.map((e) => PlaceReview.fromJson(e as Map<String, dynamic>)).toList(),
-      googleRating: (json['googleRating'] as num?)?.toInt(),
+      googleRating: (json['googleRating'] as num?)?.toDouble(),
       url: json['url'] as String?,
       webSiteUrl: json['webSiteUrl'] as String?,
       firstRating: json['firstRating'] == null ? null : Rating.fromJson(json['firstRating'] as Map<String, dynamic>),
