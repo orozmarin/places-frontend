@@ -16,18 +16,31 @@ Place _$PlaceFromJson(Map<String, dynamic> json) => Place(
       contactNumber: json['contactNumber'] as String?,
       openingHours: json['openingHours'] == null
           ? null
-          : PlaceOpeningHours.fromJson(json['openingHours'] as Map<String, dynamic>),
-      photos: (json['photos'] as List<dynamic>?)?.map((e) => Photo.fromJson(e as Map<String, dynamic>)).toList(),
+          : PlaceOpeningHours.fromJson(
+              json['openingHours'] as Map<String, dynamic>),
+      photos: (json['photos'] as List<dynamic>?)
+          ?.map((e) => Photo.fromJson(e as Map<String, dynamic>))
+          .toList(),
       priceLevel: $enumDecodeNullable(_$PriceLevelEnumMap, json['priceLevel']),
-      reviews:
-          (json['reviews'] as List<dynamic>?)?.map((e) => PlaceReview.fromJson(e as Map<String, dynamic>)).toList(),
+      reviews: (json['reviews'] as List<dynamic>?)
+          ?.map((e) => PlaceReview.fromJson(e as Map<String, dynamic>))
+          .toList(),
       googleRating: (json['googleRating'] as num?)?.toDouble(),
       url: json['url'] as String?,
       webSiteUrl: json['webSiteUrl'] as String?,
-      firstRating: json['firstRating'] == null ? null : Rating.fromJson(json['firstRating'] as Map<String, dynamic>),
-      secondRating: json['secondRating'] == null ? null : Rating.fromJson(json['secondRating'] as Map<String, dynamic>),
+      coordinates: json['coordinates'] == null
+          ? null
+          : Coordinates.fromJson(json['coordinates'] as Map<String, dynamic>),
+      firstRating: json['firstRating'] == null
+          ? null
+          : Rating.fromJson(json['firstRating'] as Map<String, dynamic>),
+      secondRating: json['secondRating'] == null
+          ? null
+          : Rating.fromJson(json['secondRating'] as Map<String, dynamic>),
       placeRating: (json['placeRating'] as num?)?.toDouble(),
-      visitedAt: json['visitedAt'] == null ? null : DateTime.parse(json['visitedAt'] as String),
+      visitedAt: json['visitedAt'] == null
+          ? null
+          : DateTime.parse(json['visitedAt'] as String),
     );
 
 Map<String, dynamic> _$PlaceToJson(Place instance) => <String, dynamic>{
@@ -45,6 +58,7 @@ Map<String, dynamic> _$PlaceToJson(Place instance) => <String, dynamic>{
       'googleRating': instance.googleRating,
       'url': instance.url,
       'webSiteUrl': instance.webSiteUrl,
+      'coordinates': instance.coordinates?.toJson(),
       'firstRating': instance.firstRating?.toJson(),
       'secondRating': instance.secondRating?.toJson(),
       'placeRating': instance.placeRating,
@@ -57,4 +71,5 @@ const _$PriceLevelEnumMap = {
   PriceLevel.MODERATE: 'MODERATE',
   PriceLevel.EXPENSIVE: 'EXPENSIVE',
   PriceLevel.VERY_EXPENSIVE: 'VERY_EXPENSIVE',
+  PriceLevel.UNKNOWN: 'UNKNOWN',
 };
