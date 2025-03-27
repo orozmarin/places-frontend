@@ -6,11 +6,11 @@ import 'package:gastrorate/widgets/custom_text.dart';
 import 'package:gastrorate/widgets/vertical_spacer.dart';
 
 class RatingSummaryCard extends StatefulWidget {
-  RatingSummaryCard({super.key, required this.rating, required this.onEditRating, required this.onDeleteRating});
+  const RatingSummaryCard({super.key, required this.rating, required this.onEditRating, required this.onDeleteRating});
 
   final Function() onEditRating;
   final Function() onDeleteRating;
-  Rating rating;
+  final Rating rating;
 
   @override
   State<RatingSummaryCard> createState() => _RatingSummaryCardState();

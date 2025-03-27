@@ -38,7 +38,7 @@ class App extends StatelessWidget {
                 titleLarge: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
               ),
 
-              cardTheme: const CardTheme(
+              cardTheme: CardTheme(
                 surfaceTintColor: Colors.transparent,
                 color: Colors.white,
                 shadowColor: Colors.black12,
@@ -46,7 +46,7 @@ class App extends StatelessWidget {
                 margin: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.all(Radius.circular(12)),
-                  side: BorderSide(color: Colors.black12, width: 1),
+                  side: BorderSide(color: Colors.black12.withOpacity(0.1), width: 1),
                 ),
               ),
 

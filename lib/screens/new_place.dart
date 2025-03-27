@@ -1,15 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:gastrorate/models/photo.dart';
 import 'package:gastrorate/models/place.dart';
+import 'package:gastrorate/models/place_review.dart';
 import 'package:gastrorate/models/rating.dart';
+import 'package:gastrorate/screens/dialogs/place_review_dialog.dart';
 import 'package:gastrorate/theme/my_colors.dart';
+import 'package:gastrorate/theme/theme_helper.dart';
 import 'package:gastrorate/widgets/custom_text.dart';
 import 'package:gastrorate/widgets/default_button.dart';
 import 'package:gastrorate/widgets/horizontal_spacer.dart';
-import 'package:gastrorate/widgets/input_field.dart';
 import 'package:gastrorate/widgets/page_body_card.dart';
+import 'package:gastrorate/widgets/photo_gallery.dart';
 import 'package:gastrorate/widgets/place_rating_dialog.dart';
 import 'package:gastrorate/widgets/rating_summary_card.dart';
+import 'package:gastrorate/widgets/review_swiper.dart';
 import 'package:gastrorate/widgets/vertical_spacer.dart';
+import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
 
 class NewPlace extends StatefulWidget {
   const NewPlace({super.key, required this.place, required this.onSavePlace});
@@ -28,14 +35,19 @@ class _NewPlaceState extends State<NewPlace> {
   @override
   void initState() {
     super.initState();
-    if (widget.place != null){
+    if (widget.place != null) {
       currentPlace = widget.place!;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
+    LatLng initialPosition = LatLng(currentPlace.coordinates?.latitude ?? kInitialPosition.latitude,
+        currentPlace.coordinates?.longitude ?? kInitialPosition.longitude);
+    Photo photo = currentPlace.photos!.first;
+    String photoUrl =
+        "https://maps.googleapis.com/maps/api/place/photo?maxwidth=200&photo_reference=${photo.photoReference}&key=${dotenv.env['MAPS_API'].toString()}";
+
     return Scaffold(
       appBar: AppBar(
         title: const CustomText("New place"),
@@ -44,159 +56,58 @@ class _NewPlaceState extends State<NewPlace> {
         child: SingleChildScrollView(
           child: PageBodyCard(
             child: Container(
-              padding: const EdgeInsets.fromLTRB(8.0, 24.0, 8.0, 0),
+              padding: const EdgeInsets.fromLTRB(8.0, 16.0, 8.0, 0),
               child: Form(
                 key: _formKey,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    InputField(
-                      labelText: "Name",
-                      hintText: "Enter name",
-                      validatorFunction: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter a name';
-                        }
-                        return null;
-                      },
-                      initialValue: currentPlace.name,
-                      onChanged: (value) {
-                        currentPlace.name = value;
-                      },
-                      isSmallInputField: true,
+                    Padding(
+                      padding: const EdgeInsets.only(left: 16),
+                      child: CustomText(
+                        currentPlace.name ?? "Unnamed Place",
+                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    if (currentPlace.address != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4.0, bottom: 12.0, left: 16),
+                        child: CustomText(
+                          currentPlace.address!,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey),
+                        ),
+                      ),
+                    ReviewSwiper(
+                      reviews: currentPlace.reviews ?? <PlaceReview>[],
+                      onTap: (PlaceReview review) => showReviewDialog(review),
                     ),
                     const VerticalSpacer(8),
-                    InputField(
-                      labelText: "Street and number",
-                      hintText: "Enter address",
-                      validatorFunction: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter an address';
-                        }
-                        return null;
-                      },
-                      initialValue: currentPlace.address,
-                      onChanged: (value) {
-                        currentPlace.address = value;
-                      },
-                      isSmallInputField: true,
+                    PhotoGallery(photos: currentPlace.photos ?? []),
+                    const VerticalSpacer(8),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 16),
+                      child: CustomText("Ratings", style: Theme.of(context).textTheme.headlineSmall),
                     ),
                     const VerticalSpacer(8),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        InputField(
-                          width: screenWidth * 0.5,
-                          labelText: "City",
-                          hintText: "Enter city",
-                          validatorFunction: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter a city';
-                            }
-                            return null;
-                          },
-                          initialValue: currentPlace.city,
-                          onChanged: (value) {
-                            currentPlace.city = value;
-                          },
-                          isSmallInputField: true,
-                        ),
-                        const HorizontalSpacer(20),
-                        InputField(
-                          width: screenWidth * 0.3,
-                          labelText: "Postal code",
-                          hintText: "Enter postal code",
-                          validatorFunction: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter a postal code';
-                            }
-                            if (int.tryParse(value) == null) {
-                              return 'Please enter a valid number';
-                            }
-                            return null;
-                          },
-                          keyboardType: TextInputType.number,
-                          initialValue: currentPlace.postalCode != null ? currentPlace.postalCode.toString() : '',
-                          onChanged: (value) {
-                            currentPlace.postalCode = int.parse(value ?? '');
-                          },
-                          isSmallInputField: true,
-                        ),
+                        _buildRatingCard(currentPlace.firstRating, () {
+                          setState(() {
+                            currentPlace.firstRating ??= Rating(ambientRating: 1, foodRating: 1, priceRating: 1);
+                            showRatingDialog(currentPlace.firstRating!);
+                          });
+                        }),
+                        const HorizontalSpacer(16),
+                        _buildRatingCard(currentPlace.secondRating, () {
+                          setState(() {
+                            currentPlace.secondRating ??= Rating(ambientRating: 1, foodRating: 1, priceRating: 1);
+                            showRatingDialog(currentPlace.secondRating!);
+                          });
+                        }),
                       ],
                     ),
-                    const VerticalSpacer(8),
-                    InputField(
-                      labelText: "Country",
-                      hintText: "Country",
-                      initialValue: currentPlace.country,
-                      validatorFunction: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter a country';
-                        }
-                        return null;
-                      },
-                      onChanged: (value) {
-                        currentPlace.country = value;
-                      },
-                      isSmallInputField: true,
-                    ),
-                    const VerticalSpacer(8),
-                    CustomText("Ratings", style: Theme.of(context).textTheme.headlineSmall),
-                    const VerticalSpacer(8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        currentPlace.firstRating == null
-                            ? IconButton(
-                                icon: const Icon(
-                                  size: 50,
-                                  semanticLabel: "Add",
-                                  Icons.add_circle,
-                                  color: MyColors.primaryColor,
-                                ),
-                                onPressed: () {
-                                  currentPlace.firstRating ??= Rating(ambientRating: 1, foodRating: 1, priceRating: 1);
-                                  showRatingDialog(currentPlace.firstRating!);
-                                },
-                              )
-                            : RatingSummaryCard(
-                                rating: currentPlace.firstRating!,
-                                onEditRating: () {
-                                  showRatingDialog(currentPlace.firstRating!);
-                                },
-                                onDeleteRating: () {
-                                  currentPlace.firstRating = null;
-                                  setState(() {});
-                                },
-                              ),
-                        const HorizontalSpacer(8),
-                        currentPlace.secondRating == null
-                            ? IconButton(
-                                icon: const Icon(
-                                  size: 50,
-                                  semanticLabel: "Add",
-                                  Icons.add_circle,
-                                  color: MyColors.primaryColor,
-                                ),
-                                onPressed: () {
-                                  currentPlace.secondRating ??= Rating(ambientRating: 1, foodRating: 1, priceRating: 1);
-                                  showRatingDialog(currentPlace.secondRating!);
-                                },
-                              )
-                            : RatingSummaryCard(
-                                rating: currentPlace.secondRating!,
-                                onEditRating: () {
-                                  showRatingDialog(currentPlace.secondRating!);
-                                },
-                                onDeleteRating: () {
-                                  currentPlace.secondRating = null;
-                                  setState(() {});
-                                },
-                              ),
-                      ],
-                    ),
-                    //TODO add photo upload
                   ],
                 ),
               ),
@@ -222,6 +133,44 @@ class _NewPlaceState extends State<NewPlace> {
         ),
       ),
     );
+  }
+
+  Widget _buildRatingCard(Rating? rating, VoidCallback onAdd) {
+    return rating == null
+        ? InkWell(
+            onTap: onAdd,
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              width: 120,
+              height: 80,
+              decoration: BoxDecoration(
+                color: MyColors.primaryColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: MyColors.primaryColor, width: 2),
+              ),
+              child: const Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.add, size: 30, color: MyColors.primaryColor),
+                  VerticalSpacer(4),
+                  CustomText("Add Rating", style: TextStyle(color: MyColors.primaryColor))
+                ],
+              ),
+            ),
+          )
+        : RatingSummaryCard(
+            rating: rating,
+            onEditRating: () => showRatingDialog(rating),
+            onDeleteRating: () {
+              setState(() {
+                if (rating == currentPlace.firstRating) {
+                  currentPlace.firstRating = null;
+                } else {
+                  currentPlace.secondRating = null;
+                }
+              });
+            },
+          );
   }
 
   void showRatingDialog(Rating rating) {
@@ -252,6 +201,15 @@ class _NewPlaceState extends State<NewPlace> {
             ],
           ),
         );
+      },
+    );
+  }
+
+  void showReviewDialog(PlaceReview review) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return PlaceReviewDialog(review: review);
       },
     );
   }

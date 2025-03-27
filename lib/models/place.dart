@@ -1,3 +1,4 @@
+import 'package:gastrorate/models/coordinates.dart';
 import 'package:gastrorate/models/photo.dart';
 import 'package:gastrorate/models/place_opening_hours.dart';
 import 'package:gastrorate/models/place_opening_hours_period.dart';
@@ -27,6 +28,7 @@ class Place {
   double? googleRating;
   String? url;
   String? webSiteUrl;
+  Coordinates? coordinates;
   Rating? firstRating;
   Rating? secondRating;
   double? placeRating;
@@ -50,6 +52,7 @@ class Place {
     this.googleRating,
     this.url,
     this.webSiteUrl,
+    this.coordinates,
     this.firstRating,
     this.secondRating,
     this.placeRating,
@@ -101,6 +104,7 @@ class Place {
         ))
             .toList(),
       ),
+      coordinates: Coordinates(latitude: result.geometry?.location.lat, longitude: result.geometry?.location.lng),
       priceLevel: convertPriceLevelByName(result.priceLevel?.name),
     );
   }
@@ -123,6 +127,7 @@ class Place {
           googleRating == other.googleRating &&
           url == other.url &&
           webSiteUrl == other.webSiteUrl &&
+          coordinates == other.coordinates &&
           firstRating == other.firstRating &&
               secondRating == other.secondRating &&
               placeRating == other.placeRating &&
@@ -147,11 +152,12 @@ class Place {
       firstRating.hashCode ^
       secondRating.hashCode ^
       placeRating.hashCode ^
+      coordinates.hashCode ^
       visitedAt.hashCode;
 
   @override
   String toString() {
-    return 'Place{ id: $id, name: $name, address: $address, city: $city, postalCode: $postalCode, country: $country, contactNumber: $contactNumber, openingHours: $openingHours, photos: $photos, priceLevel: $priceLevel, reviews: $reviews, googleRating: $googleRating, url: $url, webSiteUrl: $webSiteUrl, firstRating: $firstRating, secondRating: $secondRating, placeRating: $placeRating, visitedAt: $visitedAt }';
+    return 'Place{ id: $id, name: $name, address: $address, city: $city, postalCode: $postalCode, country: $country, contactNumber: $contactNumber, openingHours: $openingHours, photos: $photos, priceLevel: $priceLevel, reviews: $reviews, googleRating: $googleRating, url: $url, webSiteUrl: $webSiteUrl, coordinates: $coordinates, firstRating: $firstRating, secondRating: $secondRating, placeRating: $placeRating, visitedAt: $visitedAt }';
   }
 
   Place copyWith({
@@ -169,6 +175,7 @@ class Place {
     double? googleRating,
     String? url,
     String? webSiteUrl,
+    Coordinates? coordinates,
     Rating? firstRating,
     Rating? secondRating,
     double? placeRating,
@@ -189,6 +196,7 @@ class Place {
       googleRating: googleRating ?? this.googleRating,
       url: url ?? this.url,
       webSiteUrl: webSiteUrl ?? this.webSiteUrl,
+      coordinates: coordinates ?? this.coordinates,
       firstRating: firstRating ?? this.firstRating,
       secondRating: secondRating ?? this.secondRating,
       placeRating: placeRating ?? this.placeRating,
@@ -212,6 +220,7 @@ class Place {
       'googleRating': googleRating,
       'url': url,
       'webSiteUrl': webSiteUrl,
+      'coordinates': coordinates,
       'firstRating': firstRating?.toMap(),
       'secondRating': secondRating?.toMap(),
       'placeRating': placeRating,
@@ -237,6 +246,7 @@ class Place {
       googleRating: map['googleRating'] as double?,
       url: map['url'] as String?,
       webSiteUrl: map['webSiteUrl'] as String?,
+      coordinates: map['coordinates'] != null ? Coordinates.fromMap(map['coordinates']) : null,
       firstRating: map['firstRating'] != null ? Rating.fromMap(map['firstRating']) : null,
       secondRating: map['secondRating'] != null ? Rating.fromMap(map['secondRating']) : null,
       placeRating: map['placeRating'] as double?,
