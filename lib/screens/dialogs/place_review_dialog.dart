@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gastrorate/models/place_review.dart';
+import 'package:gastrorate/theme/my_colors.dart';
 import 'package:gastrorate/widgets/custom_text.dart';
 import 'package:gastrorate/widgets/horizontal_spacer.dart';
 import 'package:gastrorate/widgets/vertical_spacer.dart';
@@ -12,6 +13,7 @@ class PlaceReviewDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      surfaceTintColor: MyColors.mainBackgroundColor,
       title: CustomText(review.authorName ?? 'Anonymous'),
       content: SingleChildScrollView(
         child: Column(

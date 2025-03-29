@@ -5,6 +5,7 @@ import 'package:gastrorate/models/rating.dart';
 import 'package:gastrorate/screens/dialogs/place_review_dialog.dart';
 import 'package:gastrorate/theme/my_colors.dart';
 import 'package:gastrorate/widgets/custom_text.dart';
+import 'package:gastrorate/widgets/date_input_with_date_picker.dart';
 import 'package:gastrorate/widgets/default_button.dart';
 import 'package:gastrorate/widgets/horizontal_line.dart';
 import 'package:gastrorate/widgets/horizontal_spacer.dart';
@@ -28,12 +29,16 @@ class NewPlace extends StatefulWidget {
 
 class _NewPlaceState extends State<NewPlace> {
   Place currentPlace = Place();
+  final DateTime _earliestDate = DateTime.now().subtract(const Duration(days: 36500));
+  final DateTime _latestDate = DateTime.now();
+  DateTime? _visitedAt;
 
   @override
   void initState() {
     super.initState();
     if (widget.place != null) {
       currentPlace = widget.place!;
+      _visitedAt = currentPlace.visitedAt;
     }
   }
 
@@ -44,6 +49,22 @@ class _NewPlaceState extends State<NewPlace> {
         title: CustomText(
           currentPlace.name ?? "Unnamed Place",
         ),
+        actions: [
+          if (currentPlace.url != null)
+            IconButton(
+              icon: const Icon(Icons.location_on),
+              onPressed: () async {
+                final Uri mapsUri = Uri.parse(currentPlace.url!);
+                if (await canLaunchUrl(mapsUri)) {
+                  await launchUrl(mapsUri);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Could not open Google Maps.')),
+                  );
+                }
+              },
+            ),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -72,6 +93,23 @@ class _NewPlaceState extends State<NewPlace> {
                 ),
                 const VerticalSpacer(8),
                 buildRatings(),
+                const VerticalSpacer(8),
+                Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 38),
+                    child: Row(
+                      children: [
+                        CustomText("Visited at:", style: Theme.of(context).textTheme.bodyLarge),
+                        const HorizontalSpacer(8),
+                        DateInputWithDatePicker(
+                          title: 'Select date',
+                          maximumDate: _latestDate,
+                          width: 150,
+                          minimumDate: _earliestDate,
+                          date: _visitedAt,
+                          onDateChanged: (DateTime newDate) => _onDateChanged(newDate),
+                        ),
+                      ],
+                    )),
               ],
             ),
           ),
@@ -188,32 +226,14 @@ class _NewPlaceState extends State<NewPlace> {
     );
   }
 
-  Row buildAddress(BuildContext context) {
-    return Row(
-      children: [
-        if (currentPlace.address != null)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 4.0, left: 16),
-            child: CustomText(
-              "${currentPlace.address}, ${currentPlace.city}",
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontSize: 20),
-            ),
-          ),
-        if (currentPlace.url != null)
-          IconButton(
-            icon: const Icon(Icons.location_on),
-            onPressed: () async {
-              final Uri mapsUri = Uri.parse(currentPlace.url!);
-              if (await canLaunchUrl(mapsUri)) {
-                await launchUrl(mapsUri);
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Could not open Google Maps.')),
-                );
-              }
-            },
-          ),
-      ],
+  Widget buildAddress(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4.0, left: 16),
+      child: CustomText(
+        "${currentPlace.address}, ${currentPlace.city}",
+        style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontSize: 20),
+        softWrap: true, // Ensures text wraps if needed
+      ),
     );
   }
 
@@ -294,5 +314,11 @@ class _NewPlaceState extends State<NewPlace> {
         return PlaceReviewDialog(review: review);
       },
     );
+  }
+
+  void _onDateChanged(DateTime newDate) {
+    _visitedAt = newDate;
+    currentPlace.visitedAt = _visitedAt;
+    setState(() {});
   }
 }

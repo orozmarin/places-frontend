@@ -3,10 +3,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:gastrorate/models/place.dart';
+import 'package:gastrorate/models/place_search_form.dart';
 import 'package:gastrorate/theme/my_colors.dart';
+import 'package:gastrorate/theme/theme_helper.dart';
 import 'package:gastrorate/widgets/custom_text.dart';
 import 'package:gastrorate/widgets/place_card.dart';
-import 'package:gastrorate/theme/theme_helper.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
@@ -20,7 +21,7 @@ class Places extends StatefulWidget {
       required this.onDeletePlace,
       required this.onInitPlaceForm});
 
-  final Function() onFindAllPlaces;
+  final Function(PlaceSearchForm) onFindAllPlaces;
   final List<Place>? places;
   final Function(Place place) onDeletePlace;
   final Function(Place place) onInitPlaceForm;
@@ -34,6 +35,7 @@ class Places extends StatefulWidget {
 class _PlacesState extends State<Places> {
   LatLng initialPosition = kInitialPosition;
   Place? selectedPlace;
+  PlaceSorting _selectedSorting = PlaceSorting.DATE_ASC;
 
   bool _mapsInitialized = false;
 
@@ -73,6 +75,28 @@ class _PlacesState extends State<Places> {
       appBar: AppBar(
         title: const CustomText("Places", style: TextStyle(color: MyColors.navbarItemColor)),
         backgroundColor: MyColors.appbarColor,
+        actions: [
+          PopupMenuButton<PlaceSorting>(
+            surfaceTintColor: MyColors.mainBackgroundColor,
+            icon: const Icon(
+              Icons.filter_list,
+              color: Colors.white,
+            ),
+            onSelected: (PlaceSorting value) {
+              _selectedSorting = value;
+              widget.onFindAllPlaces(PlaceSearchForm(sortingMethod: value));
+              setState(() {});
+            },
+            itemBuilder: (BuildContext context) => <PopupMenuEntry<PlaceSorting>>[
+              _buildPopupMenuItem("Alphabetically (A-Z)", PlaceSorting.ALPHABETICALLY_ASC),
+              _buildPopupMenuItem("Alphabetically (Z-A)", PlaceSorting.ALPHABETICALLY_DESC),
+              _buildPopupMenuItem("Rating (Low to High)", PlaceSorting.RATING_ASC),
+              _buildPopupMenuItem("Rating (High to Low)", PlaceSorting.RATING_DESC),
+              _buildPopupMenuItem("Date (Oldest First)", PlaceSorting.DATE_ASC),
+              _buildPopupMenuItem("Date (Newest First)", PlaceSorting.DATE_DESC),
+            ],
+          ),
+        ],
       ),
       body: Center(
         child: //
@@ -129,6 +153,13 @@ class _PlacesState extends State<Places> {
               ),
             );
           }),
+    );
+  }
+
+  PopupMenuItem<PlaceSorting> _buildPopupMenuItem(String text, PlaceSorting value) {
+    return PopupMenuItem<PlaceSorting>(
+      value: value,
+      child: Text(text, style: TextStyle(fontWeight: _selectedSorting == value ? FontWeight.bold : FontWeight.normal)),
     );
   }
 }
