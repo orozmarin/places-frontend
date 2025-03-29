@@ -36,7 +36,7 @@ class PlaceCard extends StatelessWidget {
             fontSize: 14,
           ),
         ),
-        trailing: IconButton.filledTonal(
+        trailing: IconButton(
           onPressed: () {
             onDeletePlace(place);
           },

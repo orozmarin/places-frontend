@@ -1,0 +1,49 @@
+# Flutter/Dart related files
+.dart_tool/
+.packages
+.pub-cache/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Dependency files
+pubspec.lock
+
+# IDE and Editor settings
+.vscode/
+.idea/
+*.iml
+
+# Android specific files
+android/.gradle/
+android/app/debug.keystore
+android/key.jks
+
+# iOS specific files
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.podspec
+
+# macOS specific files
+macos/Pods/
+macos/.symlinks/
+macos/Flutter/ephemeral/
+
+# Windows specific files
+windows/flutter/ephemeral/
+
+# Linux specific files
+linux/flutter/ephemeral/
+
+# Firebase related files
+firebase.json
+
+# Logs and temp files
+*.log
+*.tmp
+
+# User-specific and generated files
+*.DS_Store
+*.lock
+*.bak
+*.swp
