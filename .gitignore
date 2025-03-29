@@ -1,34 +1,49 @@
-gradle-wrapper.jar
-/.gradle
-/captures/
-/gradlew
-/gradlew.bat
-/local.properties
-GeneratedPluginRegistrant.java
-
-# Flutter/Dart
+# Flutter/Dart related files
 .dart_tool/
 .packages
-.build/
+.pub-cache/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Dependency files
 pubspec.lock
 
-# IDE
+# IDE and Editor settings
 .vscode/
 .idea/
 *.iml
 
-# Flutter build
-build/
-ios/Pods/
+# Android specific files
 android/.gradle/
 android/app/debug.keystore
+android/key.jks
 
-# Misc
+# iOS specific files
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.podspec
+
+# macOS specific files
+macos/Pods/
+macos/.symlinks/
+macos/Flutter/ephemeral/
+
+# Windows specific files
+windows/flutter/ephemeral/
+
+# Linux specific files
+linux/flutter/ephemeral/
+
+# Firebase related files
+firebase.json
+
+# Logs and temp files
 *.log
+*.tmp
 
-
-# Remember to never publicly share your keystore.
-# See https://flutter.dev/docs/deployment/android#reference-the-keystore-from-the-app
-key.properties
-**/*.keystore
-**/*.jks
+# User-specific and generated files
+*.DS_Store
+*.lock
+*.bak
+*.swp

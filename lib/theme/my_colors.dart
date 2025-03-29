@@ -22,4 +22,6 @@ class MyColors{
   static const Color navbarItemColor = Colors.white;
   static const Color activeItemColor = Colors.white38;
 
+  static const Color horizontalDividerColor = Color(0x1F000000);
+
 }

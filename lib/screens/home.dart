@@ -127,7 +127,6 @@ class _HomeState extends State<Home> {
                     onPlacePicked: (PickResult result) {
                       setState(() {
                         selectedPlace = Place.fromPickResult(result);
-                        Navigator.of(context).pop();
                         widget.onInitPlaceForm(selectedPlace ?? Place());
                       });
                     },
