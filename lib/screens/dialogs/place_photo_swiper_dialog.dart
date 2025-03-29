@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:card_swiper/card_swiper.dart';
-import 'package:gastrorate/models/photo.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:gastrorate/models/photo.dart';
 
 class PlacePhotoSwiperDialog extends StatelessWidget {
   final List<Photo> photos;
@@ -11,11 +11,13 @@ class PlacePhotoSwiperDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(shape: CircleBorder(),
+    return Dialog(
       backgroundColor: Colors.transparent,
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        body: Center(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          height: 500,
+          color: Colors.white,
           child: Swiper(
             itemCount: photos.length,
             viewportFraction: 0.85,
