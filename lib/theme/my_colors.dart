@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 class MyColors{
   static const Color primaryColor = Colors.black;
   static const Color primaryDarkColor = Colors.black;
-  static const Color onPrimaryColor = Color(0XFFCE93D8);
+  static const Color onPrimaryColor = Colors.white;
   static const Color borderColor = Color(0xffead8f1);
   static const Color mainBackgroundColor = Colors.white;
   static const Color appbarColor = Colors.black;
 
+  static const Color primaryButtonColor = Colors.black;
+  static const Color secondaryButtonColor = Colors.white;
   static Color disabledButtonBckColor = Colors.grey.shade300;
   static Color disabledButtonTextColor = Colors.black54;
   static Color disabledButtonForegroundColor = Colors.grey.shade800;
