@@ -106,6 +106,7 @@ class Place {
       ),
       coordinates: Coordinates(latitude: result.geometry?.location.lat, longitude: result.geometry?.location.lng),
       priceLevel: convertPriceLevelByName(result.priceLevel?.name),
+      visitedAt: DateTime.now(),
     );
   }
 

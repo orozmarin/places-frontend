@@ -2,7 +2,7 @@ import 'package:async_redux/async_redux.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:gastrorate/models/from_where.dart';
 import 'package:gastrorate/models/place.dart';
-import 'package:gastrorate/screens/home.dart';
+import 'package:gastrorate/models/place_search_form.dart';
 import 'package:gastrorate/screens/places.dart';
 import 'package:gastrorate/store/app_state.dart';
 import 'package:gastrorate/store/places/places_actions.dart';
@@ -31,15 +31,15 @@ class Factory extends VmFactory<AppState, PlacesPage, ViewModel> {
   @override
   ViewModel? fromStore() => ViewModel(
     places: state.placesState.places,
-    onFindAllPlaces: () => dispatch(FetchPlacesAction()),
-    onDeletePlace: (place) => dispatch(DeletePlaceAction(place)),
+        onFindAllPlaces: (PlaceSearchForm psf) => dispatch(FetchPlacesAction(placeSearchForm: psf)),
+        onDeletePlace: (place) => dispatch(DeletePlaceAction(place)),
     onInitPlaceForm: (Place place) => dispatch(InitNewPlaceAction(payload: place, fromWhere: FromWhere.places)),
   );
 }
 
 class ViewModel extends Vm {
   final List<Place>? places;
-  final Function() onFindAllPlaces;
+  final Function(PlaceSearchForm) onFindAllPlaces;
   final Function(Place place) onDeletePlace;
   final Function(Place place) onInitPlaceForm;
 
