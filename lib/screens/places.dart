@@ -1,17 +1,19 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:gastrorate/models/from_where.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:gastrorate/models/place.dart';
-import 'package:gastrorate/screens/new_place.dart';
-import 'package:gastrorate/screens/new_place_page.dart';
 import 'package:gastrorate/theme/my_colors.dart';
-import 'package:gastrorate/theme/my_icons.dart';
 import 'package:gastrorate/widgets/custom_text.dart';
 import 'package:gastrorate/widgets/place_card.dart';
-import 'package:go_router/go_router.dart';
-import 'package:page_transition/page_transition.dart';
+import 'package:gastrorate/theme/theme_helper.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
+import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
+import 'package:google_maps_place_picker_mb/google_maps_place_picker.dart';
 
 class Places extends StatefulWidget {
-  const Places(
+  Places(
       {super.key,
       required this.places,
       required this.onFindAllPlaces,
@@ -23,11 +25,48 @@ class Places extends StatefulWidget {
   final Function(Place place) onDeletePlace;
   final Function(Place place) onInitPlaceForm;
 
+  final GoogleMapsFlutterPlatform mapsImplementation = GoogleMapsFlutterPlatform.instance;
+
   @override
   State<StatefulWidget> createState() => _PlacesState();
 }
 
 class _PlacesState extends State<Places> {
+  LatLng initialPosition = kInitialPosition;
+  Place? selectedPlace;
+
+  bool _mapsInitialized = false;
+
+  void initRenderer() {
+    if (_mapsInitialized) return;
+    if (widget.mapsImplementation is GoogleMapsFlutterAndroid) {
+      (widget.mapsImplementation as GoogleMapsFlutterAndroid).initializeWithRenderer(AndroidMapRenderer.latest);
+    }
+    _getCurrentLocation().then((value) => initialPosition = LatLng(value.latitude, value.longitude));
+    setState(() {
+      _mapsInitialized = true;
+      (widget.mapsImplementation as GoogleMapsFlutterAndroid).useAndroidViewSurface = true;
+    });
+  }
+
+  Future<Position> _getCurrentLocation() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return Future.error('Location services are disabled.');
+    }
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      if (permission == LocationPermission.denied) {
+        return Future.error('Location permissions are denied.');
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      return Future.error('Location permissions are permanently denied, we cannot request permission.');
+    }
+    return await Geolocator.getCurrentPosition();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -62,7 +101,33 @@ class _PlacesState extends State<Places> {
           ),
           iconSize: 50,
           onPressed: () {
-            widget.onInitPlaceForm(Place());
+            initRenderer();
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) {
+                  return PlacePicker(
+                    resizeToAvoidBottomInset: false,
+                    apiKey: Platform.isAndroid ? dotenv.env['MAPS_API'].toString() : dotenv.env['MAPS_API'].toString(),
+                    hintText: "Find a place ...",
+                    searchingText: "Please wait ...",
+                    selectText: "Select place",
+                    initialPosition: initialPosition,
+                    useCurrentLocation: true,
+                    selectInitialPosition: true,
+                    usePlaceDetailSearch: true,
+                    zoomControlsEnabled: true,
+                    onPlacePicked: (PickResult result) {
+                      setState(() {
+                        selectedPlace = Place.fromPickResult(result);
+                        Navigator.of(context).pop();
+                        widget.onInitPlaceForm(selectedPlace ?? Place());
+                      });
+                    },
+                  );
+                },
+              ),
+            );
           }),
     );
   }
