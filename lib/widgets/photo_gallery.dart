@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:gastrorate/models/photo.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:gastrorate/models/photo.dart';
 import 'package:gastrorate/screens/dialogs/place_photo_swiper_dialog.dart';
 import 'package:gastrorate/widgets/custom_text.dart';
-import 'package:gastrorate/widgets/vertical_spacer.dart';
 
 class PhotoGallery extends StatefulWidget {
   final List<Photo> photos;
@@ -24,12 +23,6 @@ class _PhotoGalleryState extends State<PhotoGallery> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const VerticalSpacer(12),
-        Padding(
-          padding: const EdgeInsets.only(left: 16),
-          child: CustomText("Photos", style: Theme.of(context).textTheme.headlineSmall),
-        ),
-        const VerticalSpacer(8),
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -37,14 +30,13 @@ class _PhotoGalleryState extends State<PhotoGallery> {
             crossAxisCount: 3,
             crossAxisSpacing: 8.0,
             mainAxisSpacing: 8.0,
-            childAspectRatio: 1.0,  // Ensure all images have a square aspect ratio
+            childAspectRatio: 1.0,
           ),
           itemCount: photosToShow.length,
           itemBuilder: (context, index) {
             final photo = photosToShow[index];
             return GestureDetector(
               onTap: () {
-                // Show the photo modal with swiper
                 showDialog(
                   context: context,
                   builder: (BuildContext context) {
@@ -89,15 +81,6 @@ class _PhotoGalleryState extends State<PhotoGallery> {
             );
           },
         ),
-        if (!showAllPhotos && widget.photos.length > 3)
-          TextButton(
-            onPressed: () {
-              setState(() {
-                showAllPhotos = true;
-              });
-            },
-            child: const CustomText("Show More"),
-          ),
       ],
     );
   }
