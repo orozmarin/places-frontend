@@ -10,7 +10,7 @@ class WishlistPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return StoreConnector<AppState, ViewModel>(
       vm: () => Factory(this),
-      builder: (BuildContext context, ViewModel vm) => const Wishlist(),
+      builder: (BuildContext context, ViewModel vm) => Wishlist(),
     );
   }
 }
