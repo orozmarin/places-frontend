@@ -39,6 +39,26 @@ class _PlacesState extends State<Places> {
 
   bool _mapsInitialized = false;
 
+  final ScrollController _scrollController = ScrollController();
+  bool _isVisible = true;
+  double _previousScrollOffset = 0;
+
+  // Detect scroll direction and show or hide the button
+  void _onScroll() {
+    if (_scrollController.offset > _previousScrollOffset && _isVisible) {
+      // Scrolling down, hide the button
+      setState(() {
+        _isVisible = false;
+      });
+    } else if (_scrollController.offset < _previousScrollOffset && !_isVisible) {
+      // Scrolling up, show the button
+      setState(() {
+        _isVisible = true;
+      });
+    }
+    _previousScrollOffset = _scrollController.offset;
+  }
+
   void initRenderer() {
     if (_mapsInitialized) return;
     if (widget.mapsImplementation is GoogleMapsFlutterAndroid) {
@@ -70,42 +90,38 @@ class _PlacesState extends State<Places> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const CustomText("Places", style: TextStyle(color: MyColors.navbarItemColor)),
         backgroundColor: MyColors.appbarColor,
         actions: [
-          PopupMenuButton<PlaceSorting>(
-            surfaceTintColor: MyColors.mainBackgroundColor,
-            icon: const Icon(
-              Icons.filter_list,
-              color: Colors.white,
-            ),
-            onSelected: (PlaceSorting value) {
-              _selectedSorting = value;
-              widget.onFindAllPlaces(PlaceSearchForm(sortingMethod: value));
-              setState(() {});
-            },
-            itemBuilder: (BuildContext context) => <PopupMenuEntry<PlaceSorting>>[
-              _buildPopupMenuItem("Alphabetically (A-Z)", PlaceSorting.ALPHABETICALLY_ASC),
-              _buildPopupMenuItem("Alphabetically (Z-A)", PlaceSorting.ALPHABETICALLY_DESC),
-              _buildPopupMenuItem("Rating (Low to High)", PlaceSorting.RATING_ASC),
-              _buildPopupMenuItem("Rating (High to Low)", PlaceSorting.RATING_DESC),
-              _buildPopupMenuItem("Date (Oldest First)", PlaceSorting.DATE_ASC),
-              _buildPopupMenuItem("Date (Newest First)", PlaceSorting.DATE_DESC),
-            ],
-          ),
-        ],
-      ),
+            buildSortingButton(),
+          ],
+        ),
       body: Center(
         child: //
             Column(
           children: [
             Expanded(
               child: ListView.builder(
-                itemBuilder: (context, index) {
-                  Place place = widget.places![index];
+                  padding: const EdgeInsets.only(bottom: 20),
+                  controller: _scrollController,
+                  itemBuilder: (context, index) {
+                    Place place = widget.places![index];
                   return PlaceCard(
                     place: place,
                     onDeletePlace: widget.onDeletePlace,
@@ -118,23 +134,38 @@ class _PlacesState extends State<Places> {
           ],
         ),
       ),
-      floatingActionButton: IconButton(
-          icon: const Icon(
-            Icons.add_circle,
-            color: MyColors.primaryDarkColor,
+        floatingActionButton: buildAddPlaceButton(context));
+  }
+
+  AnimatedOpacity buildAddPlaceButton(BuildContext context) {
+    return AnimatedOpacity(
+      opacity: _isVisible ? 1.0 : 0.0,
+      duration: const Duration(milliseconds: 200),
+      child: FloatingActionButton.extended(
+        icon: const Icon(Icons.add, color: MyColors.navbarItemColor),
+        label: const CustomText(
+          "Add Place",
+          style: TextStyle(color: MyColors.navbarItemColor),
+        ),
+        backgroundColor: MyColors.primaryDarkColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8.0),
+          side: const BorderSide(
+            color: Colors.black12,
+            width: 1,
           ),
-          iconSize: 50,
-          onPressed: () {
-            initRenderer();
+        ),
+        onPressed: () {
+          initRenderer();
             Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) {
                   return PlacePicker(
                     resizeToAvoidBottomInset: false,
-                    apiKey: Platform.isAndroid ? dotenv.env['MAPS_API'].toString() : dotenv.env['MAPS_API'].toString(),
-                    hintText: "Find a place ...",
-                    searchingText: "Please wait ...",
+                  apiKey: Platform.isAndroid ? dotenv.env['MAPS_API'].toString() : dotenv.env['MAPS_API'].toString(),
+                  hintText: "Find a place ...",
+                  searchingText: "Please wait ...",
                     selectText: "Select place",
                     initialPosition: initialPosition,
                     useCurrentLocation: true,
@@ -144,7 +175,6 @@ class _PlacesState extends State<Places> {
                     onPlacePicked: (PickResult result) {
                       setState(() {
                         selectedPlace = Place.fromPickResult(result);
-                        Navigator.of(context).pop();
                         widget.onInitPlaceForm(selectedPlace ?? Place());
                       });
                     },
@@ -152,7 +182,35 @@ class _PlacesState extends State<Places> {
                 },
               ),
             );
-          }),
+        },
+        elevation: 6.0,
+        focusElevation: 10.0,
+        highlightElevation: 8.0,
+        splashColor: Colors.white.withOpacity(0.3),
+      ),
+    );
+  }
+
+  PopupMenuButton<PlaceSorting> buildSortingButton() {
+    return PopupMenuButton<PlaceSorting>(
+      surfaceTintColor: MyColors.mainBackgroundColor,
+      icon: const Icon(
+        Icons.filter_list,
+        color: Colors.white,
+      ),
+      onSelected: (PlaceSorting value) {
+        _selectedSorting = value;
+        widget.onFindAllPlaces(PlaceSearchForm(sortingMethod: value));
+        setState(() {});
+      },
+      itemBuilder: (BuildContext context) => <PopupMenuEntry<PlaceSorting>>[
+        _buildPopupMenuItem("Alphabetically (A-Z)", PlaceSorting.ALPHABETICALLY_ASC),
+        _buildPopupMenuItem("Alphabetically (Z-A)", PlaceSorting.ALPHABETICALLY_DESC),
+        _buildPopupMenuItem("Rating (Low to High)", PlaceSorting.RATING_ASC),
+        _buildPopupMenuItem("Rating (High to Low)", PlaceSorting.RATING_DESC),
+        _buildPopupMenuItem("Date (Oldest First)", PlaceSorting.DATE_ASC),
+        _buildPopupMenuItem("Date (Newest First)", PlaceSorting.DATE_DESC),
+      ],
     );
   }
 

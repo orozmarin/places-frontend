@@ -75,15 +75,16 @@ class _NewPlaceState extends State<NewPlace> {
               children: [
                 buildAddress(context),
                 buildPlaceInformation(context),
-                if (currentPlace.openingHours != null) buildOpeningHours(context),
+                //if (currentPlace.openingHours != null) buildOpeningHours(context),
+                const VerticalSpacer(16),
                 if (currentPlace.reviews != null && currentPlace.reviews!.isNotEmpty)
                   ReviewSwiper(
                     reviews: currentPlace.reviews ?? <PlaceReview>[],
                     onTap: (PlaceReview review) => showReviewDialog(review),
                   ),
-                const VerticalSpacer(8),
+                const VerticalSpacer(12),
                 const HorizontalLine(),
-                const VerticalSpacer(8),
+                const VerticalSpacer(12),
                 if (currentPlace.photos != null && currentPlace.photos!.isNotEmpty)
                   PhotoGallery(photos: currentPlace.photos ?? []),
                 const VerticalSpacer(8),
@@ -93,7 +94,7 @@ class _NewPlaceState extends State<NewPlace> {
                 ),
                 const VerticalSpacer(8),
                 buildRatings(),
-                const VerticalSpacer(8),
+                const VerticalSpacer(12),
                 Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 38),
                     child: Row(
@@ -109,7 +110,8 @@ class _NewPlaceState extends State<NewPlace> {
                           onDateChanged: (DateTime newDate) => _onDateChanged(newDate),
                         ),
                       ],
-                    )),
+                  ),
+                ),
               ],
             ),
           ),
@@ -221,6 +223,11 @@ class _NewPlaceState extends State<NewPlace> {
               ),
             ],
           ),
+          const HorizontalSpacer(22),
+          CustomText(
+            "⭐ ${currentPlace.googleRating}",
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
         ],
       ),
     );
@@ -246,14 +253,22 @@ class _NewPlaceState extends State<NewPlace> {
               width: 120,
               height: 80,
               decoration: BoxDecoration(
-                color: MyColors.primaryColor.withOpacity(0.1),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 6,
+                    spreadRadius: 1,
+                    offset: Offset(0, 1),
+                  ),
+                ],
+                color: MyColors.mainBackgroundColor,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: MyColors.primaryColor, width: 2),
+                border: Border.all(color: MyColors.primaryColor, width: 1),
               ),
               child: const Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.add, size: 30, color: MyColors.primaryColor),
+                  Icon(Icons.add, size: 25, color: MyColors.primaryColor),
                   VerticalSpacer(4),
                   CustomText("Add Rating", style: TextStyle(color: MyColors.primaryColor))
                 ],
