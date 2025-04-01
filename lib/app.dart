@@ -81,7 +81,7 @@ class App extends StatelessWidget {
                 inactiveTrackColor: Colors.black26,
                 thumbColor: Colors.black,
                 overlayColor: Colors.black12,
-              ),
+                valueIndicatorColor: Colors.black),
 
               // Icon styling
               iconTheme: const IconThemeData(color: Colors.black),
