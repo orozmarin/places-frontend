@@ -16,6 +16,7 @@ class ButtonComponent extends StatelessWidget {
   final bool isDisabled;
   final bool isGrey;
   final Widget? textWidget;
+  final Color? buttonColor; // New attribute
 
   const ButtonComponent({
     Key? key,
@@ -29,6 +30,7 @@ class ButtonComponent extends StatelessWidget {
     this.isDisabled = false,
     this.isGrey = false,
     this.textWidget,
+    this.buttonColor, // Added parameter
   }) : super(key: key);
 
   // Named constructor for small button
@@ -42,6 +44,7 @@ class ButtonComponent extends StatelessWidget {
     bool? isDisabled = false,
     bool? isGrey = false,
     Widget? textWidget,
+    Color? buttonColor, // Added parameter
   }) : this(
           key: key,
           text: text,
@@ -53,6 +56,7 @@ class ButtonComponent extends StatelessWidget {
           isDisabled: isDisabled!,
           textWidget: textWidget,
           isGrey: isGrey!,
+          buttonColor: buttonColor, // Pass it
         );
 
   // Named constructor for secondary button (OutlinedButton)
@@ -67,6 +71,7 @@ class ButtonComponent extends StatelessWidget {
     bool? isDisabled = false,
     Widget? textWidget,
     bool? isGrey = false,
+    Color? buttonColor, // Added parameter
   }) : this(
           key: key,
           text: text,
@@ -79,6 +84,7 @@ class ButtonComponent extends StatelessWidget {
           isDisabled: isDisabled!,
           textWidget: textWidget,
           isGrey: isGrey!,
+          buttonColor: buttonColor, // Pass it
         );
 
   // Named constructor for small secondary button (OutlinedButton with height 32)
@@ -92,6 +98,7 @@ class ButtonComponent extends StatelessWidget {
     bool isDisabled = false,
     bool? isGrey = false,
     Widget? textWidget,
+    Color? buttonColor, // Added parameter
   }) : this(
           key: key,
           text: text,
@@ -104,10 +111,13 @@ class ButtonComponent extends StatelessWidget {
           isDisabled: isDisabled,
           textWidget: textWidget,
           isGrey: isGrey!,
+          buttonColor: buttonColor, // Pass it
         );
 
   @override
   Widget build(BuildContext context) {
+    final Color effectiveColor = buttonColor ?? MyColors.primaryColor;
+
     final ButtonStyle buttonStyle = ButtonStyle(
       textStyle: MaterialStateProperty.all(GoogleFonts.outfit()),
       shape: MaterialStateProperty.all<RoundedRectangleBorder>(
@@ -115,18 +125,20 @@ class ButtonComponent extends StatelessWidget {
           borderRadius: BorderRadius.circular(kInputBorderRadius),
         ),
       ),
-      side:
-          isOutlined ? MaterialStateProperty.all(const BorderSide(color: MyColors.primaryColor, width: 1.0)) : null,
+      side: isOutlined ? MaterialStateProperty.all(BorderSide(color: effectiveColor, width: 1.0)) : null,
       padding: MaterialStateProperty.all(const EdgeInsets.symmetric(horizontal: 6)),
       backgroundColor: MaterialStateProperty.resolveWith<Color?>(
         (Set<MaterialState> states) {
           if (states.contains(MaterialState.disabled)) {
             return MyColors.disabledButtonBckColor;
           }
+          if (isOutlined) {
+            return Colors.transparent; // Keep background transparent for outlined buttons
+          }
           if (isGrey) {
             return MyColors.greyButtonBckColor;
           }
-          return isOutlined ? null : Theme.of(context).primaryColor;
+          return effectiveColor; // Use buttonColor if provided
         },
       ),
       foregroundColor: MaterialStateProperty.resolveWith<Color?>(
@@ -134,10 +146,10 @@ class ButtonComponent extends StatelessWidget {
           if (states.contains(MaterialState.disabled)) {
             return MyColors.disabledButtonForegroundColor;
           }
-          if (isGrey) {
-            return MyColors.disabledGreyButtonForegroundColor;
+          if (isOutlined) {
+            return effectiveColor; // Use buttonColor for text when outlined
           }
-          return isOutlined ? MyColors.primaryColor : Colors.white;
+          return Colors.white;
         },
       ),
       overlayColor: MaterialStateProperty.all(Colors.transparent),
@@ -153,33 +165,29 @@ class ButtonComponent extends StatelessWidget {
                 focusNode: focusNode,
                 onPressed: isDisabled ? null : onPressed,
                 style: buttonStyle,
-                child: buildButtonChild(context),
+                child: buildButtonChild(effectiveColor),
               )
             : ElevatedButton(
                 focusNode: focusNode,
                 onPressed: isDisabled ? null : onPressed,
                 style: buttonStyle,
-                child: buildButtonChild(context),
+                child: buildButtonChild(Colors.white),
               ),
       ),
     );
   }
 
-  Widget buildButtonChild(BuildContext context) => Row(
+  Widget buildButtonChild(Color textColor) => Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          if (iconData != null) Icon(iconData, size: 16),
+          if (iconData != null) Icon(iconData, size: 16, color: textColor),
           if (iconData != null && text != null) const HorizontalSpacer(8),
           if (text != null && textWidget == null)
-            CustomText(text!,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                      color: isDisabled
-                          ? MyColors.disabledButtonTextColor
-                          : (isOutlined)
-                              ? MyColors.primaryColor
-                              : Colors.white,
-                    )),
+            CustomText(
+              text!,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: textColor),
+            ),
           if (textWidget != null) textWidget!,
         ],
       );

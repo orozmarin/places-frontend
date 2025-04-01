@@ -17,7 +17,7 @@ class _PlaceRatingDialogState extends State<PlaceRatingDialog> {
   Widget build(BuildContext context) {
     return DialogWrapperWidget(
       children: [
-        CustomText("Experience rating: ${widget.rating.ambientRating}"),
+        CustomText("Experience: ${widget.rating.ambientRating}"),
         Slider(
           label: "${widget.rating.ambientRating}",
           divisions: 18,
@@ -30,7 +30,7 @@ class _PlaceRatingDialogState extends State<PlaceRatingDialog> {
             });
           },
         ),
-        CustomText("Food rating: ${widget.rating.foodRating}"),
+        CustomText("Food: ${widget.rating.foodRating}"),
         Slider(
           label: "${widget.rating.foodRating}",
           divisions: 18,
@@ -43,7 +43,7 @@ class _PlaceRatingDialogState extends State<PlaceRatingDialog> {
             });
           },
         ),
-        CustomText("Price rating: ${widget.rating.priceRating}"),
+        CustomText("Price: ${widget.rating.priceRating}"),
         Slider(
           label: "${widget.rating.priceRating}",
           divisions: 18,
