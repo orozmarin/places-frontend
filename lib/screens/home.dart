@@ -14,6 +14,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
 import 'package:google_maps_place_picker_mb/google_maps_place_picker.dart';
+import 'package:lottie/lottie.dart';
 
 class Home extends StatefulWidget {
   Home(
@@ -46,7 +47,11 @@ class _HomeState extends State<Home> {
 
   // Detect scroll direction and show or hide the button
   void _onScroll() {
-    if (_scrollController.offset > _previousScrollOffset && _isVisible) {
+    if (widget.places == null || widget.places!.isEmpty) {
+      setState(() {
+        _isVisible = true;
+      });
+    } else if (_scrollController.offset > _previousScrollOffset && _isVisible) {
       // Scrolling down, hide the button
       setState(() {
         _isVisible = false;
@@ -112,21 +117,20 @@ class _HomeState extends State<Home> {
       ),
       body: SingleChildScrollView(
         controller: _scrollController,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 18, top: 8, bottom: 8),
-              child: CustomText(
-                "Places near you",
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-              ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 18, top: 8, bottom: 8),
+            child: CustomText(
+              "Places near you",
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
-            if (widget.places != null && widget.places!.isNotEmpty)
-              PlaceCardSwiper(
-                  places: widget.places!, onDeletePlace: widget.onDeletePlace, onInitPlaceForm: widget.onInitPlaceForm),
-            const VerticalSpacer(10),
-            const Padding(padding: EdgeInsets.symmetric(horizontal: 22), child: HorizontalLine()),
+          ),
+          if (widget.places != null && widget.places!.isNotEmpty)
+            PlaceCardSwiper(
+                places: widget.places!, onDeletePlace: widget.onDeletePlace, onInitPlaceForm: widget.onInitPlaceForm),
+          const VerticalSpacer(10),
+          const Padding(padding: EdgeInsets.symmetric(horizontal: 22), child: HorizontalLine()),
+          if (widget.places != null && widget.places!.isNotEmpty) ...[
             const VerticalSpacer(6),
             Padding(
               padding: const EdgeInsets.only(left: 16, top: 8),
@@ -150,7 +154,17 @@ class _HomeState extends State<Home> {
               itemCount: widget.places!.length,
             ),
           ],
-        ),
+          if (widget.places == null || widget.places!.isEmpty) ...[
+            Lottie.asset("assets/empty_state_home.json", width: 500, height: 250),
+            Align(
+              alignment: Alignment.center,
+              child: CustomText(
+                "No rated Places found...",
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ),
+          ],
+        ]),
       ),
       floatingActionButton: _isVisible
           ? AnimatedOpacity(

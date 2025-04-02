@@ -12,6 +12,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
 import 'package:google_maps_place_picker_mb/google_maps_place_picker.dart';
+import 'package:lottie/lottie.dart';
 
 class Places extends StatefulWidget {
   Places(
@@ -109,85 +110,104 @@ class _PlacesState extends State<Places> {
         title: const CustomText("Places", style: TextStyle(color: MyColors.navbarItemColor)),
         backgroundColor: MyColors.appbarColor,
         actions: [
-            buildSortingButton(),
-          ],
-        ),
+          buildSortingButton(),
+        ],
+      ),
       body: Center(
         child: //
-            Column(
-          children: [
-            Expanded(
-              child: ListView.builder(
-                  padding: const EdgeInsets.only(bottom: 20),
-                  controller: _scrollController,
-                  itemBuilder: (context, index) {
-                    Place place = widget.places![index];
-                  return PlaceCard(
-                    place: place,
-                    onDeletePlace: widget.onDeletePlace,
-                    onInitPlaceForm: widget.onInitPlaceForm,
-                  );
-                },
-                itemCount: widget.places!.length,
-              ),
-            ),
-          ],
-        ),
+            widget.places != null && widget.places!.isNotEmpty
+                ? Column(
+                    children: [
+                      Expanded(
+                        child: ListView.builder(
+                          padding: const EdgeInsets.only(bottom: 20),
+                          controller: _scrollController,
+                          itemBuilder: (context, index) {
+                            Place place = widget.places![index];
+                            return PlaceCard(
+                              place: place,
+                              onDeletePlace: widget.onDeletePlace,
+                              onInitPlaceForm: widget.onInitPlaceForm,
+                            );
+                          },
+                          itemCount: widget.places!.length,
+                        ),
+                      ),
+                    ],
+                  )
+                : Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: buildEmptyState(), // Pass context
+                  ),
       ),
-        floatingActionButton: buildAddPlaceButton(context));
+      floatingActionButton: _isVisible
+          ? AnimatedOpacity(
+              opacity: 1.0, duration: const Duration(milliseconds: 300), child: buildAddPlaceButton(context))
+          : const AnimatedOpacity(
+              opacity: 0.0,
+              duration: Duration(milliseconds: 200),
+              child: SizedBox.shrink(),
+            ),
+    );
   }
 
-  AnimatedOpacity buildAddPlaceButton(BuildContext context) {
-    return AnimatedOpacity(
-      opacity: _isVisible ? 1.0 : 0.0,
-      duration: const Duration(milliseconds: 200),
-      child: FloatingActionButton.extended(
-        icon: const Icon(Icons.add, color: MyColors.navbarItemColor),
-        label: const CustomText(
-          "Add Place",
-          style: TextStyle(color: MyColors.navbarItemColor),
-        ),
-        backgroundColor: MyColors.primaryDarkColor,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8.0),
-          side: const BorderSide(
-            color: Colors.black12,
-            width: 1,
-          ),
-        ),
-        onPressed: () {
-          initRenderer();
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) {
-                  return PlacePicker(
-                    resizeToAvoidBottomInset: false,
-                  apiKey: Platform.isAndroid ? dotenv.env['MAPS_API'].toString() : dotenv.env['MAPS_API'].toString(),
-                  hintText: "Find a place ...",
-                  searchingText: "Please wait ...",
-                    selectText: "Select place",
-                    initialPosition: initialPosition,
-                    useCurrentLocation: true,
-                    selectInitialPosition: true,
-                    usePlaceDetailSearch: true,
-                    zoomControlsEnabled: true,
-                    onPlacePicked: (PickResult result) {
-                      setState(() {
-                        selectedPlace = Place.fromPickResult(result);
-                        widget.onInitPlaceForm(selectedPlace ?? Place());
-                      });
-                    },
-                  );
-                },
-              ),
-            );
-        },
-        elevation: 6.0,
-        focusElevation: 10.0,
-        highlightElevation: 8.0,
-        splashColor: Colors.white.withOpacity(0.3),
+  List<Widget> buildEmptyState() {
+    return <Widget>[
+      Lottie.asset("assets/empty_state_places.json"),
+      CustomText(
+        "Start rating Places!",
+        style: Theme.of(context).textTheme.titleMedium,
       ),
+    ];
+  }
+
+  FloatingActionButton buildAddPlaceButton(BuildContext context) {
+    return FloatingActionButton.extended(
+      icon: const Icon(Icons.add, color: MyColors.navbarItemColor),
+      label: const CustomText(
+        "Add Place",
+        style: TextStyle(color: MyColors.navbarItemColor),
+      ),
+      backgroundColor: MyColors.primaryDarkColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        side: const BorderSide(
+          color: Colors.black12,
+          width: 1,
+        ),
+      ),
+      onPressed: () {
+        initRenderer();
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) {
+              return PlacePicker(
+                resizeToAvoidBottomInset: false,
+                apiKey: Platform.isAndroid ? dotenv.env['MAPS_API'].toString() : dotenv.env['MAPS_API'].toString(),
+                hintText: "Find a place ...",
+                searchingText: "Please wait ...",
+                selectText: "Select place",
+                initialPosition: initialPosition,
+                useCurrentLocation: true,
+                selectInitialPosition: true,
+                usePlaceDetailSearch: true,
+                zoomControlsEnabled: true,
+                onPlacePicked: (PickResult result) {
+                  setState(() {
+                    selectedPlace = Place.fromPickResult(result);
+                    widget.onInitPlaceForm(selectedPlace ?? Place());
+                  });
+                },
+              );
+            },
+          ),
+        );
+      },
+      elevation: 6.0,
+      focusElevation: 10.0,
+      highlightElevation: 8.0,
+      splashColor: Colors.white.withOpacity(0.3),
     );
   }
 
