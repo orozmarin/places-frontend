@@ -5,12 +5,12 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:gastrorate/models/place.dart';
 import 'package:gastrorate/theme/my_colors.dart';
 import 'package:gastrorate/theme/theme_helper.dart';
+import 'package:gastrorate/tools/parse_helper.dart';
 import 'package:gastrorate/widgets/custom_text.dart';
 import 'package:gastrorate/widgets/horizontal_line.dart';
 import 'package:gastrorate/widgets/place_card.dart';
 import 'package:gastrorate/widgets/place_card_swiper.dart';
 import 'package:gastrorate/widgets/vertical_spacer.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
 import 'package:google_maps_place_picker_mb/google_maps_place_picker.dart';
@@ -20,12 +20,14 @@ class Home extends StatefulWidget {
   Home(
       {super.key,
       required this.places,
+      required this.nearbyPlaces,
       required this.onFindAllPlaces,
       required this.onDeletePlace,
       required this.onInitPlaceForm});
 
   final Function() onFindAllPlaces;
   final List<Place>? places;
+  final List<Place>? nearbyPlaces;
   final Function(Place place) onDeletePlace;
   final Function(Place place) onInitPlaceForm;
 
@@ -70,29 +72,11 @@ class _HomeState extends State<Home> {
     if (widget.mapsImplementation is GoogleMapsFlutterAndroid) {
       (widget.mapsImplementation as GoogleMapsFlutterAndroid).initializeWithRenderer(AndroidMapRenderer.latest);
     }
-    _getCurrentLocation().then((value) => initialPosition = LatLng(value.latitude, value.longitude));
+    LocationHelper().getCurrentLocation().then((value) => initialPosition = LatLng(value.latitude, value.longitude));
     setState(() {
       _mapsInitialized = true;
       (widget.mapsImplementation as GoogleMapsFlutterAndroid).useAndroidViewSurface = true;
     });
-  }
-
-  Future<Position> _getCurrentLocation() async {
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      return Future.error('Location services are disabled.');
-    }
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      if (permission == LocationPermission.denied) {
-        return Future.error('Location permissions are denied.');
-      }
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      return Future.error('Location permissions are permanently denied, we cannot request permission.');
-    }
-    return await Geolocator.getCurrentPosition();
   }
 
   @override
@@ -125,9 +109,11 @@ class _HomeState extends State<Home> {
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
           ),
-          if (widget.places != null && widget.places!.isNotEmpty)
+          if (widget.nearbyPlaces != null && widget.nearbyPlaces!.isNotEmpty)
             PlaceCardSwiper(
-                places: widget.places!, onDeletePlace: widget.onDeletePlace, onInitPlaceForm: widget.onInitPlaceForm),
+                places: widget.nearbyPlaces!,
+                onDeletePlace: widget.onDeletePlace,
+                onInitPlaceForm: widget.onInitPlaceForm),
           const VerticalSpacer(10),
           const Padding(padding: EdgeInsets.symmetric(horizontal: 22), child: HorizontalLine()),
           if (widget.places != null && widget.places!.isNotEmpty) ...[

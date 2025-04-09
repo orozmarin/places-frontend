@@ -43,6 +43,49 @@ Place _$PlaceFromJson(Map<String, dynamic> json) => Place(
           : DateTime.parse(json['visitedAt'] as String),
     );
 
+Place _$PlaceFromGoogleJson(Map<String, dynamic> json) => Place(
+      id: json['id'] ?? (json['name'] as String?)?.split('/').last,
+      name: json['displayName']?['text'] ?? json['name'],
+      address: json['formattedAddress'] as String?,
+      city: (json['addressComponents'] as List?)?.firstWhere(
+        (comp) => (comp['types'] as List).contains('locality'),
+        orElse: () => null,
+      )?['longText'] as String?,
+      postalCode: int.tryParse(
+        (json['addressComponents'] as List?)?.firstWhere(
+              (comp) => (comp['types'] as List).contains('postal_code'),
+              orElse: () => null,
+            )?['longText'] ??
+            '',
+      ),
+      country: (json['addressComponents'] as List?)?.firstWhere(
+        (comp) => (comp['types'] as List).contains('country'),
+        orElse: () => null,
+      )?['longText'] as String?,
+      contactNumber: json['internationalPhoneNumber'] as String?,
+      openingHours:
+          json['regularOpeningHours'] == null ? null : PlaceOpeningHours.fromJson(json['regularOpeningHours']),
+      photos: (json['photos'] as List?)?.map((e) => Photo.fromGoogleJson(e as Map<String, dynamic>)).toList(),
+      priceLevel: $enumDecodeNullable(_$PriceLevelEnumMap, json['priceLevel']),
+      reviews: (json['reviews'] as List<dynamic>?)
+          ?.map((e) => PlaceReview.fromGoogleJson(e as Map<String, dynamic>))
+          .toList(),
+      googleRating: (json['rating'] as num?)?.toDouble(),
+      url: json['googleMapsUri'] as String?,
+      webSiteUrl: json['websiteUri'] as String?,
+      coordinates: json['location'] == null
+          ? null
+          : Coordinates(
+              latitude: (json['location']['latitude'] as num?)?.toDouble(),
+              longitude: (json['location']['longitude'] as num?)?.toDouble(),
+            ),
+      // You can leave these out or add defaults if Google doesn't return them:
+      firstRating: null,
+      secondRating: null,
+      placeRating: null,
+      visitedAt: null,
+    );
+
 Map<String, dynamic> _$PlaceToJson(Place instance) => <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
@@ -72,4 +115,9 @@ const _$PriceLevelEnumMap = {
   PriceLevel.EXPENSIVE: 'EXPENSIVE',
   PriceLevel.VERY_EXPENSIVE: 'VERY_EXPENSIVE',
   PriceLevel.UNKNOWN: 'UNKNOWN',
+  PriceLevel.PRICE_LEVEL_FREE: 'PRICE_LEVEL_FREE',
+  PriceLevel.PRICE_LEVEL_INEXPENSIVE: 'PRICE_LEVEL_INEXPENSIVE',
+  PriceLevel.PRICE_LEVEL_MODERATE: 'PRICE_LEVEL_MODERATE',
+  PriceLevel.PRICE_LEVEL_EXPENSIVE: 'PRICE_LEVEL_EXPENSIVE',
+  PriceLevel.PRICE_LEVEL_VERY_EXPENSIVE: 'PRICE_LEVEL_VERY_EXPENSIVE',
 };

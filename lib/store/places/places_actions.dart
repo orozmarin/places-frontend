@@ -1,5 +1,6 @@
 import 'package:async_redux/async_redux.dart';
 import 'package:gastrorate/models/from_where.dart';
+import 'package:gastrorate/models/nearby_places_search_form.dart';
 import 'package:gastrorate/models/place.dart';
 import 'package:gastrorate/models/place_search_form.dart';
 import 'package:gastrorate/router.dart';
@@ -77,3 +78,26 @@ class DeletePlaceAction extends ReduxAction<AppState>{
   }
 }
 
+class FetchNearbyPlacesAction extends ReduxAction<AppState> {
+  FetchNearbyPlacesAction({this.nearbyPlacesSearchForm});
+
+  NearbyPlacesSearchForm? nearbyPlacesSearchForm;
+
+  @override
+  Future<AppState?> reduce() async {
+    List<Place>? places = await PlaceManager().findNearbyPlaces(nearbyPlacesSearchForm!);
+    dispatch(FetchNearbyPlacesSuccessAction(places));
+    return null;
+  }
+}
+
+class FetchNearbyPlacesSuccessAction extends ReduxAction<AppState> {
+  FetchNearbyPlacesSuccessAction(this.payload);
+
+  final List<Place> payload;
+
+  @override
+  Future<AppState?> reduce() async {
+    return state.copyWith(placesState: state.placesState.copyWith(nearbyPlaces: payload));
+  }
+}
