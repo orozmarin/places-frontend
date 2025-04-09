@@ -35,6 +35,8 @@ class Place {
   DateTime? visitedAt;
 
   factory Place.fromJson(Map<String, dynamic> json) => _$PlaceFromJson(json);
+
+  factory Place.fromGoogleJson(Map<String, dynamic> json) => _$PlaceFromGoogleJson(json);
   Map<String, dynamic> toJson() => _$PlaceToJson(this);
 
   Place({

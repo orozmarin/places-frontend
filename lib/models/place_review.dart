@@ -14,6 +14,8 @@ class PlaceReview {
   int? time;
 
   factory PlaceReview.fromJson(Map<String, dynamic> json) => _$PlaceReviewFromJson(json);
+
+  factory PlaceReview.fromGoogleJson(Map<String, dynamic> json) => _$PlaceReviewFromGoogleJson(json);
   Map<String, dynamic> toJson() => _$PlaceReviewToJson(this);
 
   PlaceReview({
