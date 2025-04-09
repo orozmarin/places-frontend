@@ -10,6 +10,8 @@ class Photo {
   List<String>? htmlAttributions;
 
   factory Photo.fromJson(Map<String, dynamic> json) => _$PhotoFromJson(json);
+
+  factory Photo.fromGoogleJson(Map<String, dynamic> json) => _$PhotoFromGoogleJson(json);
   Map<String, dynamic> toJson() => _$PhotoToJson(this);
 
   Photo({this.photoReference, this.height, this.width, this.htmlAttributions});
