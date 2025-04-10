@@ -1,6 +1,6 @@
 enum FromWhere{
   home,
   places,
-  wishlist,
+  favorites,
   settings
 }

@@ -17,6 +17,23 @@ PlaceReview _$PlaceReviewFromJson(Map<String, dynamic> json) => PlaceReview(
       time: (json['time'] as num?)?.toInt(),
     );
 
+PlaceReview _$PlaceReviewFromGoogleJson(Map<String, dynamic> json) {
+  final author = json['authorAttribution'] ?? {};
+  final textBlock = json['text'] ?? {};
+  final parsedDate = DateTime.tryParse(json['publishTime'] ?? '');
+
+  return PlaceReview(
+    authorName: author['displayName'] as String?,
+    authorUrl: author['uri'] as String?,
+    profilePhotoUrl: author['photoUri'] as String?,
+    rating: json['rating'] as int?,
+    relativeTimeDescription: json['relativePublishTimeDescription'] as String?,
+    text: textBlock['text'] as String?,
+    language: textBlock['languageCode'] as String?,
+    time: parsedDate != null ? parsedDate.millisecondsSinceEpoch ~/ 1000 : null,
+  );
+}
+
 Map<String, dynamic> _$PlaceReviewToJson(PlaceReview instance) =>
     <String, dynamic>{
       'authorName': instance.authorName,
