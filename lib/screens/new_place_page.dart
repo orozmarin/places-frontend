@@ -15,6 +15,7 @@ class NewPlacePage extends StatelessWidget {
       builder: (BuildContext context, ViewModel vm) => NewPlace(
         place: vm.foundPlace,
         onSavePlace: vm.onSavePlace,
+        onDeletePlace: vm.onDeletePlace,
       ),
     );
   }
@@ -27,14 +28,16 @@ class Factory extends VmFactory<AppState, NewPlacePage, ViewModel> {
   ViewModel? fromStore() => ViewModel(
         foundPlace: state.placesState.place,
         onSavePlace: (Place place) => dispatch(SaveOrUpdatePlaceAction(place)),
+        onDeletePlace: (place) => dispatch(DeletePlaceAction(place)),
       );
 }
 
 class ViewModel extends Vm {
   final Place? foundPlace;
   final Function(Place place) onSavePlace;
+  final Function(Place place) onDeletePlace;
 
-  ViewModel({required this.foundPlace, required this.onSavePlace});
+  ViewModel({required this.foundPlace, required this.onSavePlace, required this.onDeletePlace});
 
   @override
   bool operator ==(Object other) =>
@@ -43,8 +46,9 @@ class ViewModel extends Vm {
           other is ViewModel &&
           runtimeType == other.runtimeType &&
           foundPlace == other.foundPlace &&
-          onSavePlace == other.onSavePlace;
+          onSavePlace == other.onSavePlace &&
+          onDeletePlace == other.onDeletePlace;
 
   @override
-  int get hashCode => super.hashCode ^ foundPlace.hashCode ^ onSavePlace.hashCode;
+  int get hashCode => super.hashCode ^ foundPlace.hashCode ^ onSavePlace.hashCode ^ onDeletePlace.hashCode;
 }

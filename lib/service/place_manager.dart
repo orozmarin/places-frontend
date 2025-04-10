@@ -11,6 +11,7 @@ class PlaceManager {
   static const String FIND_PLACE_BY_NAME = "/places/find/{name}";
   static const String FIND_PLACE_BY_RATING = "/places/find/rating/{rating}";
   static const String DELETE_PLACE = "/places/delete/{placeId}";
+  static const String FIND_FAVORITE_PLACES = "/places/find/favorites";
 
   static const String FIND_NEARBY_PLACES_API = "https://places.googleapis.com/v1/places:searchNearby";
 
@@ -41,6 +42,12 @@ class PlaceManager {
     String url = dotenv.env['API_BASE_URI'].toString() + ServicesUriHelper.getUrlWithParams(DELETE_PLACE, params);
     await client.post(url);
     return;
+  }
+
+  Future<List<Place>> findFavoritePlaces() async {
+    String url = dotenv.env['API_BASE_URI'].toString() + FIND_FAVORITE_PLACES;
+    final Response<List<dynamic>> response = await client.get(url);
+    return (response.data as List<dynamic>).map((dynamic place) => Place.fromJson(place)).toList();
   }
 
   Future<List<Place>> findNearbyPlaces(NearbyPlacesSearchForm npsf) async {
