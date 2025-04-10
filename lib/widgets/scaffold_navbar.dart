@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:gastrorate/theme/my_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -32,19 +33,19 @@ class ScaffoldWithNavigationBar extends StatelessWidget {
               onTabChange: onDestinationSelected,
             tabs: [
               GButton(
-                  icon: Icons.home,
+                  icon: CupertinoIcons.home,
                   textStyle: GoogleFonts.outfit(textStyle: const TextStyle(color: MyColors.navbarItemColor)),
                   text: "Home"),
               GButton(
-                  icon: Icons.restaurant_menu,
+                  icon: CupertinoIcons.map_pin_ellipse,
                   textStyle: GoogleFonts.outfit(textStyle: const TextStyle(color: MyColors.navbarItemColor)),
                   text: "Places"),
               GButton(
-                  icon: Icons.favorite_border,
+                  icon: CupertinoIcons.heart_fill,
                   textStyle: GoogleFonts.outfit(textStyle: const TextStyle(color: MyColors.navbarItemColor)),
-                  text: "Wishlist"),
+                  text: "Favorites"),
               GButton(
-                  icon: Icons.settings,
+                  icon: CupertinoIcons.settings,
                   textStyle: GoogleFonts.outfit(textStyle: const TextStyle(color: MyColors.navbarItemColor)),
                   text: "Settings"),
             ],

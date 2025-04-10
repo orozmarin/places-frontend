@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:gastrorate/models/place.dart';
@@ -163,7 +164,7 @@ class PlaceCard extends StatelessWidget {
                       ),
                       IconButton(
                         onPressed: () => _showDeleteConfirmationDialog(context),
-                        icon: const Icon(Icons.delete, color: Colors.red),
+                        icon: const Icon(CupertinoIcons.delete_simple, color: Colors.red),
                       ),
                     ],
                   ),
