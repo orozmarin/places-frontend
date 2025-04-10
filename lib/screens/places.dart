@@ -120,7 +120,7 @@ class _PlacesState extends State<Places> {
                     children: [
                       Expanded(
                         child: ListView.builder(
-                          padding: const EdgeInsets.only(bottom: 20),
+                          padding: const EdgeInsets.only(bottom: 20, top: 10),
                           controller: _scrollController,
                           itemBuilder: (context, index) {
                             Place place = widget.places![index];
@@ -140,7 +140,7 @@ class _PlacesState extends State<Places> {
                     children: buildEmptyState(), // Pass context
                   ),
       ),
-      floatingActionButton: _isVisible
+      floatingActionButton: showAddPlaceButton()
           ? AnimatedOpacity(
               opacity: 1.0, duration: const Duration(milliseconds: 300), child: buildAddPlaceButton(context))
           : const AnimatedOpacity(
@@ -150,6 +150,8 @@ class _PlacesState extends State<Places> {
             ),
     );
   }
+
+  bool showAddPlaceButton() => _isVisible || (widget.places == null || widget.places!.length < 3);
 
   List<Widget> buildEmptyState() {
     return <Widget>[
@@ -196,7 +198,13 @@ class _PlacesState extends State<Places> {
                 onPlacePicked: (PickResult result) {
                   setState(() {
                     selectedPlace = Place.fromPickResult(result);
+                    // check if place is rated already
+                    selectedPlace = widget.places?.firstWhere(
+                      (place) => place.url == selectedPlace?.url,
+                      orElse: () => selectedPlace ?? Place(),
+                    );
                     widget.onInitPlaceForm(selectedPlace ?? Place());
+                    Navigator.of(context).pop();
                   });
                 },
               );

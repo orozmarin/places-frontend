@@ -6,18 +6,30 @@ import 'package:gastrorate/widgets/custom_text.dart';
 
 class PlaceSwiperItem extends StatelessWidget {
   final Place place;
+  final List<Place>? ratedPlaces;
   final Function(Place) onInitPlaceForm;
 
   const PlaceSwiperItem({
     Key? key,
     required this.place,
+    required this.ratedPlaces,
     required this.onInitPlaceForm,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => onInitPlaceForm(place),
+      onTap: () {
+        Place selectedPlace = place;
+        // check if place is rated already
+        if (ratedPlaces != null && ratedPlaces!.isNotEmpty) {
+          selectedPlace = ratedPlaces!.firstWhere(
+            (place) => place.url == selectedPlace.url,
+            orElse: () => selectedPlace,
+          );
+        }
+        onInitPlaceForm(selectedPlace);
+      },
       child: Container(
         width: double.infinity,
         margin: const EdgeInsets.only(bottom: 8),

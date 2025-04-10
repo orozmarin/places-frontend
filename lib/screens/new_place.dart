@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:gastrorate/models/place.dart';
 import 'package:gastrorate/models/place_review.dart';
@@ -18,10 +19,11 @@ import 'package:gastrorate/widgets/vertical_spacer.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class NewPlace extends StatefulWidget {
-  const NewPlace({super.key, required this.place, required this.onSavePlace});
+  const NewPlace({super.key, required this.place, required this.onSavePlace, required this.onDeletePlace});
 
   final Place? place;
   final Function(Place place) onSavePlace;
+  final Function(Place place) onDeletePlace;
 
   @override
   State<StatefulWidget> createState() => _NewPlaceState();
@@ -30,16 +32,25 @@ class NewPlace extends StatefulWidget {
 class _NewPlaceState extends State<NewPlace> {
   Place currentPlace = Place();
   final DateTime _earliestDate = DateTime.now().subtract(const Duration(days: 36500));
-  final DateTime _latestDate = DateTime.now();
+  DateTime? _latestDate;
   DateTime? _visitedAt;
 
   @override
   void initState() {
     super.initState();
-    if (widget.place != null) {
-      currentPlace = widget.place!;
-      _visitedAt = currentPlace.visitedAt;
-    }
+    currentPlace = widget.place!;
+    _visitedAt = currentPlace.visitedAt ?? DateTime.now();
+    currentPlace.visitedAt = _visitedAt;
+    final now = DateTime.now();
+    _latestDate = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      23,
+      59,
+      59,
+    );
+    currentPlace.isFavorite ??= false;
   }
 
   @override
@@ -47,9 +58,17 @@ class _NewPlaceState extends State<NewPlace> {
     return Scaffold(
       appBar: AppBar(
         title: CustomText(
-          currentPlace.name ?? "Unnamed Place",
+          currentPlace.name ?? "N/A",
         ),
         actions: [
+          IconButton(
+            icon: Icon(currentPlace.isFavorite ?? false ? CupertinoIcons.heart_fill : CupertinoIcons.heart),
+            onPressed: () {
+              setState(() {
+                currentPlace.isFavorite = !currentPlace.isFavorite!;
+              });
+            },
+          ),
           if (currentPlace.url != null)
             IconButton(
               icon: const Icon(Icons.location_on),
@@ -119,14 +138,41 @@ class _NewPlaceState extends State<NewPlace> {
       ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(12),
-        child: ButtonComponent(
-          text: "Save",
-          isDisabled: currentPlace.firstRating == null || currentPlace.secondRating == null,
-          onPressed: () {
-            widget.onSavePlace(currentPlace);
-            Navigator.pop(context);
-          },
-        ),
+        child: currentPlace.placeRating == null
+            ? ButtonComponent(
+                text: "Save",
+                isDisabled: currentPlace.firstRating == null || currentPlace.secondRating == null,
+                onPressed: () {
+                  widget.onSavePlace(currentPlace);
+                  Navigator.pop(context);
+                },
+              )
+            : Row(
+                children: [
+                  Expanded(
+                    flex: 4, // 80%
+                    child: ButtonComponent(
+                      text: "Save",
+                      isDisabled: currentPlace.firstRating == null || currentPlace.secondRating == null,
+                      onPressed: () {
+                        widget.onSavePlace(currentPlace);
+                        Navigator.pop(context);
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 1, // 20%
+                    child: ButtonComponent(
+                      iconData: CupertinoIcons.delete_simple,
+                      onPressed: () {
+                        widget.onDeletePlace(currentPlace);
+                        Navigator.pop(context);
+                      },
+                    ),
+                  ),
+                ],
+              ),
       ),
     );
   }

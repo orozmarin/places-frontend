@@ -33,8 +33,11 @@ class Place {
   Rating? secondRating;
   double? placeRating;
   DateTime? visitedAt;
+  bool? isFavorite;
 
   factory Place.fromJson(Map<String, dynamic> json) => _$PlaceFromJson(json);
+
+  factory Place.fromGoogleJson(Map<String, dynamic> json) => _$PlaceFromGoogleJson(json);
   Map<String, dynamic> toJson() => _$PlaceToJson(this);
 
   Place({
@@ -57,6 +60,7 @@ class Place {
     this.secondRating,
     this.placeRating,
     this.visitedAt,
+    this.isFavorite,
   });
 
   factory Place.fromPickResult(PickResult result) {
@@ -107,6 +111,7 @@ class Place {
       coordinates: Coordinates(latitude: result.geometry?.location.lat, longitude: result.geometry?.location.lng),
       priceLevel: convertPriceLevelByName(result.priceLevel?.name),
       visitedAt: DateTime.now(),
+      isFavorite: false,
     );
   }
 
@@ -132,7 +137,8 @@ class Place {
           firstRating == other.firstRating &&
               secondRating == other.secondRating &&
               placeRating == other.placeRating &&
-          visitedAt == other.visitedAt);
+          visitedAt == other.visitedAt &&
+          isFavorite == other.isFavorite);
 
   @override
   int get hashCode =>
@@ -154,11 +160,12 @@ class Place {
       secondRating.hashCode ^
       placeRating.hashCode ^
       coordinates.hashCode ^
-      visitedAt.hashCode;
+      visitedAt.hashCode ^
+      isFavorite.hashCode;
 
   @override
   String toString() {
-    return 'Place{ id: $id, name: $name, address: $address, city: $city, postalCode: $postalCode, country: $country, contactNumber: $contactNumber, openingHours: $openingHours, photos: $photos, priceLevel: $priceLevel, reviews: $reviews, googleRating: $googleRating, url: $url, webSiteUrl: $webSiteUrl, coordinates: $coordinates, firstRating: $firstRating, secondRating: $secondRating, placeRating: $placeRating, visitedAt: $visitedAt }';
+    return 'Place{ id: $id, name: $name, address: $address, city: $city, postalCode: $postalCode, country: $country, contactNumber: $contactNumber, openingHours: $openingHours, photos: $photos, priceLevel: $priceLevel, reviews: $reviews, googleRating: $googleRating, url: $url, webSiteUrl: $webSiteUrl, coordinates: $coordinates, firstRating: $firstRating, secondRating: $secondRating, placeRating: $placeRating, visitedAt: $visitedAt, isFavorite: $isFavorite }';
   }
 
   Place copyWith({
@@ -181,6 +188,7 @@ class Place {
     Rating? secondRating,
     double? placeRating,
     DateTime? visitedAt,
+    bool? isFavorite,
   }) {
     return Place(
       id: id ?? this.id,
@@ -202,6 +210,7 @@ class Place {
       secondRating: secondRating ?? this.secondRating,
       placeRating: placeRating ?? this.placeRating,
       visitedAt: visitedAt ?? this.visitedAt,
+      isFavorite: isFavorite ?? this.isFavorite,
     );
   }
 
@@ -226,6 +235,7 @@ class Place {
       'secondRating': secondRating?.toMap(),
       'placeRating': placeRating,
       'visitedAt': visitedAt?.toIso8601String(),
+      'isFavorite': isFavorite,
     };
   }
 
@@ -252,6 +262,7 @@ class Place {
       secondRating: map['secondRating'] != null ? Rating.fromMap(map['secondRating']) : null,
       placeRating: map['placeRating'] as double?,
       visitedAt: map['visitedAt'] != null ? DateTime.parse(map['visitedAt']) : null,
+      isFavorite: map['isFavorite'] as bool?,
     );
   }
 }

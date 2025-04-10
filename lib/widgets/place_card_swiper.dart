@@ -5,11 +5,13 @@ import 'package:gastrorate/widgets/place_swiper_item.dart';
 
 class PlaceCardSwiper extends StatelessWidget {
   final List<Place> places;
+  final List<Place>? ratedPlaces;
   final Function(Place) onDeletePlace;
   final Function(Place) onInitPlaceForm;
 
   const PlaceCardSwiper({
     required this.places,
+    required this.ratedPlaces,
     required this.onDeletePlace,
     required this.onInitPlaceForm,
     Key? key,
@@ -26,6 +28,7 @@ class PlaceCardSwiper extends StatelessWidget {
         loop: true,
         itemBuilder: (context, index) {
           return PlaceSwiperItem(
+            ratedPlaces: ratedPlaces,
             place: places[index],
             onInitPlaceForm: onInitPlaceForm,
           );
