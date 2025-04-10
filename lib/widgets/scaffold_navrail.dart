@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:gastrorate/theme/my_colors.dart';
 import 'package:gastrorate/widgets/custom_text.dart';
@@ -27,19 +28,19 @@ class ScaffoldWithNavigationRail extends StatelessWidget {
             destinations: const <NavigationRailDestination>[
               NavigationRailDestination(
                 label: CustomText('Home', style: TextStyle(color: MyColors.navbarItemColor),),
-                icon: Icon(Icons.home, color: MyColors.navbarItemColor,),
+                icon: Icon(CupertinoIcons.home, color: MyColors.navbarItemColor,),
               ),
               NavigationRailDestination(
                 label: CustomText('Places', style: TextStyle(color: MyColors.navbarItemColor),),
-                icon: Icon(Icons.restaurant_menu, color: MyColors.navbarItemColor,),
+                icon: Icon(CupertinoIcons.map_pin_ellipse, color: MyColors.navbarItemColor,),
               ),
               NavigationRailDestination(
-                label: CustomText('Wishlist', style: TextStyle(color: MyColors.navbarItemColor),),
-                icon: Icon(Icons.favorite_border, color: MyColors.navbarItemColor,),
+                label: CustomText('Favorites', style: TextStyle(color: MyColors.navbarItemColor),),
+                icon: Icon(CupertinoIcons.heart_fill, color: MyColors.navbarItemColor,),
               ),
               NavigationRailDestination(
                 label: CustomText('Settings', style: TextStyle(color: MyColors.navbarItemColor),),
-                icon: Icon(Icons.settings, color: MyColors.navbarItemColor,),
+                icon: Icon(CupertinoIcons.settings, color: MyColors.navbarItemColor,),
               ),
             ],
           ),

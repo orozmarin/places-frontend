@@ -1,17 +1,17 @@
 // private navigators
 import 'package:flutter/material.dart';
+import 'package:gastrorate/screens/favorites_page.dart';
 import 'package:gastrorate/screens/home_page.dart';
 import 'package:gastrorate/screens/new_place_page.dart';
 import 'package:gastrorate/screens/places_page.dart';
 import 'package:gastrorate/screens/settings_page.dart';
-import 'package:gastrorate/screens/wishlist_page.dart';
 import 'package:gastrorate/widgets/scaffold_nested_navigation.dart';
 import 'package:go_router/go_router.dart';
 
 final rootNavigatorKey = GlobalKey<NavigatorState>();
 final shellNavigatorHomeKey = GlobalKey<NavigatorState>(debugLabel: 'homeShellKey');
 final shellNavigatorPlacesKey = GlobalKey<NavigatorState>(debugLabel: 'placesShellKey');
-final shellNavigatorWishlistKey = GlobalKey<NavigatorState>(debugLabel: 'wishlistShellKey');
+final shellNavigatorFavoritesKey = GlobalKey<NavigatorState>(debugLabel: 'favoritesShellKey');
 final shellNavigatorSettingsKey = GlobalKey<NavigatorState>(debugLabel: 'settingsShellKey');
 
 // the one and only GoRouter instance
@@ -71,16 +71,20 @@ final goRouter = GoRouter(
           ],
         ),
         StatefulShellBranch(
-          navigatorKey: shellNavigatorWishlistKey,
+          navigatorKey: shellNavigatorFavoritesKey,
           routes: [
             // top route inside branch
             GoRoute(
-              path: '/wishlist',
+              path: '/favorites',
               pageBuilder: (context, state) => const NoTransitionPage(
-                child: WishlistPage(),
+                child: FavoritesPage(),
               ),
               routes: [
                 // child route
+                GoRoute(
+                  path: 'details',
+                  builder: (context, state) => const NewPlacePage(),
+                ),
               ],
             ),
           ],

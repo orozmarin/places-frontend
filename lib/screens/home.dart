@@ -5,7 +5,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:gastrorate/models/place.dart';
 import 'package:gastrorate/theme/my_colors.dart';
 import 'package:gastrorate/theme/theme_helper.dart';
-import 'package:gastrorate/tools/parse_helper.dart';
+import 'package:gastrorate/tools/location_helper.dart';
 import 'package:gastrorate/widgets/custom_text.dart';
 import 'package:gastrorate/widgets/horizontal_line.dart';
 import 'package:gastrorate/widgets/place_card.dart';
@@ -111,6 +111,7 @@ class _HomeState extends State<Home> {
           ),
           if (widget.nearbyPlaces != null && widget.nearbyPlaces!.isNotEmpty)
             PlaceCardSwiper(
+                ratedPlaces: widget.places,
                 places: widget.nearbyPlaces!,
                 onDeletePlace: widget.onDeletePlace,
                 onInitPlaceForm: widget.onInitPlaceForm),
@@ -152,7 +153,7 @@ class _HomeState extends State<Home> {
           ],
         ]),
       ),
-      floatingActionButton: _isVisible
+      floatingActionButton: showAddPlaceButton()
           ? AnimatedOpacity(
               opacity: 1.0, duration: const Duration(milliseconds: 300), child: buildAddPlaceButton(context))
           : const AnimatedOpacity(
@@ -162,6 +163,8 @@ class _HomeState extends State<Home> {
             ),
     );
   }
+
+  bool showAddPlaceButton() => _isVisible || (widget.places == null || widget.places!.length < 2);
 
   FloatingActionButton buildAddPlaceButton(BuildContext context) {
     return FloatingActionButton.extended(
@@ -198,7 +201,13 @@ class _HomeState extends State<Home> {
                 onPlacePicked: (PickResult result) {
                   setState(() {
                     selectedPlace = Place.fromPickResult(result);
+                    // check if place is rated already
+                    selectedPlace = widget.places?.firstWhere(
+                      (place) => place.url == selectedPlace?.url,
+                      orElse: () => selectedPlace ?? Place(),
+                    );
                     widget.onInitPlaceForm(selectedPlace ?? Place());
+                    Navigator.of(context).pop();
                   });
                 },
               );
