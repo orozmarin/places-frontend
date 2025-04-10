@@ -41,6 +41,7 @@ Place _$PlaceFromJson(Map<String, dynamic> json) => Place(
       visitedAt: json['visitedAt'] == null
           ? null
           : DateTime.parse(json['visitedAt'] as String),
+      isFavorite: json['isFavorite'] as bool?,
     );
 
 Place _$PlaceFromGoogleJson(Map<String, dynamic> json) => Place(
@@ -79,11 +80,7 @@ Place _$PlaceFromGoogleJson(Map<String, dynamic> json) => Place(
               latitude: (json['location']['latitude'] as num?)?.toDouble(),
               longitude: (json['location']['longitude'] as num?)?.toDouble(),
             ),
-      // You can leave these out or add defaults if Google doesn't return them:
-      firstRating: null,
-      secondRating: null,
-      placeRating: null,
-      visitedAt: null,
+      isFavorite: false,
     );
 
 Map<String, dynamic> _$PlaceToJson(Place instance) => <String, dynamic>{
@@ -106,6 +103,7 @@ Map<String, dynamic> _$PlaceToJson(Place instance) => <String, dynamic>{
       'secondRating': instance.secondRating?.toJson(),
       'placeRating': instance.placeRating,
       'visitedAt': instance.visitedAt?.toIso8601String(),
+      'isFavorite': instance.isFavorite,
     };
 
 const _$PriceLevelEnumMap = {

@@ -1,3 +1,5 @@
+import 'package:gastrorate/models/coordinates.dart';
+import 'package:gastrorate/models/nearby_places_search_form.dart';
 import 'package:geolocator/geolocator.dart';
 
 class LocationHelper {
@@ -25,5 +27,22 @@ class LocationHelper {
     // At this point, permissions are granted
     Position location = await Geolocator.getCurrentPosition();
     return location;
+  }
+
+  Future<NearbyPlacesSearchForm> getNearbyPlacesSearchForm() async {
+    Coordinates? initialPosition;
+    await LocationHelper()
+        .getCurrentLocation()
+        .then((value) => initialPosition = Coordinates(latitude: value.latitude, longitude: value.longitude));
+    return NearbyPlacesSearchForm(
+      includedTypes: ['restaurant'],
+      maxResultCount: 10,
+      locationRestriction: LocationRestriction(
+        circle: Circle(
+          center: initialPosition!,
+          radius: 10000.0,
+        ),
+      ),
+    );
   }
 }
