@@ -16,6 +16,10 @@ class MyColors{
   static Color disabledGreyButtonForegroundColor = Colors.black87;
   static Color greyButtonBckColor = Colors.grey;
 
+  static const Color greyTextColor = Color(0xff777777);
+
+  static const Color loaderColor = Color(0xff777777);
+
   static Color colorRed = Colors.red;
   static Color colorGreen = Colors.green;
 

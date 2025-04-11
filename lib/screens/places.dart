@@ -36,7 +36,7 @@ class Places extends StatefulWidget {
 class _PlacesState extends State<Places> {
   LatLng initialPosition = kInitialPosition;
   Place? selectedPlace;
-  PlaceSorting _selectedSorting = PlaceSorting.DATE_ASC;
+  PlaceSorting _selectedSorting = PlaceSorting.DATE_DESC;
 
   bool _mapsInitialized = false;
 
