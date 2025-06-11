@@ -6,6 +6,7 @@ import 'package:gastrorate/models/place.dart';
 import 'package:gastrorate/models/place_search_form.dart';
 import 'package:gastrorate/theme/my_colors.dart';
 import 'package:gastrorate/theme/theme_helper.dart';
+import 'package:gastrorate/tools/place_helper.dart';
 import 'package:gastrorate/widgets/custom_text.dart';
 import 'package:gastrorate/widgets/place_card.dart';
 import 'package:geolocator/geolocator.dart';
@@ -36,7 +37,8 @@ class Places extends StatefulWidget {
 class _PlacesState extends State<Places> {
   LatLng initialPosition = kInitialPosition;
   Place? selectedPlace;
-  PlaceSorting _selectedSorting = PlaceSorting.DATE_ASC;
+  PlaceSorting _selectedSorting = PlaceSorting.DATE_DESC;
+  List<Place> _places = <Place>[];
 
   bool _mapsInitialized = false;
 
@@ -91,8 +93,21 @@ class _PlacesState extends State<Places> {
   }
 
   @override
+  void didUpdateWidget(covariant Places oldWidget) {
+    if (widget.places != null){
+      _places = widget.places!;
+      _places = PlaceHelper.sortPlaces(_places, _selectedSorting);
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  @override
   void initState() {
     super.initState();
+    if (widget.places != null){
+      _places = widget.places!;
+      _places = PlaceHelper.sortPlaces(_places, _selectedSorting);
+    }
     _scrollController.addListener(_onScroll);
   }
 
@@ -114,8 +129,8 @@ class _PlacesState extends State<Places> {
         ],
       ),
       body: Center(
-        child: //
-            widget.places != null && widget.places!.isNotEmpty
+        child:
+            _places.isNotEmpty
                 ? Column(
                     children: [
                       Expanded(
@@ -123,14 +138,14 @@ class _PlacesState extends State<Places> {
                           padding: const EdgeInsets.only(bottom: 20, top: 10),
                           controller: _scrollController,
                           itemBuilder: (context, index) {
-                            Place place = widget.places![index];
+                            Place place = _places[index];
                             return PlaceCard(
                               place: place,
                               onDeletePlace: widget.onDeletePlace,
                               onInitPlaceForm: widget.onInitPlaceForm,
                             );
                           },
-                          itemCount: widget.places!.length,
+                          itemCount: _places.length,
                         ),
                       ),
                     ],
@@ -151,7 +166,7 @@ class _PlacesState extends State<Places> {
     );
   }
 
-  bool showAddPlaceButton() => _isVisible || (widget.places == null || widget.places!.length < 3);
+  bool showAddPlaceButton() => _isVisible || (_places.length < 3);
 
   List<Widget> buildEmptyState() {
     return <Widget>[
@@ -199,7 +214,7 @@ class _PlacesState extends State<Places> {
                   setState(() {
                     selectedPlace = Place.fromPickResult(result);
                     // check if place is rated already
-                    selectedPlace = widget.places?.firstWhere(
+                    selectedPlace = _places.firstWhere(
                       (place) => place.url == selectedPlace?.url,
                       orElse: () => selectedPlace ?? Place(),
                     );
@@ -228,7 +243,7 @@ class _PlacesState extends State<Places> {
       ),
       onSelected: (PlaceSorting value) {
         _selectedSorting = value;
-        widget.onFindAllPlaces(PlaceSearchForm(sortingMethod: value));
+        _places = PlaceHelper.sortPlaces(_places, value);
         setState(() {});
       },
       itemBuilder: (BuildContext context) => <PopupMenuEntry<PlaceSorting>>[

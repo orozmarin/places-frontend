@@ -78,6 +78,7 @@ class DeletePlaceAction extends ReduxAction<AppState>{
     await PlaceManager().deletePlace(payload.id!);
     dispatch(FetchPlacesAction());
     dispatch(FetchNearbyPlacesAction());
+    dispatch(FetchFavoritePlacesAction());
     return null;
   }
 }
@@ -89,6 +90,15 @@ class FetchNearbyPlacesAction extends ReduxAction<AppState> {
   Future<AppState?> reduce() async {
     NearbyPlacesSearchForm npsf = await LocationHelper().getNearbyPlacesSearchForm();
     List<Place>? places = await PlaceManager().findNearbyPlaces(npsf);
+    places = await Future.wait(places.map((place) async {
+      if (place.coordinates != null) {
+        final distance = await LocationHelper().getDistance(place.coordinates!);
+        final distanceInKm = (distance);
+        return place.copyWith(distance: distanceInKm);
+      }
+      return place;
+    }));
+
     dispatch(FetchNearbyPlacesSuccessAction(places));
     return null;
   }

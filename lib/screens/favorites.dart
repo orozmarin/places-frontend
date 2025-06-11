@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:gastrorate/models/place.dart';
+import 'package:gastrorate/models/place_search_form.dart';
 import 'package:gastrorate/theme/my_colors.dart';
+import 'package:gastrorate/tools/place_helper.dart';
 import 'package:gastrorate/widgets/place_card.dart';
 import 'package:lottie/lottie.dart';
 
@@ -18,30 +20,54 @@ class Favorites extends StatefulWidget {
 }
 
 class _FavoritesState extends State<Favorites> {
+  List<Place> _places = <Place>[];
+  PlaceSorting _selectedSorting = PlaceSorting.DATE_DESC;
+
+  @override
+  void didUpdateWidget(covariant Favorites oldWidget) {
+    if (widget.favoritePlaces != null) {
+      _places = widget.favoritePlaces!;
+      _places = PlaceHelper.sortPlaces(_places, _selectedSorting);
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.favoritePlaces != null) {
+      _places = widget.favoritePlaces!;
+      _places = PlaceHelper.sortPlaces(_places, _selectedSorting);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const CustomText("Your Favorites", style: TextStyle(color: MyColors.navbarItemColor)),
         backgroundColor: MyColors.appbarColor,
+        actions: [
+          buildSortingButton(),
+        ],
       ),
       body: Center(
         child: //
-            widget.favoritePlaces != null && widget.favoritePlaces!.isNotEmpty
+            _places.isNotEmpty
                 ? Column(
                     children: [
                       Expanded(
                         child: ListView.builder(
                           padding: const EdgeInsets.only(bottom: 20, top: 10),
                           itemBuilder: (context, index) {
-                            Place place = widget.favoritePlaces![index];
+                            Place place = _places[index];
                             return PlaceCard(
                               place: place,
                               onDeletePlace: widget.onDeletePlace,
                               onInitPlaceForm: widget.onInitPlaceForm,
                             );
                           },
-                          itemCount: widget.favoritePlaces!.length,
+                          itemCount: _places.length,
                         ),
                       ),
                     ],
@@ -51,6 +77,36 @@ class _FavoritesState extends State<Favorites> {
                     children: buildEmptyState(), // Pass context
                   ),
       ),
+    );
+  }
+
+  PopupMenuButton<PlaceSorting> buildSortingButton() {
+    return PopupMenuButton<PlaceSorting>(
+      surfaceTintColor: MyColors.mainBackgroundColor,
+      icon: const Icon(
+        Icons.filter_list,
+        color: Colors.white,
+      ),
+      onSelected: (PlaceSorting value) {
+        _selectedSorting = value;
+        _places = PlaceHelper.sortPlaces(_places, value);
+        setState(() {});
+      },
+      itemBuilder: (BuildContext context) => <PopupMenuEntry<PlaceSorting>>[
+        _buildPopupMenuItem("Alphabetically (A-Z)", PlaceSorting.ALPHABETICALLY_ASC),
+        _buildPopupMenuItem("Alphabetically (Z-A)", PlaceSorting.ALPHABETICALLY_DESC),
+        _buildPopupMenuItem("Rating (Low to High)", PlaceSorting.RATING_ASC),
+        _buildPopupMenuItem("Rating (High to Low)", PlaceSorting.RATING_DESC),
+        _buildPopupMenuItem("Date (Oldest First)", PlaceSorting.DATE_ASC),
+        _buildPopupMenuItem("Date (Newest First)", PlaceSorting.DATE_DESC),
+      ],
+    );
+  }
+
+  PopupMenuItem<PlaceSorting> _buildPopupMenuItem(String text, PlaceSorting value) {
+    return PopupMenuItem<PlaceSorting>(
+      value: value,
+      child: Text(text, style: TextStyle(fontWeight: _selectedSorting == value ? FontWeight.bold : FontWeight.normal)),
     );
   }
 
