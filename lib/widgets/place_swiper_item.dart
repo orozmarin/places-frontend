@@ -3,6 +3,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:gastrorate/models/place.dart';
 import 'package:gastrorate/theme/my_colors.dart';
 import 'package:gastrorate/widgets/custom_text.dart';
+import 'package:gastrorate/widgets/horizontal_spacer.dart';
+import 'package:gastrorate/widgets/vertical_spacer.dart';
 
 class PlaceSwiperItem extends StatelessWidget {
   final Place place;
@@ -85,22 +87,41 @@ class PlaceSwiperItem extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomText(
-                    place.name ?? "Unknown Place",
+                    place.name ?? "N/A",
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 18,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const VerticalSpacer(4),
                   CustomText(
                     "${place.city}, ${place.country}",
                     style: const TextStyle(fontSize: 14, color: Colors.grey),
                   ),
-                  const SizedBox(height: 8),
-                  CustomText(
-                    "⭐ ${place.googleRating}",
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                  ),
+                  const VerticalSpacer(8),
+                  Row(
+                    children: [
+                      CustomText(
+                        "⭐ ${place.googleRating}",
+                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                      ),
+                      if (place.coordinates != null) ...<Widget>[
+                        const HorizontalSpacer(20),
+                        CustomText(
+                          place.distance == null
+                              ? "N/A"
+                              : place.distance! < 1000
+                                  ? "${(place.distance! ~/ 10 * 10)} m"
+                                  : "${(place.distance! / 1000).toStringAsFixed(1)} km",
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: MyColors.greyTextColor,
+                          ),
+                        ),
+                      ]
+                    ],
+                  )
                 ],
               ),
             ),
