@@ -78,6 +78,7 @@ class DeletePlaceAction extends ReduxAction<AppState>{
     await PlaceManager().deletePlace(payload.id!);
     dispatch(FetchPlacesAction());
     dispatch(FetchNearbyPlacesAction());
+    dispatch(FetchFavoritePlacesAction());
     return null;
   }
 }
