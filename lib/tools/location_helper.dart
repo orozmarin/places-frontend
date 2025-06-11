@@ -45,4 +45,13 @@ class LocationHelper {
       ),
     );
   }
+
+  Future<double?> getDistance(Coordinates placeCoords) async {
+    Position currentLocation = await getCurrentLocation();
+    if (placeCoords.latitude == null || placeCoords.longitude == null) {
+      return null;
+    }
+    return Geolocator.distanceBetween(
+        placeCoords.latitude!, placeCoords.longitude!, currentLocation.latitude, currentLocation.longitude);
+  }
 }
