@@ -16,7 +16,8 @@ class ButtonComponent extends StatelessWidget {
   final bool isDisabled;
   final bool isGrey;
   final Widget? textWidget;
-  final Color? buttonColor; // New attribute
+  final Color? buttonColor;
+  final bool isLoading;
 
   const ButtonComponent({
     Key? key,
@@ -30,10 +31,10 @@ class ButtonComponent extends StatelessWidget {
     this.isDisabled = false,
     this.isGrey = false,
     this.textWidget,
-    this.buttonColor, // Added parameter
+    this.buttonColor,
+    this.isLoading = false,
   }) : super(key: key);
 
-  // Named constructor for small button
   ButtonComponent.smallButton({
     Key? key,
     String? text,
@@ -44,22 +45,23 @@ class ButtonComponent extends StatelessWidget {
     bool? isDisabled = false,
     bool? isGrey = false,
     Widget? textWidget,
-    Color? buttonColor, // Added parameter
+    Color? buttonColor,
+    bool isLoading = false,
   }) : this(
-          key: key,
-          text: text,
-          iconData: iconData,
-          onPressed: onPressed,
-          width: width,
-          height: 32,
-          focusNode: focusNode,
-          isDisabled: isDisabled!,
-          textWidget: textWidget,
-          isGrey: isGrey!,
-          buttonColor: buttonColor, // Pass it
-        );
+    key: key,
+    text: text,
+    iconData: iconData,
+    onPressed: onPressed,
+    width: width,
+    height: 32,
+    focusNode: focusNode,
+    isDisabled: isDisabled!,
+    textWidget: textWidget,
+    isGrey: isGrey!,
+    buttonColor: buttonColor,
+    isLoading: isLoading,
+  );
 
-  // Named constructor for secondary button (OutlinedButton)
   ButtonComponent.outlinedButton({
     Key? key,
     String? text,
@@ -71,23 +73,24 @@ class ButtonComponent extends StatelessWidget {
     bool? isDisabled = false,
     Widget? textWidget,
     bool? isGrey = false,
-    Color? buttonColor, // Added parameter
+    Color? buttonColor,
+    bool isLoading = false,
   }) : this(
-          key: key,
-          text: text,
-          iconData: iconData,
-          onPressed: onPressed,
-          width: width,
-          height: height,
-          focusNode: focusNode,
-          isOutlined: true,
-          isDisabled: isDisabled!,
-          textWidget: textWidget,
-          isGrey: isGrey!,
-          buttonColor: buttonColor, // Pass it
-        );
+    key: key,
+    text: text,
+    iconData: iconData,
+    onPressed: onPressed,
+    width: width,
+    height: height,
+    focusNode: focusNode,
+    isOutlined: true,
+    isDisabled: isDisabled!,
+    textWidget: textWidget,
+    isGrey: isGrey!,
+    buttonColor: buttonColor,
+    isLoading: isLoading,
+  );
 
-  // Named constructor for small secondary button (OutlinedButton with height 32)
   ButtonComponent.outlinedButtonSmall({
     Key? key,
     String? text,
@@ -98,21 +101,23 @@ class ButtonComponent extends StatelessWidget {
     bool isDisabled = false,
     bool? isGrey = false,
     Widget? textWidget,
-    Color? buttonColor, // Added parameter
+    Color? buttonColor,
+    bool isLoading = false,
   }) : this(
-          key: key,
-          text: text,
-          iconData: iconData,
-          onPressed: onPressed,
-          width: width,
-          height: 32,
-          focusNode: focusNode,
-          isOutlined: true,
-          isDisabled: isDisabled,
-          textWidget: textWidget,
-          isGrey: isGrey!,
-          buttonColor: buttonColor, // Pass it
-        );
+    key: key,
+    text: text,
+    iconData: iconData,
+    onPressed: onPressed,
+    width: width,
+    height: 32,
+    focusNode: focusNode,
+    isOutlined: true,
+    isDisabled: isDisabled,
+    textWidget: textWidget,
+    isGrey: isGrey!,
+    buttonColor: buttonColor,
+    isLoading: isLoading,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -125,29 +130,31 @@ class ButtonComponent extends StatelessWidget {
           borderRadius: BorderRadius.circular(kInputBorderRadius),
         ),
       ),
-      side: isOutlined ? MaterialStateProperty.all(BorderSide(color: effectiveColor, width: 1.0)) : null,
+      side: isOutlined
+          ? MaterialStateProperty.all(BorderSide(color: effectiveColor, width: 1.0))
+          : null,
       padding: MaterialStateProperty.all(const EdgeInsets.symmetric(horizontal: 6)),
       backgroundColor: MaterialStateProperty.resolveWith<Color?>(
-        (Set<MaterialState> states) {
+            (Set<MaterialState> states) {
           if (states.contains(MaterialState.disabled)) {
             return MyColors.disabledButtonBckColor;
           }
           if (isOutlined) {
-            return Colors.transparent; // Keep background transparent for outlined buttons
+            return Colors.transparent;
           }
           if (isGrey) {
             return MyColors.greyButtonBckColor;
           }
-          return effectiveColor; // Use buttonColor if provided
+          return effectiveColor;
         },
       ),
       foregroundColor: MaterialStateProperty.resolveWith<Color?>(
-        (Set<MaterialState> states) {
+            (Set<MaterialState> states) {
           if (states.contains(MaterialState.disabled)) {
             return MyColors.disabledButtonForegroundColor;
           }
           if (isOutlined) {
-            return effectiveColor; // Use buttonColor for text when outlined
+            return effectiveColor;
           }
           return Colors.white;
         },
@@ -162,33 +169,46 @@ class ButtonComponent extends StatelessWidget {
         width: width,
         child: isOutlined
             ? OutlinedButton(
-                focusNode: focusNode,
-                onPressed: isDisabled ? null : onPressed,
-                style: buttonStyle,
-                child: buildButtonChild(effectiveColor),
-              )
+          focusNode: focusNode,
+          onPressed: isDisabled || isLoading ? null : onPressed,
+          style: buttonStyle,
+          child: buildButtonChild(effectiveColor),
+        )
             : ElevatedButton(
-                focusNode: focusNode,
-                onPressed: isDisabled ? null : onPressed,
-                style: buttonStyle,
-                child: buildButtonChild(Colors.white),
-              ),
+          focusNode: focusNode,
+          onPressed: isDisabled || isLoading ? null : onPressed,
+          style: buttonStyle,
+          child: buildButtonChild(Colors.white),
+        ),
       ),
     );
   }
 
-  Widget buildButtonChild(Color textColor) => Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          if (iconData != null) Icon(iconData, size: 16, color: textColor),
-          if (iconData != null && text != null) const HorizontalSpacer(8),
-          if (text != null && textWidget == null)
-            CustomText(
-              text!,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: textColor),
-            ),
-          if (textWidget != null) textWidget!,
-        ],
+  Widget buildButtonChild(Color textColor) {
+    if (isLoading) {
+      return SizedBox(
+        height: 20,
+        width: 20,
+        child: CircularProgressIndicator(
+          strokeWidth: 2.5,
+          valueColor: AlwaysStoppedAnimation<Color>(textColor),
+        ),
       );
+    }
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        if (iconData != null) Icon(iconData, size: 16, color: textColor),
+        if (iconData != null && text != null) const HorizontalSpacer(8),
+        if (text != null && textWidget == null)
+          CustomText(
+            text!,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(color: textColor),
+          ),
+        if (textWidget != null) textWidget!,
+      ],
+    );
+  }
 }
