@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:gastrorate/screens/favorites_page.dart';
 import 'package:gastrorate/screens/home_page.dart';
+import 'package:gastrorate/screens/login/login_page.dart';
 import 'package:gastrorate/screens/new_place_page.dart';
 import 'package:gastrorate/screens/places_page.dart';
 import 'package:gastrorate/screens/settings_page.dart';
@@ -14,11 +15,31 @@ final shellNavigatorPlacesKey = GlobalKey<NavigatorState>(debugLabel: 'placesShe
 final shellNavigatorFavoritesKey = GlobalKey<NavigatorState>(debugLabel: 'favoritesShellKey');
 final shellNavigatorSettingsKey = GlobalKey<NavigatorState>(debugLabel: 'settingsShellKey');
 
+// Fake auth service for example (replace with real one)
+bool isLoggedIn() {
+  // TODO: Check JWT/token from secure storage or app state
+  return false; // simulate not logged in on startup
+}
+
+
 // the one and only GoRouter instance
 final goRouter = GoRouter(
   initialLocation: '/home',
   navigatorKey: rootNavigatorKey,
+  redirect: (context, state) {
+    final loggedIn = isLoggedIn();
+    final loggingIn = state.fullPath == '/login';
+
+    if (!loggedIn && !loggingIn) return '/login';
+    if (loggedIn && loggingIn) return '/home';
+
+    return null;
+  },
   routes: [
+    GoRoute(
+      path: '/login',
+      builder: (context, state) => const LoginPage(),
+    ),
     // Stateful nested navigation based on:
     // https://github.com/flutter/packages/blob/main/packages/go_router/example/lib/stateful_shell_route.dart
     StatefulShellRoute.indexedStack(
