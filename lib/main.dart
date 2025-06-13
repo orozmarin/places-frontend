@@ -11,7 +11,7 @@ import 'app.dart';
 late final Store<AppState> store;
 
 void main() async {
-  AppState? initialState = AppState.init();
+  AppState? initialState = await AppState.init();
   store = Store<AppState>(initialState: initialState);
   await dotenv.load();
   requestLocationPermission();

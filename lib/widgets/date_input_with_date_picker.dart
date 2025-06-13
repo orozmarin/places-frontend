@@ -11,6 +11,7 @@ class DateInputWithDatePicker extends StatefulWidget {
   final DateTime? date;
   final double? width;
   final ValueChanged<DateTime> onDateChanged;
+  final String? Function(String? value)? validatorFunction;
 
   const DateInputWithDatePicker({
     Key? key,
@@ -20,6 +21,7 @@ class DateInputWithDatePicker extends StatefulWidget {
     this.maximumDate,
     this.width,
     required this.onDateChanged,
+    this.validatorFunction,
   }) : super(key: key);
 
   @override
@@ -94,6 +96,7 @@ class _DateInputWithDatePickerState extends State<DateInputWithDatePicker> {
       onTap: () => _showDatePicker(context),
       child: IgnorePointer(
         child: InputField(
+          validatorFunction: widget.validatorFunction,
           width: widget.width,
           labelText: widget.date?.formatDate(),
           obscureText: true,

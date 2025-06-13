@@ -38,6 +38,8 @@ class _LoginState extends State<Login> {
 
   bool _showLogin = false;
   bool _isRegistering = false;
+  bool? _passwordVisible;
+  bool? _confirmPasswordVisible;
 
   @override
   void initState() {
@@ -45,12 +47,29 @@ class _LoginState extends State<Login> {
       _showLogin = true;
       setState(() {});
     });
+    _passwordVisible = false;
+    _confirmPasswordVisible = false;
     super.initState();
+  }
+
+  @override
+  void didUpdateWidget(covariant Login oldWidget) {
+    _passwordVisible = false;
+    _confirmPasswordVisible = false;
+    super.didUpdateWidget(oldWidget);
+  }
+
+  @override
+  void dispose() {
+    _passwordVisible = false;
+    _confirmPasswordVisible = false;
+    super.dispose();
   }
 
   void _toggleRegistering() {
     setState(() {
       _isRegistering = !_isRegistering;
+      _formKey.currentState?.reset();
     });
   }
 
@@ -69,7 +88,6 @@ class _LoginState extends State<Login> {
                 children: [
                   Image.asset('assets/logo_16_9.png'),
                   if (_isRegistering) ...[
-                    // Confirm Password field
                     InputField(
                       controller: _firstNameController,
                       labelText: 'First Name',
@@ -92,38 +110,56 @@ class _LoginState extends State<Login> {
                     hintText: "Enter your email",
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
-                    validatorFunction: (value) =>
-                    value != null && value.contains('@') ? null : 'Enter a valid email',
-                    onChanged: (String? value) {
-                      _emailController.text = value ?? "";
-                    },
+                          validatorFunction: emailValidator,
+                          onChanged: (String? value) {
+                            _emailController.text = value ?? "";
+                          },
                   ),
                   const VerticalSpacer(16),
                   InputField(
                     labelText: "Password",
                     hintText: "Enter your password",
                     controller: _passwordController,
-                    obscureText: true,
-                    validatorFunction: (value) =>
-                    value != null && value.length >= 6 ? null : 'Enter min. 6 characters',
-                    onChanged: (String? value) {
-                      _passwordController.text = value ?? "";
-                    },
-                  ),
-                  VerticalSpacer(_isRegistering ? 16 : 24),
-                  // Show additional fields if registering
+                          obscureText: (_passwordVisible ?? false) ? false : true,
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              Icons.visibility,
+                              color: _passwordVisible ?? false ? Colors.black : Colors.black.withOpacity(0.3),
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _passwordVisible = !(_passwordVisible ?? false);
+                              });
+                            },
+                          ),
+                          validatorFunction: passwordValidator,
+                          onChanged: (String? value) {
+                            _passwordController.text = value ?? "";
+                          },
+                        ),
+                        VerticalSpacer(_isRegistering ? 16 : 24),
                   if (_isRegistering) ...[
-                    // Confirm Password field
                     InputField(
                       controller: _confirmPasswordController,
-                      obscureText: true,
-                      labelText: 'Confirm Password',
-                      onChanged: (String? value) {
-                        _confirmPasswordController.text = value ?? "";
-                      },
-                    ),
-                    const VerticalSpacer(16),
-                    // Date of Birth field
+                            obscureText: (_confirmPasswordVisible ?? false) ? false : true,
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                Icons.visibility,
+                                color: _confirmPasswordVisible ?? false ? Colors.black : Colors.black.withOpacity(0.3),
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _confirmPasswordVisible = !(_confirmPasswordVisible ?? false);
+                                });
+                              },
+                            ),
+                            labelText: 'Confirm Password',
+                            validatorFunction: (value) => confirmPasswordValidator(value, _passwordController.text),
+                            onChanged: (String? value) {
+                              _confirmPasswordController.text = value ?? "";
+                            },
+                          ),
+                          const VerticalSpacer(16),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -134,9 +170,9 @@ class _LoginState extends State<Login> {
                         minimumDate: _earliestDate,
                         date: _dateOfBirth,
                         onDateChanged: (DateTime newDate) => _onDateChanged(newDate),
+                        validatorFunction: (value) => null,
                       ),
                       const HorizontalSpacer(36),
-                      // Sex Dropdown
                       DropdownButton<Sex>(
                         value: _selectedSex,
                         onChanged: (Sex? newValue) {
@@ -155,7 +191,6 @@ class _LoginState extends State<Login> {
                         }).toList(),
                       ),
                     ],),
-
                     const VerticalSpacer(16),
                   ],
                   if (_errorMessage != null)
@@ -167,26 +202,17 @@ class _LoginState extends State<Login> {
                     isLoading: _isLoading,
                     onPressed: _isLoading
                         ? null
-                        : () =>
-                    _isRegistering
-                        ? widget.registerUser(RegisterRequest(
-                        email: _emailController.text,
-                        password: _passwordController.text,
-                        firstName: _firstNameController.text,
-                        lastName: _lastNameController.text,
-                        sex: _selectedSex,
-                        dateOfBirth: _dateOfBirth))
-                        : widget.loginUser(
-                        LoginRequest(email: _emailController.text, password: _passwordController.text)),
-                    text: _isRegistering ? "Register" : "Login",
-                  ),
-                  const VerticalSpacer(14),
-                  TextButton(
-                    style: Theme
-                        .of(context)
-                        .textButtonTheme
-                        .style,
-                    onPressed: _toggleRegistering,
+                              : () {
+                                  if (_formKey.currentState?.validate() ?? false) {
+                                    _handleAuthAction();
+                                  }
+                                },
+                          text: _isRegistering ? "Register" : "Login",
+                        ),
+                        const VerticalSpacer(14),
+                        TextButton(
+                          style: Theme.of(context).textButtonTheme.style,
+                          onPressed: _toggleRegistering,
                     child: Text(_isRegistering
                         ? 'Already have an account? Login here'
                         : 'Don\'t have an account? Register here'),
@@ -204,8 +230,68 @@ class _LoginState extends State<Login> {
     );
   }
 
+  void _handleAuthAction() {
+    if (_isRegistering) {
+      widget.registerUser(
+        RegisterRequest(
+          email: _emailController.text,
+          password: _passwordController.text,
+          firstName: _firstNameController.text,
+          lastName: _lastNameController.text,
+          sex: _selectedSex,
+          dateOfBirth: _dateOfBirth,
+        ),
+      );
+      _emailController.clear();
+      _passwordController.clear();
+      _firstNameController.clear();
+      _lastNameController.clear();
+      _selectedSex = Sex.FEMALE;
+      _dateOfBirth = null;
+      _isRegistering = false;
+
+      setState(() {});
+    } else {
+      widget.loginUser(
+        LoginRequest(
+          email: _emailController.text,
+          password: _passwordController.text,
+        ),
+      );
+      setState(() {});
+    }
+  }
+
   void _onDateChanged(DateTime newDate) {
     _dateOfBirth = newDate;
     setState(() {});
+  }
+
+  String? emailValidator(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Email cannot be empty';
+    }
+    final emailRegex = RegExp(r"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$");
+    if (!emailRegex.hasMatch(value.trim())) {
+      return 'Enter a valid email';
+    }
+    return null;
+  }
+
+  String? passwordValidator(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Password cannot be empty';
+    }
+    if (value.trim().length < 8) {
+      return 'Enter at least 8 characters';
+    }
+    return null;
+  }
+
+  String? confirmPasswordValidator(String? value, String original) {
+    if (value != original) {
+      return 'Passwords do not match!';
+    }
+    return null;
   }
 }

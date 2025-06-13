@@ -1,3 +1,4 @@
+import 'package:gastrorate/models/auth/user.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'auth_response.g.dart';
@@ -5,45 +6,37 @@ part 'auth_response.g.dart';
 @JsonSerializable(explicitToJson: true)
 class AuthResponse{
   String? token;
-  String? email;
-  String? userId;
-
-//<editor-fold desc="Data Methods">
-  AuthResponse({
-    this.token,
-    this.email,
-    this.userId,
-  });
+  User? user;
 
   factory AuthResponse.fromJson(Map<String, dynamic> json) => _$AuthResponseFromJson(json);
   Map<String, dynamic> toJson() => _$AuthResponseToJson(this);
 
+//<editor-fold desc="Data Methods">
+  AuthResponse({
+    this.token,
+    this.user,
+  });
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is AuthResponse &&
-          runtimeType == other.runtimeType &&
-          token == other.token &&
-          email == other.email &&
-          userId == other.userId);
+      (other is AuthResponse && runtimeType == other.runtimeType && token == other.token && user == other.user);
 
   @override
-  int get hashCode => token.hashCode ^ email.hashCode ^ userId.hashCode;
+  int get hashCode => token.hashCode ^ user.hashCode;
 
   @override
   String toString() {
-    return 'AuthResponse{' + ' token: $token,' + ' email: $email,' + ' userId: $userId,' + '}';
+    return 'AuthResponse{' + ' token: $token,' + ' user: $user,' + '}';
   }
 
   AuthResponse copyWith({
     String? token,
-    String? email,
-    String? userId,
+    User? user,
   }) {
     return AuthResponse(
       token: token ?? this.token,
-      email: email ?? this.email,
-      userId: userId ?? this.userId,
+      user: user ?? this.user,
     );
   }
 
@@ -54,8 +47,7 @@ class AuthResponse{
 
     return {
       keyMapper('token'): this.token,
-      keyMapper('email'): this.email,
-      keyMapper('userId'): this.userId,
+      keyMapper('user'): this.user,
     };
   }
 
@@ -67,8 +59,7 @@ class AuthResponse{
 
     return AuthResponse(
       token: map[keyMapper('token')] as String,
-      email: map[keyMapper('email')] as String,
-      userId: map[keyMapper('userId')] as String,
+      user: map[keyMapper('user')] as User,
     );
   }
 

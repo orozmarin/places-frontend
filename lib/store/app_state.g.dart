@@ -9,6 +9,8 @@ part of 'app_state.dart';
 abstract class _$AppStateCWProxy {
   AppState placesState(PlacesState placesState);
 
+  AppState authState(AuthState authState);
+
   /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `AppState(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
   ///
   /// Usage
@@ -17,6 +19,7 @@ abstract class _$AppStateCWProxy {
   /// ````
   AppState call({
     PlacesState? placesState,
+    AuthState? authState,
   });
 }
 
@@ -31,6 +34,9 @@ class _$AppStateCWProxyImpl implements _$AppStateCWProxy {
       this(placesState: placesState);
 
   @override
+  AppState authState(AuthState authState) => this(authState: authState);
+
+  @override
 
   /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `AppState(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
   ///
@@ -40,6 +46,7 @@ class _$AppStateCWProxyImpl implements _$AppStateCWProxy {
   /// ````
   AppState call({
     Object? placesState = const $CopyWithPlaceholder(),
+    Object? authState = const $CopyWithPlaceholder(),
   }) {
     return AppState(
       placesState:
@@ -47,6 +54,10 @@ class _$AppStateCWProxyImpl implements _$AppStateCWProxy {
               ? _value.placesState
               // ignore: cast_nullable_to_non_nullable
               : placesState as PlacesState,
+      authState: authState == const $CopyWithPlaceholder() || authState == null
+          ? _value.authState
+          // ignore: cast_nullable_to_non_nullable
+          : authState as AuthState,
     );
   }
 }
@@ -64,8 +75,10 @@ extension $AppStateCopyWith on AppState {
 AppState _$AppStateFromJson(Map<String, dynamic> json) => AppState(
       placesState:
           PlacesState.fromJson(json['placesState'] as Map<String, dynamic>),
+      authState: AuthState.fromJson(json['authState'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$AppStateToJson(AppState instance) => <String, dynamic>{
       'placesState': instance.placesState,
+      'authState': instance.authState,
     };
