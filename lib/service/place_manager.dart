@@ -25,6 +25,7 @@ class PlaceManager {
   PlaceManager._internal();
 
   Dio client = ApiService.client;
+  Dio googleClient = Dio();
 
   Future<List<Place>> findPlaces(PlaceSearchForm psf) async {
     String url = dotenv.env['API_BASE_URI'].toString() + FIND_ALL_PLACES;
@@ -52,7 +53,7 @@ class PlaceManager {
   }
 
   Future<List<Place>> findNearbyPlaces(NearbyPlacesSearchForm npsf) async {
-    final response = await client.post(
+    final response = await googleClient.post(
       FIND_NEARBY_PLACES_API,
       data: npsf.toJson(),
       options: Options(
