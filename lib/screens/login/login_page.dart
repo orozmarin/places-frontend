@@ -4,7 +4,7 @@ import 'package:gastrorate/models/auth/login_request.dart';
 import 'package:gastrorate/models/auth/register_request.dart';
 import 'package:gastrorate/screens/login/login.dart';
 import 'package:gastrorate/store/app_state.dart';
-import 'package:gastrorate/store/login/auth.actions.dart';
+import 'package:gastrorate/store/auth/auth.actions.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
