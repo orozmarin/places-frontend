@@ -15,6 +15,7 @@ part 'place.g.dart';
 @JsonSerializable(explicitToJson: true)
 class Place {
   String? id;
+  String? userId;
   String? name;
   String? address;
   String? city;
@@ -43,6 +44,7 @@ class Place {
 
   Place({
     this.id,
+    this.userId,
     this.name,
     this.address,
     this.city,
@@ -122,7 +124,8 @@ class Place {
       identical(this, other) ||
           (other is Place &&
               id == other.id &&
-              name == other.name &&
+          userId == other.userId &&
+          name == other.name &&
               address == other.address &&
               city == other.city &&
               postalCode == other.postalCode &&
@@ -146,6 +149,7 @@ class Place {
   @override
   int get hashCode =>
       id.hashCode ^
+      userId.hashCode ^
       name.hashCode ^
       address.hashCode ^
       city.hashCode ^
@@ -169,11 +173,12 @@ class Place {
 
   @override
   String toString() {
-    return 'Place{ id: $id, name: $name, address: $address, city: $city, postalCode: $postalCode, country: $country, contactNumber: $contactNumber, openingHours: $openingHours, photos: $photos, priceLevel: $priceLevel, reviews: $reviews, googleRating: $googleRating, url: $url, webSiteUrl: $webSiteUrl, coordinates: $coordinates, firstRating: $firstRating, secondRating: $secondRating, placeRating: $placeRating, visitedAt: $visitedAt, isFavorite: $isFavorite, distance: $distance }';
+    return 'Place{ id: $id, userId: $userId, name: $name, address: $address, city: $city, postalCode: $postalCode, country: $country, contactNumber: $contactNumber, openingHours: $openingHours, photos: $photos, priceLevel: $priceLevel, reviews: $reviews, googleRating: $googleRating, url: $url, webSiteUrl: $webSiteUrl, coordinates: $coordinates, firstRating: $firstRating, secondRating: $secondRating, placeRating: $placeRating, visitedAt: $visitedAt, isFavorite: $isFavorite, distance: $distance }';
   }
 
   Place copyWith({
     String? id,
+    String? userId,
     String? name,
     String? address,
     String? city,
@@ -197,6 +202,7 @@ class Place {
   }) {
     return Place(
       id: id ?? this.id,
+      userId: userId ?? this.userId,
       name: name ?? this.name,
       address: address ?? this.address,
       city: city ?? this.city,
@@ -223,6 +229,7 @@ class Place {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
+      'userId': userId,
       'name': name,
       'address': address,
       'city': city,
@@ -249,6 +256,7 @@ class Place {
   factory Place.fromMap(Map<String, dynamic> map) {
     return Place(
       id: map['id'] as String?,
+      userId: map['userId'] as String?,
       name: map['name'] as String?,
       address: map['address'] as String?,
       city: map['city'] as String?,

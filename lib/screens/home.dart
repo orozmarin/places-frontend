@@ -23,13 +23,16 @@ class Home extends StatefulWidget {
       required this.nearbyPlaces,
       required this.onFindAllPlaces,
       required this.onDeletePlace,
-      required this.onInitPlaceForm});
+    required this.onInitPlaceForm,
+    required this.isLoading,
+  });
 
   final Function() onFindAllPlaces;
   final List<Place>? places;
   final List<Place>? nearbyPlaces;
   final Function(Place place) onDeletePlace;
   final Function(Place place) onInitPlaceForm;
+  final bool isLoading;
 
   final GoogleMapsFlutterPlatform mapsImplementation = GoogleMapsFlutterPlatform.instance;
 
@@ -109,8 +112,7 @@ class _HomeState extends State<Home> {
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
           ),
-          if (widget.nearbyPlaces != null && widget.nearbyPlaces!.isNotEmpty)
-            PlaceCardSwiper(
+            /*widget.isLoading ? const CircularProgressIndicator() : */PlaceCardSwiper(
                 ratedPlaces: widget.places,
                 places: widget.nearbyPlaces!,
                 onDeletePlace: widget.onDeletePlace,

@@ -52,16 +52,12 @@ class AppState{
     PlacesState? placesState,
     AuthState? authState,
   }) {
-    if ((placesState == null || identical(placesState, this.placesState)) &&
-        (authState == null || identical(authState, this.authState))) {
-      return this;
-    }
-
     return AppState(
       placesState: placesState ?? this.placesState,
       authState: authState ?? this.authState,
     );
   }
+
 
   Map<String, dynamic> toMap({
     String Function(String key)? keyMapper,
