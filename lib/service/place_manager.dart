@@ -28,9 +28,10 @@ class PlaceManager {
   Dio googleClient = Dio();
 
   Future<List<Place>> findPlaces(PlaceSearchForm psf) async {
-    String url = dotenv.env['API_BASE_URI'].toString() + FIND_ALL_PLACES;
-    final Response<List<dynamic>> response = await client.get(url, data: psf.toJson());
-    return (response.data as List<dynamic>).map((dynamic place) => Place.fromJson(place)).toList();
+      String url = dotenv.env['API_BASE_URI'].toString() + FIND_ALL_PLACES;
+      final Response<List<dynamic>> response = await client.get(url, data: psf.toJson());
+      return (response.data as List<dynamic>).map((dynamic place) => Place.fromJson(place)).toList();
+
   }
 
   Future<Place> saveOrUpdatePlace(Place place) async {

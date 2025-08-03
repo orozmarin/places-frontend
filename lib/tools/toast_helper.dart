@@ -1,19 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:gastrorate/theme/my_colors.dart';
 
 ToastHelperMobile toastHelperMobile = ToastHelperMobile();
 
 class ToastHelperMobile {
-  void showToastSuccess(String message) {
-    _showToast(message, Colors.green);
+  void showToastSuccess(String message, {int? timeDisplayed}) {
+    _showToast(message, MyColors.colorGreen, timeDisplayed: timeDisplayed);
   }
 
-  void showToastError(String message) {
-    _showToast(message, Colors.red);
+  void showToastError(String message, {int? timeDisplayed}) {
+    _showToast(message, MyColors.colorRed, timeDisplayed: timeDisplayed);
   }
 
-  void _showToast(String message, Color backgroundColor) {
+  void showToastInfo(String message, {int? timeDisplayed}) {
+    _showToast(message, MyColors.colorGrey, timeDisplayed: timeDisplayed);
+  }
+
+  void _showToast(String message, Color backgroundColor, {int? timeDisplayed}) {
     Fluttertoast.showToast(
+      timeInSecForIosWeb: timeDisplayed ?? 1,
       msg: message,
       toastLength: Toast.LENGTH_LONG,
       gravity: ToastGravity.BOTTOM,
