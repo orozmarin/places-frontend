@@ -22,6 +22,7 @@ class MyColors{
 
   static Color colorRed = Colors.red;
   static Color colorGreen = Colors.green;
+  static Color colorGrey = Colors.white38;
 
   /// Navbar colors
   static const Color backgroundNavBarColor = Colors.black;

@@ -23,7 +23,8 @@ class HomePage extends StatelessWidget {
         onFindAllPlaces: vm.onFindAllPlaces,
         onDeletePlace: vm.onDeletePlace,
         onInitPlaceForm: vm.onInitPlaceForm,
-      ),
+        isLoading: vm.isLoading,
+      )
     );
   }
 }
@@ -37,7 +38,10 @@ class Factory extends VmFactory<AppState, HomePage, ViewModel> {
         nearbyPlaces: state.placesState.nearbyPlaces,
         onFindAllPlaces: () => dispatch(FetchPlacesAction()),
         onDeletePlace: (place) => dispatch(DeletePlaceAction(place)),
-        onInitPlaceForm: (Place place) => dispatch(InitNewPlaceAction(payload: place, fromWhere: FromWhere.home)),
+        onInitPlaceForm: (Place place) => dispatch(
+          InitNewPlaceAction(payload: place, fromWhere: FromWhere.home),
+        ),
+        isLoading: state.placesState.isLoading ?? false,
       );
 }
 
@@ -47,13 +51,16 @@ class ViewModel extends Vm {
   final Function() onFindAllPlaces;
   final Function(Place place) onDeletePlace;
   final Function(Place place) onInitPlaceForm;
+  final bool isLoading;
 
   ViewModel(
       {required this.places,
       required this.nearbyPlaces,
       required this.onFindAllPlaces,
       required this.onDeletePlace,
-      required this.onInitPlaceForm});
+    required this.onInitPlaceForm,
+    required this.isLoading,
+  });
 
   @override
   bool operator ==(Object other) =>
@@ -65,7 +72,8 @@ class ViewModel extends Vm {
           nearbyPlaces == other.nearbyPlaces &&
           onFindAllPlaces == other.onFindAllPlaces &&
           onDeletePlace == other.onDeletePlace &&
-          onInitPlaceForm == other.onInitPlaceForm;
+          onInitPlaceForm == other.onInitPlaceForm &&
+          isLoading == other.isLoading;
 
   @override
   int get hashCode =>
@@ -74,5 +82,6 @@ class ViewModel extends Vm {
       nearbyPlaces.hashCode ^
       onFindAllPlaces.hashCode ^
       onDeletePlace.hashCode ^
-      onInitPlaceForm.hashCode;
+      onInitPlaceForm.hashCode ^
+      isLoading.hashCode;
 }

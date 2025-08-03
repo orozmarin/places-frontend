@@ -1,102 +1,73 @@
-import 'package:gastrorate/tools/utils_helper.dart';
+import 'package:gastrorate/models/auth/user.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-part 'user.g.dart';
+part 'register_request.g.dart';
 
 @JsonSerializable(explicitToJson: true)
-class User {
-  String? id;
+class RegisterRequest{
   String? email;
   String? password;
   String? firstName;
   String? lastName;
   Sex? sex;
   DateTime? dateOfBirth;
-  UserStatus? status;
 
-  String getFullName() {
-    return "$firstName $lastName";
-  }
-
-  String getUserInitials() {
-    String firstNameInitial = UtilsHelper.extractFirstLetter(firstName ?? '');
-    String lastNameInitial = UtilsHelper.extractFirstLetter(lastName ?? '');
-    return firstNameInitial + lastNameInitial;
-  }
-
-  factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
-  Map<String, dynamic> toJson() => _$UserToJson(this);
+  factory RegisterRequest.fromJson(Map<String, dynamic> json) => _$RegisterRequestFromJson(json);
+  Map<String, dynamic> toJson() => _$RegisterRequestToJson(this);
 
 //<editor-fold desc="Data Methods">
-  User({
-    this.id,
+  RegisterRequest({
     this.email,
     this.password,
     this.firstName,
     this.lastName,
     this.sex,
     this.dateOfBirth,
-    this.status,
   });
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is User &&
+      (other is RegisterRequest &&
           runtimeType == other.runtimeType &&
-          id == other.id &&
           email == other.email &&
           password == other.password &&
           firstName == other.firstName &&
           lastName == other.lastName &&
           sex == other.sex &&
-          dateOfBirth == other.dateOfBirth &&
-          status == other.status);
+          dateOfBirth == other.dateOfBirth);
 
   @override
   int get hashCode =>
-      id.hashCode ^
-      email.hashCode ^
-      password.hashCode ^
-      firstName.hashCode ^
-      lastName.hashCode ^
-      sex.hashCode ^
-      dateOfBirth.hashCode ^
-      status.hashCode;
+      email.hashCode ^ password.hashCode ^ firstName.hashCode ^ lastName.hashCode ^ sex.hashCode ^ dateOfBirth.hashCode;
 
   @override
   String toString() {
-    return 'User{' +
-        ' id: $id,' +
+    return 'RegisterRequest{' +
         ' email: $email,' +
         ' password: $password,' +
         ' firstName: $firstName,' +
         ' lastName: $lastName,' +
         ' sex: $sex,' +
         ' dateOfBirth: $dateOfBirth,' +
-        ' status: $status,' +
         '}';
   }
 
-  User copyWith({
-    String? id,
+  RegisterRequest copyWith({
     String? email,
     String? password,
     String? firstName,
     String? lastName,
     Sex? sex,
     DateTime? dateOfBirth,
-    UserStatus? status,
   }) {
-    return User(
-      id: id ?? this.id,
+    return RegisterRequest(
       email: email ?? this.email,
       password: password ?? this.password,
       firstName: firstName ?? this.firstName,
       lastName: lastName ?? this.lastName,
       sex: sex ?? this.sex,
       dateOfBirth: dateOfBirth ?? this.dateOfBirth,
-      status: status ?? this.status,
     );
   }
 
@@ -106,47 +77,30 @@ class User {
     keyMapper ??= (key) => key;
 
     return {
-      keyMapper('id'): this.id,
       keyMapper('email'): this.email,
       keyMapper('password'): this.password,
       keyMapper('firstName'): this.firstName,
       keyMapper('lastName'): this.lastName,
       keyMapper('sex'): this.sex,
       keyMapper('dateOfBirth'): this.dateOfBirth,
-      keyMapper('status'): this.status,
     };
   }
 
-  factory User.fromMap(
+  factory RegisterRequest.fromMap(
     Map<String, dynamic> map, {
     String Function(String key)? keyMapper,
   }) {
     keyMapper ??= (key) => key;
 
-    return User(
-      id: map[keyMapper('id')] as String,
+    return RegisterRequest(
       email: map[keyMapper('email')] as String,
       password: map[keyMapper('password')] as String,
       firstName: map[keyMapper('firstName')] as String,
       lastName: map[keyMapper('lastName')] as String,
       sex: map[keyMapper('sex')] as Sex,
       dateOfBirth: map[keyMapper('dateOfBirth')] as DateTime,
-      status: map[keyMapper('status')] as UserStatus,
     );
   }
 
 //</editor-fold>
-}
-
-enum UserStatus {
-  WAITING_FIRST_LOGIN,
-  ACTIVE,
-  BLOCKED,
-  DELETED,
-}
-
-enum Sex {
-  MALE,
-  FEMALE,
-  UNDEFINED,
 }

@@ -17,6 +17,7 @@ PlacesState _$PlacesStateFromJson(Map<String, dynamic> json) => PlacesState(
           : Place.fromJson(json['place'] as Map<String, dynamic>),
       favoritePlaces:
           (json['favoritePlaces'] as List<dynamic>?)?.map((e) => Place.fromJson(e as Map<String, dynamic>)).toList(),
+      isLoading: json['isLoading'] as bool?,
     );
 
 Map<String, dynamic> _$PlacesStateToJson(PlacesState instance) =>
@@ -25,4 +26,5 @@ Map<String, dynamic> _$PlacesStateToJson(PlacesState instance) =>
       'nearbyPlaces': instance.nearbyPlaces?.map((e) => e.toJson()).toList(),
       'favoritePlaces': instance.favoritePlaces?.map((e) => e.toJson()).toList(),
       'place': instance.place?.toJson(),
+      'isLoading': instance.isLoading,
     };

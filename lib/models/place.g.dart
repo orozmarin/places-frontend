@@ -8,6 +8,7 @@ part of 'place.dart';
 
 Place _$PlaceFromJson(Map<String, dynamic> json) => Place(
       id: json['id'] as String?,
+      userId: json['userId'] as String?,
       name: json['name'] as String?,
       address: json['address'] as String?,
       city: json['city'] as String?,
@@ -46,47 +47,52 @@ Place _$PlaceFromJson(Map<String, dynamic> json) => Place(
     );
 
 Place _$PlaceFromGoogleJson(Map<String, dynamic> json) => Place(
-      id: json['id'] ?? (json['name'] as String?)?.split('/').last,
-      name: json['displayName']?['text'] ?? json['name'],
-      address: json['formattedAddress'] as String?,
-      city: (json['addressComponents'] as List?)?.firstWhere(
-        (comp) => (comp['types'] as List).contains('locality'),
-        orElse: () => null,
-      )?['longText'] as String?,
-      postalCode: int.tryParse(
-        (json['addressComponents'] as List?)?.firstWhere(
-              (comp) => (comp['types'] as List).contains('postal_code'),
-              orElse: () => null,
-            )?['longText'] ??
-            '',
-      ),
-      country: (json['addressComponents'] as List?)?.firstWhere(
-        (comp) => (comp['types'] as List).contains('country'),
-        orElse: () => null,
-      )?['longText'] as String?,
-      contactNumber: json['internationalPhoneNumber'] as String?,
-      openingHours:
-          json['regularOpeningHours'] == null ? null : PlaceOpeningHours.fromJson(json['regularOpeningHours']),
-      photos: (json['photos'] as List?)?.map((e) => Photo.fromGoogleJson(e as Map<String, dynamic>)).toList(),
-      priceLevel: $enumDecodeNullable(_$PriceLevelEnumMap, json['priceLevel']),
-      reviews: (json['reviews'] as List<dynamic>?)
-          ?.map((e) => PlaceReview.fromGoogleJson(e as Map<String, dynamic>))
-          .toList(),
-      googleRating: (json['rating'] as num?)?.toDouble(),
-      url: json['googleMapsUri'] as String?,
-      webSiteUrl: json['websiteUri'] as String?,
-      coordinates: json['location'] == null
-          ? null
-          : Coordinates(
-              latitude: (json['location']['latitude'] as num?)?.toDouble(),
-              longitude: (json['location']['longitude'] as num?)?.toDouble(),
-            ),
-      isFavorite: false,
-      distance: null,
-    );
+  id: json['id'] ?? (json['name'] as String?)?.split('/').last,
+  name: json['displayName']?['text'] ?? json['name'],
+  address: json['formattedAddress'] as String?,
+  city: (json['addressComponents'] as List?)
+      ?.firstWhere(
+        (comp) => (comp['types'] as List?)?.contains('locality') ?? false,
+    orElse: () => null,
+  )?['longText'] as String?,
+  postalCode: int.tryParse(
+    (json['addressComponents'] as List?)
+        ?.firstWhere(
+          (comp) => (comp['types'] as List?)?.contains('postal_code') ?? false,
+      orElse: () => null,
+    )?['longText'] ?? '',
+  ),
+  country: (json['addressComponents'] as List?)
+      ?.firstWhere(
+        (comp) => (comp['types'] as List?)?.contains('country') ?? false,
+    orElse: () => null,
+  )?['longText'] as String?,
+  contactNumber: json['internationalPhoneNumber'] as String?,
+  openingHours: json['regularOpeningHours'] == null
+      ? null
+      : PlaceOpeningHours.fromJson(json['regularOpeningHours']),
+  photos: (json['photos'] as List?)?.map((e) => Photo.fromGoogleJson(e as Map<String, dynamic>)).toList(),
+  priceLevel: $enumDecodeNullable(_$PriceLevelEnumMap, json['priceLevel']),
+  reviews: (json['reviews'] as List<dynamic>?)
+      ?.map((e) => PlaceReview.fromGoogleJson(e as Map<String, dynamic>))
+      .toList(),
+  googleRating: (json['rating'] as num?)?.toDouble(),
+  url: json['googleMapsUri'] as String?,
+  webSiteUrl: json['websiteUri'] as String?,
+  coordinates: json['location'] == null
+      ? null
+      : Coordinates(
+    latitude: (json['location']['latitude'] as num?)?.toDouble(),
+    longitude: (json['location']['longitude'] as num?)?.toDouble(),
+  ),
+  isFavorite: false,
+  distance: null,
+);
+
 
 Map<String, dynamic> _$PlaceToJson(Place instance) => <String, dynamic>{
       'id': instance.id,
+      'userId': instance.userId,
       'name': instance.name,
       'address': instance.address,
       'city': instance.city,
