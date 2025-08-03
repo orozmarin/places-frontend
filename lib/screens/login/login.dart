@@ -36,17 +36,12 @@ class _LoginState extends State<Login> {
   bool _isLoading = false;
   String? _errorMessage;
 
-  bool _showLogin = false;
   bool _isRegistering = false;
   bool? _passwordVisible;
   bool? _confirmPasswordVisible;
 
   @override
   void initState() {
-    Timer(const Duration(seconds: 2), () {
-      _showLogin = true;
-      setState(() {});
-    });
     _passwordVisible = false;
     _confirmPasswordVisible = false;
     super.initState();
@@ -77,8 +72,7 @@ class _LoginState extends State<Login> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: _showLogin
-            ? Padding(
+        child: Padding(
           padding: const EdgeInsets.all(24),
           child: SingleChildScrollView(
             child: Form(
@@ -221,10 +215,6 @@ class _LoginState extends State<Login> {
               ),
             ),
           ),
-        )
-            : Hero(
-          tag: "logo",
-          child: Image.asset('assets/logo_16_9.png'),
         ),
       ),
     );

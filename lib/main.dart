@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:async_redux/async_redux.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -11,11 +9,15 @@ import 'app.dart';
 late final Store<AppState> store;
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load();
   AppState? initialState = await AppState.init();
   store = Store<AppState>(initialState: initialState);
-  await dotenv.load();
+
   requestLocationPermission();
-  runApp(const App());
+  runApp(
+    const App(),
+  );
 }
 
 Future<void> requestLocationPermission() async {
