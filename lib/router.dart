@@ -6,7 +6,7 @@ import 'package:gastrorate/screens/home_page.dart';
 import 'package:gastrorate/screens/login/login_page.dart';
 import 'package:gastrorate/screens/new_place_page.dart';
 import 'package:gastrorate/screens/places_page.dart';
-import 'package:gastrorate/screens/settings_page.dart';
+import 'package:gastrorate/screens/profile_page.dart';
 import 'package:gastrorate/widgets/scaffold_nested_navigation.dart';
 import 'package:go_router/go_router.dart';
 
@@ -14,7 +14,7 @@ final rootNavigatorKey = GlobalKey<NavigatorState>();
 final shellNavigatorHomeKey = GlobalKey<NavigatorState>(debugLabel: 'homeShellKey');
 final shellNavigatorPlacesKey = GlobalKey<NavigatorState>(debugLabel: 'placesShellKey');
 final shellNavigatorFavoritesKey = GlobalKey<NavigatorState>(debugLabel: 'favoritesShellKey');
-final shellNavigatorSettingsKey = GlobalKey<NavigatorState>(debugLabel: 'settingsShellKey');
+final shellNavigatorProfileKey = GlobalKey<NavigatorState>(debugLabel: 'profileShellKey');
 
 Future<bool> isLoggedIn() async {
   String? jwtToken = await AuthHelper.getToken();
@@ -111,13 +111,13 @@ final goRouter = GoRouter(
           ],
         ),
         StatefulShellBranch(
-          navigatorKey: shellNavigatorSettingsKey,
+          navigatorKey: shellNavigatorProfileKey,
           routes: [
             // top route inside branch
             GoRoute(
-              path: '/settings',
+              path: '/profile',
               pageBuilder: (context, state) => const NoTransitionPage(
-                child: SettingsPage(),
+                child: ProfilePage(),
               ),
               routes: [
                 // child route
