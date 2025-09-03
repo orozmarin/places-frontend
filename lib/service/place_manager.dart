@@ -3,6 +3,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:gastrorate/models/nearby_places_search_form.dart';
 import 'package:gastrorate/models/place.dart';
 import 'package:gastrorate/models/place_search_form.dart';
+import 'package:gastrorate/service/api_service.dart';
 import 'package:gastrorate/tools/services_uri_helper.dart';
 
 class PlaceManager {
@@ -23,12 +24,14 @@ class PlaceManager {
 
   PlaceManager._internal();
 
-  Dio client = Dio();
+  Dio client = ApiService.client;
+  Dio googleClient = Dio();
 
   Future<List<Place>> findPlaces(PlaceSearchForm psf) async {
-    String url = dotenv.env['API_BASE_URI'].toString() + FIND_ALL_PLACES;
-    final Response<List<dynamic>> response = await client.get(url, data: psf.toJson());
-    return (response.data as List<dynamic>).map((dynamic place) => Place.fromJson(place)).toList();
+      String url = dotenv.env['API_BASE_URI'].toString() + FIND_ALL_PLACES;
+      final Response<List<dynamic>> response = await client.get(url, data: psf.toJson());
+      return (response.data as List<dynamic>).map((dynamic place) => Place.fromJson(place)).toList();
+
   }
 
   Future<Place> saveOrUpdatePlace(Place place) async {
@@ -51,7 +54,7 @@ class PlaceManager {
   }
 
   Future<List<Place>> findNearbyPlaces(NearbyPlacesSearchForm npsf) async {
-    final response = await client.post(
+    final response = await googleClient.post(
       FIND_NEARBY_PLACES_API,
       data: npsf.toJson(),
       options: Options(
