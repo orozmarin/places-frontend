@@ -2,6 +2,7 @@ import 'package:async_redux/async_redux.dart';
 import 'package:flutter/material.dart';
 import 'package:gastrorate/router.dart';
 import 'package:gastrorate/store/app_state.dart';
+import 'package:gastrorate/theme/my_colors.dart';
 
 import 'main.dart';
 
@@ -18,7 +19,7 @@ class App extends StatelessWidget {
               brightness: Brightness.light,
               // Ensures a light theme base
               primaryColor: Colors.black,
-              scaffoldBackgroundColor: Colors.white,
+              scaffoldBackgroundColor: MyColors.mainBackgroundColor,
 
               // AppBar styling
               appBarTheme: const AppBarTheme(

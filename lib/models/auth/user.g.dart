@@ -17,6 +17,7 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
           ? null
           : DateTime.parse(json['dateOfBirth'] as String),
       status: $enumDecodeNullable(_$UserStatusEnumMap, json['status']),
+      profileImageUrl: json['profileImageUrl'] as String?,
     );
 
 Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
@@ -28,6 +29,7 @@ Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
       'sex': _$SexEnumMap[instance.sex],
       'dateOfBirth': instance.dateOfBirth?.toIso8601String(),
       'status': _$UserStatusEnumMap[instance.status],
+      'profileImageUrl': instance.profileImageUrl,
     };
 
 const _$SexEnumMap = {
