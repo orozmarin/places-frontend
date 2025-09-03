@@ -2,5 +2,5 @@ enum FromWhere{
   home,
   places,
   favorites,
-  settings
+  profile
 }

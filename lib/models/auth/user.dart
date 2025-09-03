@@ -13,6 +13,7 @@ class User {
   Sex? sex;
   DateTime? dateOfBirth;
   UserStatus? status;
+  String? profileImageUrl;
 
   String getFullName() {
     return "$firstName $lastName";
@@ -37,6 +38,7 @@ class User {
     this.sex,
     this.dateOfBirth,
     this.status,
+    this.profileImageUrl,
   });
 
   @override
@@ -51,7 +53,8 @@ class User {
           lastName == other.lastName &&
           sex == other.sex &&
           dateOfBirth == other.dateOfBirth &&
-          status == other.status);
+          status == other.status &&
+          profileImageUrl == other.profileImageUrl);
 
   @override
   int get hashCode =>
@@ -62,7 +65,8 @@ class User {
       lastName.hashCode ^
       sex.hashCode ^
       dateOfBirth.hashCode ^
-      status.hashCode;
+      status.hashCode ^
+      profileImageUrl.hashCode;
 
   @override
   String toString() {
@@ -75,6 +79,7 @@ class User {
         ' sex: $sex,' +
         ' dateOfBirth: $dateOfBirth,' +
         ' status: $status,' +
+        ' profileImageUrl: $profileImageUrl,' +
         '}';
   }
 
@@ -87,6 +92,7 @@ class User {
     Sex? sex,
     DateTime? dateOfBirth,
     UserStatus? status,
+    String? profileImageUrl,
   }) {
     return User(
       id: id ?? this.id,
@@ -97,6 +103,7 @@ class User {
       sex: sex ?? this.sex,
       dateOfBirth: dateOfBirth ?? this.dateOfBirth,
       status: status ?? this.status,
+      profileImageUrl: profileImageUrl ?? this.profileImageUrl,
     );
   }
 
@@ -114,6 +121,7 @@ class User {
       keyMapper('sex'): this.sex,
       keyMapper('dateOfBirth'): this.dateOfBirth,
       keyMapper('status'): this.status,
+      keyMapper('profileImageUrl'): this.profileImageUrl,
     };
   }
 
@@ -132,6 +140,7 @@ class User {
       sex: map[keyMapper('sex')] as Sex,
       dateOfBirth: map[keyMapper('dateOfBirth')] as DateTime,
       status: map[keyMapper('status')] as UserStatus,
+      profileImageUrl: map[keyMapper('profileImageUrl')] as String,
     );
   }
 

@@ -5,6 +5,7 @@ import 'package:gastrorate/models/place_review.dart';
 import 'package:gastrorate/models/rating.dart';
 import 'package:gastrorate/screens/dialogs/place_review_dialog.dart';
 import 'package:gastrorate/theme/my_colors.dart';
+import 'package:gastrorate/widgets/custom_app_bar.dart';
 import 'package:gastrorate/widgets/custom_text.dart';
 import 'package:gastrorate/widgets/date_input_with_date_picker.dart';
 import 'package:gastrorate/widgets/default_button.dart';
@@ -56,7 +57,7 @@ class _NewPlaceState extends State<NewPlace> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: CustomAppBar(
         title: CustomText(
           currentPlace.name ?? "N/A",
         ),
