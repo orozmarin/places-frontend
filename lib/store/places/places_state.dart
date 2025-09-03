@@ -9,11 +9,13 @@ class PlacesState{
   List<Place>? nearbyPlaces;
   List<Place>? favoritePlaces;
   Place? place;
+  bool? isLoading;
 
   PlacesState.init(){
     this.places = List<Place>.empty();
     this.nearbyPlaces = List<Place>.empty();
     this.favoritePlaces = List<Place>.empty();
+    this.isLoading = false;
   }
 
   factory PlacesState.fromJson(Map<String, dynamic> json) => _$PlacesStateFromJson(json);
@@ -26,6 +28,7 @@ class PlacesState{
     this.nearbyPlaces,
     this.favoritePlaces,
     this.place,
+    this.isLoading,
   });
 
   @override
@@ -36,10 +39,12 @@ class PlacesState{
           places == other.places &&
           nearbyPlaces == other.nearbyPlaces &&
           favoritePlaces == other.favoritePlaces &&
-          place == other.place);
+          place == other.place &&
+          isLoading == other.isLoading);
 
   @override
-  int get hashCode => places.hashCode ^ nearbyPlaces.hashCode ^ favoritePlaces.hashCode ^ place.hashCode;
+  int get hashCode =>
+      places.hashCode ^ nearbyPlaces.hashCode ^ favoritePlaces.hashCode ^ place.hashCode ^ isLoading.hashCode;
 
   @override
   String toString() {
@@ -48,6 +53,7 @@ class PlacesState{
         ' nearbyPlaces: $nearbyPlaces,' +
         ' favoritePlaces: $favoritePlaces,' +
         ' place: $place,' +
+        ' isLoading: $isLoading,' +
         '}';
   }
 
@@ -56,12 +62,15 @@ class PlacesState{
     List<Place>? nearbyPlaces,
     List<Place>? favoritePlaces,
     Place? place,
+    bool? isLoading,
   }) {
+    print("copyWith called with isLoading: $isLoading");
     return PlacesState(
       places: places ?? this.places,
       nearbyPlaces: nearbyPlaces ?? this.nearbyPlaces,
       favoritePlaces: favoritePlaces ?? this.favoritePlaces,
       place: place ?? this.place,
+      isLoading: isLoading ?? this.isLoading,
     );
   }
 
@@ -75,6 +84,7 @@ class PlacesState{
       keyMapper('nearbyPlaces'): this.nearbyPlaces,
       keyMapper('favoritePlaces'): this.favoritePlaces,
       keyMapper('place'): this.place,
+      keyMapper('isLoading'): this.isLoading,
     };
   }
 
@@ -89,6 +99,7 @@ class PlacesState{
       nearbyPlaces: map[keyMapper('nearbyPlaces')] as List<Place>,
       favoritePlaces: map[keyMapper('favoritePlaces')] as List<Place>,
       place: map[keyMapper('place')] as Place,
+      isLoading: map[keyMapper('isLoading')] as bool,
     );
   }
 

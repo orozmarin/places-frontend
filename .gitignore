@@ -18,16 +18,21 @@ pubspec.lock
 android/.gradle/
 android/app/debug.keystore
 android/key.jks
+android/local.properties
 
 # iOS specific files
 ios/Pods/
 ios/.symlinks/
 ios/Flutter/Flutter.podspec
+ios/Flutter/Debug.xcconfig
+ios/Flutter/Release.xcconfig
+ios/Flutter/Generated.xcconfig
 
 # macOS specific files
 macos/Pods/
 macos/.symlinks/
 macos/Flutter/ephemeral/
+macos/Podfile.lock
 
 # Windows specific files
 windows/flutter/ephemeral/
@@ -47,3 +52,7 @@ firebase.json
 *.lock
 *.bak
 *.swp
+
+# Env files (API keys, secrets)
+.env
+.env.*

@@ -1,7 +1,9 @@
 // private navigators
 import 'package:flutter/material.dart';
+import 'package:gastrorate/http/auth_helper.dart';
 import 'package:gastrorate/screens/favorites_page.dart';
 import 'package:gastrorate/screens/home_page.dart';
+import 'package:gastrorate/screens/login/login_page.dart';
 import 'package:gastrorate/screens/new_place_page.dart';
 import 'package:gastrorate/screens/places_page.dart';
 import 'package:gastrorate/screens/settings_page.dart';
@@ -14,11 +16,30 @@ final shellNavigatorPlacesKey = GlobalKey<NavigatorState>(debugLabel: 'placesShe
 final shellNavigatorFavoritesKey = GlobalKey<NavigatorState>(debugLabel: 'favoritesShellKey');
 final shellNavigatorSettingsKey = GlobalKey<NavigatorState>(debugLabel: 'settingsShellKey');
 
+Future<bool> isLoggedIn() async {
+  String? jwtToken = await AuthHelper.getToken();
+  return jwtToken != null && jwtToken.isNotEmpty;
+}
+
+
 // the one and only GoRouter instance
 final goRouter = GoRouter(
   initialLocation: '/home',
   navigatorKey: rootNavigatorKey,
+  redirect: (context, state) async {
+    final loggedIn = await isLoggedIn();
+    final loggingIn = state.fullPath == '/login';
+
+    if (!loggedIn && !loggingIn) return '/login';
+    if (loggedIn && loggingIn) return '/home';
+
+    return null;
+  },
   routes: [
+    GoRoute(
+      path: '/login',
+      builder: (context, state) => const LoginPage(),
+    ),
     // Stateful nested navigation based on:
     // https://github.com/flutter/packages/blob/main/packages/go_router/example/lib/stateful_shell_route.dart
     StatefulShellRoute.indexedStack(
