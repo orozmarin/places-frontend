@@ -7,6 +7,7 @@ import 'package:gastrorate/models/place_search_form.dart';
 import 'package:gastrorate/theme/my_colors.dart';
 import 'package:gastrorate/theme/theme_helper.dart';
 import 'package:gastrorate/tools/place_helper.dart';
+import 'package:gastrorate/widgets/custom_app_bar.dart';
 import 'package:gastrorate/widgets/custom_text.dart';
 import 'package:gastrorate/widgets/place_card.dart';
 import 'package:geolocator/geolocator.dart';
@@ -121,7 +122,7 @@ class _PlacesState extends State<Places> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: CustomAppBar(
         title: const CustomText("Places", style: TextStyle(color: MyColors.navbarItemColor)),
         backgroundColor: MyColors.appbarColor,
         actions: [
