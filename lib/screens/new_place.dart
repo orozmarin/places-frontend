@@ -166,8 +166,7 @@ class _NewPlaceState extends State<NewPlace> {
                     child: ButtonComponent(
                       iconData: CupertinoIcons.delete_simple,
                       onPressed: () {
-                        widget.onDeletePlace(currentPlace);
-                        Navigator.pop(context);
+                        _showDeleteConfirmationDialog(context);
                       },
                     ),
                   ),
@@ -374,6 +373,59 @@ class _NewPlaceState extends State<NewPlace> {
       builder: (BuildContext context) {
         return PlaceReviewDialog(review: review);
       },
+    );
+  }
+
+  void _showDeleteConfirmationDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        surfaceTintColor: MyColors.mainBackgroundColor,
+        title: Text.rich(
+          TextSpan(
+            text: "Deleting ",
+            style: Theme.of(context).textTheme.headlineSmall,
+            children: [
+              TextSpan(
+                text: widget.place!.name,
+                style: Theme.of(context)
+                    .textTheme
+                    .headlineSmall
+                    ?.copyWith(fontWeight: FontWeight.bold, fontStyle: FontStyle.italic),
+              ),
+              const TextSpan(text: " ?"),
+            ],
+          ),
+        ),
+        content: const CustomText("Are you sure you want to delete this Place?"),
+        actions: [
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Expanded(
+                    child: ButtonComponent.outlinedButtonSmall(
+                      onPressed: () => Navigator.of(context).pop(),
+                      text: "Cancel",
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: ButtonComponent.smallButton(
+                      onPressed: () {
+                        widget.onDeletePlace(widget.place!);
+                      },
+                      text: "Delete",
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
