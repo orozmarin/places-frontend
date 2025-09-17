@@ -2,10 +2,9 @@ import 'package:async_redux/async_redux.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gastrorate/models/auth/user.dart';
-import 'package:gastrorate/router.dart';
 import 'package:gastrorate/store/app_state.dart';
 import 'package:gastrorate/theme/my_colors.dart';
-import 'package:go_router/go_router.dart';
+import 'package:gastrorate/tools/user_helper.dart';
 
 class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
   final Key? appBarKey;
@@ -91,31 +90,8 @@ class _CustomAppBarState extends State<CustomAppBar> {
           automaticallyImplyLeading: widget.automaticallyImplyLeading,
           title: widget.title,
           actions: [
-            ...(widget.actions ?? []),
-            GestureDetector(
-              onTap: () {
-                GoRouter.of(rootNavigatorKey.currentContext!).go('/profile');
-              },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                child: CircleAvatar(
-                  backgroundColor: Colors.grey[300],
-                  backgroundImage: (user?.profileImageUrl != null)
-                      ? NetworkImage(user!.profileImageUrl!)
-                      : null,
-                  child: (user?.profileImageUrl == null)
-                      ? Text(
-                    _getInitials(user ?? User()),
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  )
-                      : null,
-                ),
-              ),
-            ),
-          ],
+            ...(widget.actions ?? []), UserHelper.buildUserAvatar(user: user!)],
+          actionsPadding: const EdgeInsets.only(right: 8),
           flexibleSpace: widget.flexibleSpace,
           bottom: widget.bottom,
           elevation: widget.elevation,
