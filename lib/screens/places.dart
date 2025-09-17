@@ -9,7 +9,9 @@ import 'package:gastrorate/theme/theme_helper.dart';
 import 'package:gastrorate/tools/place_helper.dart';
 import 'package:gastrorate/widgets/custom_app_bar.dart';
 import 'package:gastrorate/widgets/custom_text.dart';
+import 'package:gastrorate/widgets/default_button.dart';
 import 'package:gastrorate/widgets/place_card.dart';
+import 'package:gastrorate/widgets/vertical_spacer.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
@@ -210,6 +212,8 @@ class _PlacesState extends State<Places> {
                 useCurrentLocation: true,
                 selectInitialPosition: true,
                 usePlaceDetailSearch: true,
+                selectedPlaceWidgetBuilder: (context, selectedPlace, state, isSearchBarFocused) =>
+                    _defaultPlaceWidgetBuilder(context, selectedPlace, state),
                 zoomControlsEnabled: true,
                 onPlacePicked: (PickResult result) {
                   setState(() {
@@ -220,7 +224,6 @@ class _PlacesState extends State<Places> {
                       orElse: () => selectedPlace ?? Place(),
                     );
                     widget.onInitPlaceForm(selectedPlace ?? Place());
-                    Navigator.of(context).pop();
                   });
                 },
               );
@@ -232,6 +235,72 @@ class _PlacesState extends State<Places> {
       focusElevation: 10.0,
       highlightElevation: 8.0,
       splashColor: Colors.white.withOpacity(0.3),
+    );
+  }
+
+  Widget _defaultPlaceWidgetBuilder(BuildContext context, PickResult? data, SearchingState state) {
+    return FloatingCard(
+      bottomPosition: MediaQuery.of(context).size.height * 0.1,
+      leftPosition: MediaQuery.of(context).size.width * 0.15,
+      rightPosition: MediaQuery.of(context).size.width * 0.15,
+      width: MediaQuery.of(context).size.width * 0.7,
+      borderRadius: BorderRadius.circular(12.0),
+      elevation: 4.0,
+      color: Theme.of(context).cardColor,
+      child: state == SearchingState.Searching ? _buildLoadingIndicator() : _buildSelectionDetails(context, data!),
+    );
+  }
+
+  Widget _buildLoadingIndicator() {
+    return Container(
+      height: 48,
+      child: const Center(
+        child: SizedBox(
+          width: 24,
+          height: 24,
+          child: CircularProgressIndicator(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSelectionDetails(BuildContext context, PickResult result) {
+    selectedPlace = Place.fromPickResult(result);
+    return Container(
+      margin: const EdgeInsets.all(10),
+      child: Column(
+        children: <Widget>[
+          CustomText(
+            selectedPlace?.name ?? "",
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+            textAlign: TextAlign.center,
+          ),
+          const VerticalSpacer(4),
+          CustomText(
+            "${selectedPlace?.address}, ${selectedPlace?.city}",
+            style: Theme.of(context).textTheme.bodyMedium,
+            softWrap: true,
+          ),
+          const VerticalSpacer(8),
+          SizedBox.fromSize(
+            size: const Size(60, 40),
+            child: Material(
+              child: ButtonComponent(
+                text: "GO",
+                onPressed: () {
+                  setState(() {
+                    selectedPlace = _places.firstWhere(
+                      (place) => place.url == selectedPlace?.url,
+                      orElse: () => selectedPlace ?? Place(),
+                    );
+                    widget.onInitPlaceForm(selectedPlace ?? Place());
+                  });
+                },
+              ),
+            ),
+          )
+        ],
+      ),
     );
   }
 
