@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:async_redux/async_redux.dart';
 import 'package:dio/dio.dart';
+import 'package:gastrorate/models/auth/user.dart';
 import 'package:gastrorate/models/from_where.dart';
 import 'package:gastrorate/models/nearby_places_search_form.dart';
 import 'package:gastrorate/models/place.dart';
@@ -21,8 +22,9 @@ class FetchPlacesAction extends ReduxAction<AppState>{
   Future<AppState?> reduce() async{
     placeSearchForm ??= PlaceSearchForm(sortingMethod: PlaceSorting.DATE_DESC);
     List<Place>? places = <Place>[];
+    User? user = state.authState.loggedUser;
     try {
-      places = await PlaceManager().findPlaces(placeSearchForm!);
+      places = await PlaceManager().findPlaces(placeSearchForm!, user!.id!);
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) {
         dispatch(LogoutAction());
@@ -169,7 +171,8 @@ class FetchFavoritePlacesAction extends ReduxAction<AppState> {
 
   @override
   Future<AppState?> reduce() async {
-    List<Place>? places = await PlaceManager().findFavoritePlaces();
+    User? user = state.authState.loggedUser;
+    List<Place>? places = await PlaceManager().findFavoritePlaces(user!.id!);
     dispatch(FetchFavoritePlacesSuccessAction(places));
     return null;
   }

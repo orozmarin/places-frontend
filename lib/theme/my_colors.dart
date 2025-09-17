@@ -31,4 +31,6 @@ class MyColors{
 
   static const Color horizontalDividerColor = Color(0x1F000000);
 
+  static Color avatarBackgroundColor = Colors.grey.shade300;
+
 }

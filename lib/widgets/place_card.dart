@@ -57,7 +57,6 @@ class PlaceCard extends StatelessWidget {
                   Expanded(
                     child: ButtonComponent.smallButton(
                       onPressed: () {
-                        Navigator.of(context).pop();
                         onDeletePlace(place);
                       },
                       text: "Delete",

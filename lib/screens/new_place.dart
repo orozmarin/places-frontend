@@ -104,7 +104,6 @@ class _NewPlaceState extends State<NewPlace> {
                   ),
                 const VerticalSpacer(12),
                 const HorizontalLine(),
-                const VerticalSpacer(12),
                 if (currentPlace.photos != null && currentPlace.photos!.isNotEmpty)
                   PhotoGallery(photos: currentPlace.photos ?? []),
                 const VerticalSpacer(8),
@@ -145,6 +144,8 @@ class _NewPlaceState extends State<NewPlace> {
                 isDisabled: currentPlace.firstRating == null || currentPlace.secondRating == null,
                 onPressed: () {
                   widget.onSavePlace(currentPlace);
+
+                  //TODO - remove these pop() methods and add routing to correct page
                   Navigator.pop(context);
                 },
               )
