@@ -7,30 +7,31 @@ part of 'user.dart';
 // **************************************************************************
 
 User _$UserFromJson(Map<String, dynamic> json) => User(
-      id: json['id'] as String?,
-      email: json['email'] as String?,
-      password: json['password'] as String?,
-      firstName: json['firstName'] as String?,
-      lastName: json['lastName'] as String?,
-      sex: $enumDecodeNullable(_$SexEnumMap, json['sex']),
-      dateOfBirth: json['dateOfBirth'] == null
+  id: json['id'] as String?,
+  email: json['email'] as String?,
+  password: json['password'] as String?,
+  firstName: json['firstName'] as String?,
+  lastName: json['lastName'] as String?,
+  sex: $enumDecodeNullable(_$SexEnumMap, json['sex']),
+  dateOfBirth:
+      json['dateOfBirth'] == null
           ? null
           : DateTime.parse(json['dateOfBirth'] as String),
-      status: $enumDecodeNullable(_$UserStatusEnumMap, json['status']),
-      profileImageUrl: json['profileImageUrl'] as String?,
-    );
+  status: $enumDecodeNullable(_$UserStatusEnumMap, json['status']),
+  profileImageUrl: json['profileImageUrl'] as String?,
+);
 
 Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
-      'id': instance.id,
-      'email': instance.email,
-      'password': instance.password,
-      'firstName': instance.firstName,
-      'lastName': instance.lastName,
-      'sex': _$SexEnumMap[instance.sex],
-      'dateOfBirth': instance.dateOfBirth?.toIso8601String(),
-      'status': _$UserStatusEnumMap[instance.status],
-      'profileImageUrl': instance.profileImageUrl,
-    };
+  'id': instance.id,
+  'email': instance.email,
+  'password': instance.password,
+  'firstName': instance.firstName,
+  'lastName': instance.lastName,
+  'sex': _$SexEnumMap[instance.sex],
+  'dateOfBirth': instance.dateOfBirth?.toIso8601String(),
+  'status': _$UserStatusEnumMap[instance.status],
+  'profileImageUrl': instance.profileImageUrl,
+};
 
 const _$SexEnumMap = {
   Sex.MALE: 'MALE',

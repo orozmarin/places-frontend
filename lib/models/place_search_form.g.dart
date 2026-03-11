@@ -8,8 +8,10 @@ part of 'place_search_form.dart';
 
 PlaceSearchForm _$PlaceSearchFormFromJson(Map<String, dynamic> json) =>
     PlaceSearchForm(
-      sortingMethod:
-          $enumDecodeNullable(_$PlaceSortingEnumMap, json['sortingMethod']),
+      sortingMethod: $enumDecodeNullable(
+        _$PlaceSortingEnumMap,
+        json['sortingMethod'],
+      ),
     );
 
 Map<String, dynamic> _$PlaceSearchFormToJson(PlaceSearchForm instance) =>
