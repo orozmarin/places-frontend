@@ -1,26 +1,26 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:gastrorate/models/auth/user.dart';
 import 'package:gastrorate/theme/my_colors.dart';
+import 'package:gastrorate/tools/user_helper.dart';
 import 'package:gastrorate/widgets/custom_app_bar.dart';
 import 'package:gastrorate/widgets/custom_text.dart';
 import 'package:gastrorate/widgets/vertical_spacer.dart';
+import 'package:image_picker/image_picker.dart';
 
 class Profile extends StatefulWidget {
-  const Profile({super.key, required this.logOut, required this.user});
+  const Profile({super.key, required this.logOut, required this.user, required this.onEditUser});
 
   final Function() logOut;
   final User user;
+  final Function(User user) onEditUser;
 
   @override
   State<StatefulWidget> createState() => _ProfileState();
 }
 
 class _ProfileState extends State<Profile> {
-  String _getInitials(User user) {
-    final first = user.firstName?.isNotEmpty == true ? user.firstName![0] : "";
-    final last = user.lastName?.isNotEmpty == true ? user.lastName![0] : "";
-    return (first + last).toUpperCase();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,27 +30,21 @@ class _ProfileState extends State<Profile> {
         backgroundColor: MyColors.appbarColor,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.fromLTRB(20, 60, 20, 20),
         child: Column(
           children: [
             Center(
-              child: CircleAvatar(
-                radius: 50,
-                backgroundColor: Colors.grey[300],
-                backgroundImage: (widget.user.profileImageUrl != null)
-                    ? NetworkImage(widget.user.profileImageUrl!)
-                    : null,
-                child: (widget.user.profileImageUrl == null)
-                    ? CustomText(
-                  _getInitials(widget.user),
-                  style: const TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                )
-                    : null,
-              ),
+              child: UserHelper.buildUserAvatar(
+                  user: widget.user,
+                  size: 200,
+                  onEdit: () async {
+                    final ImagePicker picker = ImagePicker();
+                    final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+                    if (pickedFile != null) {
+                      File imageFile = File(pickedFile.path);
+                    }
+                  }),
             ),
             const VerticalSpacer(16),
             CustomText(
@@ -115,15 +109,15 @@ class _ProfileState extends State<Profile> {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white, // pozadina koja se uklapa s UI-jem, možeš promijeniti
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300, width: 1), // lagani obrub
+        border: Border.all(color: Colors.grey.shade300, width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.2), // sjenka
+            color: Colors.grey.withOpacity(0.2),
             spreadRadius: 2,
             blurRadius: 6,
-            offset: const Offset(0, 3), // pomak sjenke
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -136,5 +130,4 @@ class _ProfileState extends State<Profile> {
       ),
     );
   }
-
 }

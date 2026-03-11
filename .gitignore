@@ -11,7 +11,7 @@ pubspec.lock
 
 # IDE and Editor settings
 .vscode/
-.idea/
+.idea/*
 *.iml
 
 # Android specific files
@@ -34,11 +34,15 @@ macos/.symlinks/
 macos/Flutter/ephemeral/
 macos/Podfile.lock
 
-# Windows specific files
-windows/flutter/ephemeral/
+# Flutter desktop builds
+/windows/flutter/
+/linux/flutter/
 
-# Linux specific files
-linux/flutter/ephemeral/
+# Build folders
+/windows/Debug/
+/windows/Release/
+/windows/Profile/
+/linux/build/
 
 # Firebase related files
 firebase.json
@@ -56,3 +60,6 @@ firebase.json
 # Env files (API keys, secrets)
 .env
 .env.*
+
+# FVM Version Cache
+.fvm/

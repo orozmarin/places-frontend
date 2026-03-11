@@ -39,7 +39,7 @@ class App extends StatelessWidget {
                 titleLarge: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
               ),
 
-              cardTheme: CardTheme(
+              cardTheme: CardThemeData(
                 surfaceTintColor: Colors.transparent,
                 color: Colors.white,
                 shadowColor: Colors.black12,
