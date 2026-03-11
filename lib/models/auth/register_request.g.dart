@@ -13,9 +13,10 @@ RegisterRequest _$RegisterRequestFromJson(Map<String, dynamic> json) =>
       firstName: json['firstName'] as String?,
       lastName: json['lastName'] as String?,
       sex: $enumDecodeNullable(_$SexEnumMap, json['sex']),
-      dateOfBirth: json['dateOfBirth'] == null
-          ? null
-          : DateTime.parse(json['dateOfBirth'] as String),
+      dateOfBirth:
+          json['dateOfBirth'] == null
+              ? null
+              : DateTime.parse(json['dateOfBirth'] as String),
     );
 
 Map<String, dynamic> _$RegisterRequestToJson(RegisterRequest instance) =>
