@@ -12,7 +12,8 @@ class ProfilePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return StoreConnector<AppState, ViewModel>(
       vm: () => Factory(this),
-      builder: (BuildContext context, ViewModel vm) => Profile(logOut: vm.logOut, user: vm.user,),
+      builder: (BuildContext context, ViewModel vm) =>
+          Profile(logOut: vm.logOut, user: vm.user, onEditUser: vm.onEditUser),
     );
   }
 }
@@ -21,14 +22,19 @@ class Factory extends VmFactory<AppState, ProfilePage, ViewModel> {
   Factory(ProfilePage widget) : super(widget);
 
   @override
-  ViewModel? fromStore() => ViewModel(logOut: () => dispatch(LogoutAction()), user: state.authState.loggedUser ?? User());
+  ViewModel? fromStore() => ViewModel(
+        logOut: () => dispatch(LogoutAction()),
+        user: state.authState.loggedUser ?? User(),
+        onEditUser: (user) {},
+      );
 }
 
 class ViewModel extends Vm {
-  ViewModel({required this.logOut, required this.user});
+  ViewModel({required this.logOut, required this.user, required this.onEditUser});
 
   final Function() logOut;
   final User user;
+  final Function(User user) onEditUser;
 
   @override
   bool operator ==(Object other) =>
@@ -37,8 +43,9 @@ class ViewModel extends Vm {
           other is ViewModel &&
           runtimeType == other.runtimeType &&
           logOut == other.logOut &&
-          user == other.user;
+          user == other.user &&
+          onEditUser == other.onEditUser;
 
   @override
-  int get hashCode => super.hashCode ^ logOut.hashCode ^ user.hashCode;
+  int get hashCode => super.hashCode ^ logOut.hashCode ^ user.hashCode ^ onEditUser.hashCode;
 }

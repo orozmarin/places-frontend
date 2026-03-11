@@ -11,19 +11,18 @@ abstract class _$AppStateCWProxy {
 
   AppState authState(AuthState authState);
 
-  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `AppState(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
+  /// Creates a new instance with the provided field values.
+  /// Passing `null` to a nullable field nullifies it, while `null` for a non-nullable field is ignored. To update a single field use `AppState(...).copyWith.fieldName(value)`.
   ///
-  /// Usage
+  /// Example:
   /// ```dart
   /// AppState(...).copyWith(id: 12, name: "My name")
-  /// ````
-  AppState call({
-    PlacesState? placesState,
-    AuthState? authState,
-  });
+  /// ```
+  AppState call({PlacesState placesState, AuthState authState});
 }
 
-/// Proxy class for `copyWith` functionality. This is a callable class and can be used as follows: `instanceOfAppState.copyWith(...)`. Additionally contains functions for specific fields e.g. `instanceOfAppState.copyWith.fieldName(...)`
+/// Callable proxy for `copyWith` functionality.
+/// Use as `instanceOfAppState.copyWith(...)` or call `instanceOfAppState.copyWith.fieldName(value)` for a single field.
 class _$AppStateCWProxyImpl implements _$AppStateCWProxy {
   const _$AppStateCWProxyImpl(this._value);
 
@@ -31,19 +30,19 @@ class _$AppStateCWProxyImpl implements _$AppStateCWProxy {
 
   @override
   AppState placesState(PlacesState placesState) =>
-      this(placesState: placesState);
+      call(placesState: placesState);
 
   @override
-  AppState authState(AuthState authState) => this(authState: authState);
+  AppState authState(AuthState authState) => call(authState: authState);
 
   @override
-
-  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `AppState(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
+  /// Creates a new instance with the provided field values.
+  /// Passing `null` to a nullable field nullifies it, while `null` for a non-nullable field is ignored. To update a single field use `AppState(...).copyWith.fieldName(value)`.
   ///
-  /// Usage
+  /// Example:
   /// ```dart
   /// AppState(...).copyWith(id: 12, name: "My name")
-  /// ````
+  /// ```
   AppState call({
     Object? placesState = const $CopyWithPlaceholder(),
     Object? authState = const $CopyWithPlaceholder(),
@@ -54,16 +53,18 @@ class _$AppStateCWProxyImpl implements _$AppStateCWProxy {
               ? _value.placesState
               // ignore: cast_nullable_to_non_nullable
               : placesState as PlacesState,
-      authState: authState == const $CopyWithPlaceholder() || authState == null
-          ? _value.authState
-          // ignore: cast_nullable_to_non_nullable
-          : authState as AuthState,
+      authState:
+          authState == const $CopyWithPlaceholder() || authState == null
+              ? _value.authState
+              // ignore: cast_nullable_to_non_nullable
+              : authState as AuthState,
     );
   }
 }
 
 extension $AppStateCopyWith on AppState {
-  /// Returns a callable class that can be used as follows: `instanceOfAppState.copyWith(...)` or like so:`instanceOfAppState.copyWith.fieldName(...)`.
+  /// Returns a callable class used to build a new instance with modified fields.
+  /// Example: `instanceOfAppState.copyWith(...)` or `instanceOfAppState.copyWith.fieldName(...)`.
   // ignore: library_private_types_in_public_api
   _$AppStateCWProxy get copyWith => _$AppStateCWProxyImpl(this);
 }
@@ -73,12 +74,13 @@ extension $AppStateCopyWith on AppState {
 // **************************************************************************
 
 AppState _$AppStateFromJson(Map<String, dynamic> json) => AppState(
-      placesState:
-          PlacesState.fromJson(json['placesState'] as Map<String, dynamic>),
-      authState: AuthState.fromJson(json['authState'] as Map<String, dynamic>),
-    );
+  placesState: PlacesState.fromJson(
+    json['placesState'] as Map<String, dynamic>,
+  ),
+  authState: AuthState.fromJson(json['authState'] as Map<String, dynamic>),
+);
 
 Map<String, dynamic> _$AppStateToJson(AppState instance) => <String, dynamic>{
-      'placesState': instance.placesState,
-      'authState': instance.authState,
-    };
+  'placesState': instance.placesState,
+  'authState': instance.authState,
+};

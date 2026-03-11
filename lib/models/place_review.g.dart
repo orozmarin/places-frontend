@@ -7,15 +7,15 @@ part of 'place_review.dart';
 // **************************************************************************
 
 PlaceReview _$PlaceReviewFromJson(Map<String, dynamic> json) => PlaceReview(
-      authorName: json['authorName'] as String?,
-      authorUrl: json['authorUrl'] as String?,
-      language: json['language'] as String?,
-      profilePhotoUrl: json['profilePhotoUrl'] as String?,
-      rating: (json['rating'] as num?)?.toInt(),
-      relativeTimeDescription: json['relativeTimeDescription'] as String?,
-      text: json['text'] as String?,
-      time: (json['time'] as num?)?.toInt(),
-    );
+  authorName: json['authorName'] as String?,
+  authorUrl: json['authorUrl'] as String?,
+  language: json['language'] as String?,
+  profilePhotoUrl: json['profilePhotoUrl'] as String?,
+  rating: (json['rating'] as num?)?.toInt(),
+  relativeTimeDescription: json['relativeTimeDescription'] as String?,
+  text: json['text'] as String?,
+  time: (json['time'] as num?)?.toInt(),
+);
 
 PlaceReview _$PlaceReviewFromGoogleJson(Map<String, dynamic> json) {
   final author = json['authorAttribution'] ?? {};

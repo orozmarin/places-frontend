@@ -7,10 +7,11 @@ part of 'photo.dart';
 // **************************************************************************
 
 Photo _$PhotoFromJson(Map<String, dynamic> json) => Photo(
-      photoReference: json['photoReference'] as String?,
-      height: (json['height'] as num?)?.toInt(),
-      width: (json['width'] as num?)?.toInt(),
-      htmlAttributions: (json['htmlAttributions'] as List<dynamic>?)
+  photoReference: json['photoReference'] as String?,
+  height: (json['height'] as num?)?.toInt(),
+  width: (json['width'] as num?)?.toInt(),
+  htmlAttributions:
+      (json['htmlAttributions'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
     );
@@ -28,8 +29,8 @@ Photo _$PhotoFromGoogleJson(Map<String, dynamic> json) {
 }
 
 Map<String, dynamic> _$PhotoToJson(Photo instance) => <String, dynamic>{
-      'photoReference': instance.photoReference,
-      'height': instance.height,
-      'width': instance.width,
-      'htmlAttributions': instance.htmlAttributions,
-    };
+  'photoReference': instance.photoReference,
+  'height': instance.height,
+  'width': instance.width,
+  'htmlAttributions': instance.htmlAttributions,
+};
