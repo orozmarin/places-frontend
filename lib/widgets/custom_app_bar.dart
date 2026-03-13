@@ -5,6 +5,7 @@ import 'package:gastrorate/models/auth/user.dart';
 import 'package:gastrorate/store/app_state.dart';
 import 'package:gastrorate/theme/my_colors.dart';
 import 'package:gastrorate/tools/user_helper.dart';
+import 'package:go_router/go_router.dart';
 
 class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
   final Key? appBarKey;
@@ -73,31 +74,52 @@ class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
 }
 
 class _CustomAppBarState extends State<CustomAppBar> {
-  String _getInitials(User user) {
-    final first = user.firstName?.isNotEmpty == true ? user.firstName![0] : "";
-    final last = user.lastName?.isNotEmpty == true ? user.lastName![0] : "";
-    return (first + last).toUpperCase();
-  }
-
   @override
   Widget build(BuildContext context) {
-    return StoreConnector<AppState, User?>(
-      converter: (Store<AppState> store) => store.state.authState.loggedUser,
-      builder: (context, user) {
+    return StoreConnector<AppState, _AppBarVm>(
+      converter: (Store<AppState> store) => _AppBarVm(
+        user: store.state.authState.loggedUser,
+        pendingCount: store.state.friendshipsState.pendingRequests?.length ?? 0,
+      ),
+      builder: (context, vm) {
         return AppBar(
           key: widget.appBarKey,
           leading: widget.leading,
           automaticallyImplyLeading: widget.automaticallyImplyLeading,
           title: widget.title,
           actions: [
-            ...(widget.actions ?? []), UserHelper.buildUserAvatar(user: user!)],
+            ...(widget.actions ?? []),
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.notifications_outlined),
+                  onPressed: () => context.push('/notifications'),
+                ),
+                if (vm.pendingCount > 0)
+                  Positioned(
+                    right: 8,
+                    top: 8,
+                    child: CircleAvatar(
+                      radius: 7,
+                      backgroundColor: Colors.red,
+                      child: Text(
+                        '${vm.pendingCount}',
+                        style: const TextStyle(fontSize: 10, color: Colors.white),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            UserHelper.buildUserAvatar(user: vm.user!),
+          ],
           actionsPadding: const EdgeInsets.only(right: 8),
           flexibleSpace: widget.flexibleSpace,
           bottom: widget.bottom,
           elevation: widget.elevation,
           shadowColor: widget.shadowColor,
           shape: widget.shape,
-          backgroundColor: MyColors.backgroundNavBarColor,
+          backgroundColor: widget.backgroundColor ?? MyColors.backgroundNavBarColor,
           foregroundColor: widget.foregroundColor,
           iconTheme: widget.iconTheme,
           actionsIconTheme: widget.actionsIconTheme,
@@ -116,4 +138,11 @@ class _CustomAppBarState extends State<CustomAppBar> {
       },
     );
   }
+}
+
+class _AppBarVm {
+  final User? user;
+  final int pendingCount;
+
+  _AppBarVm({required this.user, required this.pendingCount});
 }
