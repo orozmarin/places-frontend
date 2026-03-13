@@ -4,6 +4,7 @@ import 'package:gastrorate/models/from_where.dart';
 import 'package:gastrorate/models/place.dart';
 import 'package:gastrorate/screens/home.dart';
 import 'package:gastrorate/store/app_state.dart';
+import 'package:gastrorate/store/friendships/friendships_actions.dart';
 import 'package:gastrorate/store/places/places_actions.dart';
 
 class HomePage extends StatelessWidget {
@@ -16,6 +17,7 @@ class HomePage extends StatelessWidget {
       onInit: (Store<AppState> store) async {
         store.dispatch(FetchNearbyPlacesAction());
         store.dispatch(FetchPlacesAction());
+        store.dispatch(FetchPendingFriendRequestsAction());
       },
       builder: (BuildContext context, ViewModel vm) => Home(
         places: vm.places,
@@ -41,7 +43,7 @@ class Factory extends VmFactory<AppState, HomePage, ViewModel> {
         onInitPlaceForm: (Place place) => dispatch(
           InitNewPlaceAction(payload: place, fromWhere: FromWhere.home),
         ),
-        isLoading: state.placesState.isLoading ?? false,
+        isLoading: isWaiting(FetchNearbyPlacesAction),
       );
 }
 

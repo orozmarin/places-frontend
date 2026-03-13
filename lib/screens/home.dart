@@ -113,11 +113,17 @@ class _HomeState extends State<Home> {
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
           ),
-            /*widget.isLoading ? const CircularProgressIndicator() : */PlaceCardSwiper(
-                ratedPlaces: widget.places,
-                places: widget.nearbyPlaces!,
-                onDeletePlace: widget.onDeletePlace,
-                onInitPlaceForm: widget.onInitPlaceForm),
+            widget.isLoading
+                ? const SizedBox(
+                    height: 220,
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                : PlaceCardSwiper(
+                    ratedPlaces: widget.places,
+                    places: widget.nearbyPlaces!,
+                    onDeletePlace: widget.onDeletePlace,
+                    onInitPlaceForm: widget.onInitPlaceForm,
+                  ),
           const VerticalSpacer(10),
           const Padding(padding: EdgeInsets.symmetric(horizontal: 22), child: HorizontalLine()),
           if (widget.places != null && widget.places!.isNotEmpty) ...[
