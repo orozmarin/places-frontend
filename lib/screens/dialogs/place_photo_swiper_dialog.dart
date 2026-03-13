@@ -25,8 +25,10 @@ class PlacePhotoSwiperDialog extends StatelessWidget {
             loop: false,
             itemBuilder: (context, index) {
               final photo = photos[index];
-              final photoUrl =
-                  "https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=${photo.photoReference}&key=${dotenv.env['MAPS_API']}";
+              final ref = photo.photoReference ?? '';
+              final photoUrl = ref.startsWith('places/')
+                  ? "https://places.googleapis.com/v1/$ref/media?maxWidthPx=800&key=${dotenv.env['MAPS_API']}"
+                  : "https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=$ref&key=${dotenv.env['MAPS_API']}";
               return Image.network(photoUrl, fit: BoxFit.contain);
             },
             pagination: const SwiperPagination(

@@ -18,6 +18,19 @@ class PlaceCard extends StatelessWidget {
     required this.onInitPlaceForm,
   }) : super(key: key);
 
+  String _photoUrl(String ref, int maxWidth) {
+    if (ref.startsWith('places/')) {
+      return "https://places.googleapis.com/v1/$ref/media?maxWidthPx=$maxWidth&key=${dotenv.env['MAPS_API']}";
+    }
+    return "https://maps.googleapis.com/maps/api/place/photo?maxwidth=$maxWidth&photo_reference=$ref&key=${dotenv.env['MAPS_API']}";
+  }
+
+  String _locationText() {
+    if (place.city != null && place.country != null) return "${place.city}, ${place.country}";
+    if (place.address != null && place.address!.isNotEmpty) return place.address!;
+    return "";
+  }
+
   void _showDeleteConfirmationDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -96,7 +109,7 @@ class PlaceCard extends StatelessWidget {
               borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
               child: place.photos?.first.photoReference != null && place.photos!.first.photoReference!.isNotEmpty
                   ? Image.network(
-                      "https://maps.googleapis.com/maps/api/place/photo?maxwidth=200&photo_reference=${place.photos?.first.photoReference}&key=${dotenv.env['MAPS_API']}",
+                      _photoUrl(place.photos!.first.photoReference!, 200),
                       height: 150,
                       width: double.infinity,
                       fit: BoxFit.cover,
@@ -138,9 +151,9 @@ class PlaceCard extends StatelessWidget {
                           fontSize: 18,
                         ),
                       ),
-                      if (place.placeRating != null)
+                      if (place.rating != null)
                         CustomText(
-                          "${place.placeRating! % 1 == 0 ? place.placeRating?.toInt() : place.placeRating?.toStringAsFixed(1)}/60",
+                          "${place.rating!.placeRating != null && place.rating!.placeRating! % 1 == 0 ? place.rating!.placeRating?.toInt() : place.rating!.placeRating?.toStringAsFixed(1)}/30",
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 20,
@@ -150,7 +163,7 @@ class PlaceCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   CustomText(
-                    "${place.city}, ${place.country}",
+                    _locationText(),
                     style: const TextStyle(fontSize: 14, color: Colors.grey),
                   ),
                   const SizedBox(height: 8),

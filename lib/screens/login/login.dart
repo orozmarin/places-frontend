@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:gastrorate/models/auth/login_request.dart';
 import 'package:gastrorate/models/auth/register_request.dart';
@@ -11,9 +9,10 @@ import 'package:gastrorate/widgets/input_field.dart';
 import 'package:gastrorate/widgets/vertical_spacer.dart';
 
 class Login extends StatefulWidget {
-  const Login({Key? key, required this.registerUser, required this.loginUser}) : super(key: key);
+  const Login({Key? key, required this.registerUser, required this.loginUser, required this.isLoading}) : super(key: key);
   final Function(RegisterRequest registerRequest) registerUser;
   final Function(LoginRequest loginRequest) loginUser;
+  final bool isLoading;
 
   @override
   State<Login> createState() => _LoginState();
@@ -24,16 +23,15 @@ class _LoginState extends State<Login> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
-  final TextEditingController _dobController = TextEditingController();
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
   Sex _selectedSex = Sex.FEMALE;
 
   final DateTime _earliestDate = DateTime.now().subtract(const Duration(days: 36500));
   final DateTime? _latestDate = DateTime.now();
   DateTime? _dateOfBirth = DateTime.now().subtract(const Duration(days: 1));
 
-  bool _isLoading = false;
   String? _errorMessage;
 
   bool _isRegistering = false;
@@ -95,6 +93,16 @@ class _LoginState extends State<Login> {
                       labelText: 'Last Name',
                       onChanged: (String? value) {
                         _lastNameController.text = value ?? "";
+                      },
+                    ),
+                    const VerticalSpacer(16),
+                    InputField(
+                      controller: _usernameController,
+                      labelText: 'Username',
+                      hintText: 'Letters, numbers, underscores only',
+                      validatorFunction: usernameValidator,
+                      onChanged: (String? value) {
+                        _usernameController.text = value ?? "";
                       },
                     ),
                     const VerticalSpacer(16),
@@ -193,14 +201,14 @@ class _LoginState extends State<Login> {
                       style: const TextStyle(color: Colors.red),
                     ),
                   ButtonComponent.smallButton(
-                    isLoading: _isLoading,
-                    onPressed: _isLoading
+                    isLoading: widget.isLoading,
+                    onPressed: widget.isLoading
                         ? null
-                              : () {
-                                  if (_formKey.currentState?.validate() ?? false) {
-                                    _handleAuthAction();
-                                  }
-                                },
+                        : () {
+                            if (_formKey.currentState?.validate() ?? false) {
+                              _handleAuthAction();
+                            }
+                          },
                           text: _isRegistering ? "Register" : "Login",
                         ),
                         const VerticalSpacer(14),
@@ -228,6 +236,7 @@ class _LoginState extends State<Login> {
           password: _passwordController.text,
           firstName: _firstNameController.text,
           lastName: _lastNameController.text,
+          username: _usernameController.text,
           sex: _selectedSex,
           dateOfBirth: _dateOfBirth,
         ),
@@ -236,6 +245,7 @@ class _LoginState extends State<Login> {
       _passwordController.clear();
       _firstNameController.clear();
       _lastNameController.clear();
+      _usernameController.clear();
       _selectedSex = Sex.FEMALE;
       _dateOfBirth = null;
       _isRegistering = false;
@@ -281,6 +291,17 @@ class _LoginState extends State<Login> {
   String? confirmPasswordValidator(String? value, String original) {
     if (value != original) {
       return 'Passwords do not match!';
+    }
+    return null;
+  }
+
+  String? usernameValidator(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Username cannot be empty';
+    }
+    final usernameRegex = RegExp(r'^[a-zA-Z0-9_]+$');
+    if (!usernameRegex.hasMatch(value.trim())) {
+      return 'Only letters, numbers and underscores allowed';
     }
     return null;
   }
