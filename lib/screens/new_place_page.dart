@@ -1,8 +1,10 @@
 import 'package:async_redux/async_redux.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:gastrorate/models/auth/user.dart';
 import 'package:gastrorate/models/place.dart';
 import 'package:gastrorate/screens/new_place.dart';
 import 'package:gastrorate/store/app_state.dart';
+import 'package:gastrorate/store/invitations/invitations_actions.dart';
 import 'package:gastrorate/store/places/places_actions.dart';
 
 class NewPlacePage extends StatelessWidget {
@@ -16,6 +18,8 @@ class NewPlacePage extends StatelessWidget {
         place: vm.foundPlace,
         onSavePlace: vm.onSavePlace,
         onDeletePlace: vm.onDeletePlace,
+        onInviteVisitor: vm.onInviteVisitor,
+        friends: vm.friends,
       ),
     );
   }
@@ -27,17 +31,28 @@ class Factory extends VmFactory<AppState, NewPlacePage, ViewModel> {
   @override
   ViewModel? fromStore() => ViewModel(
         foundPlace: state.placesState.place,
+        friends: state.friendshipsState.friends,
         onSavePlace: (Place place) => dispatch(SaveOrUpdatePlaceAction(place)),
         onDeletePlace: (place) => dispatch(DeletePlaceAction(place)),
+        onInviteVisitor: (String placeId, String friendId) =>
+            dispatch(SendVisitInvitationAction(placeId, friendId)),
       );
 }
 
 class ViewModel extends Vm {
   final Place? foundPlace;
+  final List<User>? friends;
   final Function(Place place) onSavePlace;
   final Function(Place place) onDeletePlace;
+  final Function(String placeId, String friendId) onInviteVisitor;
 
-  ViewModel({required this.foundPlace, required this.onSavePlace, required this.onDeletePlace});
+  ViewModel({
+    required this.foundPlace,
+    required this.friends,
+    required this.onSavePlace,
+    required this.onDeletePlace,
+    required this.onInviteVisitor,
+  });
 
   @override
   bool operator ==(Object other) =>
@@ -46,9 +61,17 @@ class ViewModel extends Vm {
           other is ViewModel &&
           runtimeType == other.runtimeType &&
           foundPlace == other.foundPlace &&
+          friends == other.friends &&
           onSavePlace == other.onSavePlace &&
-          onDeletePlace == other.onDeletePlace;
+          onDeletePlace == other.onDeletePlace &&
+          onInviteVisitor == other.onInviteVisitor;
 
   @override
-  int get hashCode => super.hashCode ^ foundPlace.hashCode ^ onSavePlace.hashCode ^ onDeletePlace.hashCode;
+  int get hashCode =>
+      super.hashCode ^
+      foundPlace.hashCode ^
+      friends.hashCode ^
+      onSavePlace.hashCode ^
+      onDeletePlace.hashCode ^
+      onInviteVisitor.hashCode;
 }

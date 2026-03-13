@@ -14,9 +14,16 @@ class PlacesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return StoreConnector<AppState, ViewModel>(
       vm: () => Factory(this),
-      onInit: (Store<AppState> store) => store.dispatch(FetchPlacesAction()),
+      onInit: (Store<AppState> store) {
+        store.dispatch(FetchPlacesAction());
+        final userId = store.state.authState.loggedUser?.id;
+        if (userId != null) {
+          store.dispatch(FetchSharedPlacesAction(userId));
+        }
+      },
       builder: (BuildContext context, ViewModel vm) => Places(
         places: vm.places,
+        sharedPlaces: vm.sharedPlaces,
         onFindAllPlaces: vm.onFindAllPlaces,
         onDeletePlace: vm.onDeletePlace,
         onInitPlaceForm: vm.onInitPlaceForm,
@@ -31,20 +38,23 @@ class Factory extends VmFactory<AppState, PlacesPage, ViewModel> {
   @override
   ViewModel? fromStore() => ViewModel(
     places: state.placesState.places,
-        onFindAllPlaces: (PlaceSearchForm psf) => dispatch(FetchPlacesAction(placeSearchForm: psf)),
-        onDeletePlace: (place) => dispatch(DeletePlaceAction(place)),
+    sharedPlaces: state.placesState.sharedPlaces,
+    onFindAllPlaces: (PlaceSearchForm psf) => dispatch(FetchPlacesAction(placeSearchForm: psf)),
+    onDeletePlace: (place) => dispatch(DeletePlaceAction(place)),
     onInitPlaceForm: (Place place) => dispatch(InitNewPlaceAction(payload: place, fromWhere: FromWhere.places)),
   );
 }
 
 class ViewModel extends Vm {
   final List<Place>? places;
+  final List<Place>? sharedPlaces;
   final Function(PlaceSearchForm) onFindAllPlaces;
   final Function(Place place) onDeletePlace;
   final Function(Place place) onInitPlaceForm;
 
   ViewModel(
       {required this.places,
+        required this.sharedPlaces,
         required this.onFindAllPlaces,
         required this.onDeletePlace,
         required this.onInitPlaceForm});
@@ -56,11 +66,12 @@ class ViewModel extends Vm {
               other is ViewModel &&
               runtimeType == other.runtimeType &&
               places == other.places &&
+              sharedPlaces == other.sharedPlaces &&
               onFindAllPlaces == other.onFindAllPlaces &&
               onDeletePlace == other.onDeletePlace &&
               onInitPlaceForm == other.onInitPlaceForm;
 
   @override
   int get hashCode =>
-      super.hashCode ^ places.hashCode ^ onFindAllPlaces.hashCode ^ onDeletePlace.hashCode ^ onInitPlaceForm.hashCode;
+      super.hashCode ^ places.hashCode ^ sharedPlaces.hashCode ^ onFindAllPlaces.hashCode ^ onDeletePlace.hashCode ^ onInitPlaceForm.hashCode;
 }

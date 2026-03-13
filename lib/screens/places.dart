@@ -22,12 +22,14 @@ class Places extends StatefulWidget {
   Places(
       {super.key,
       required this.places,
+      required this.sharedPlaces,
       required this.onFindAllPlaces,
       required this.onDeletePlace,
       required this.onInitPlaceForm});
 
   final Function(PlaceSearchForm) onFindAllPlaces;
   final List<Place>? places;
+  final List<Place>? sharedPlaces;
   final Function(Place place) onDeletePlace;
   final Function(Place place) onInitPlaceForm;
 
@@ -37,13 +39,15 @@ class Places extends StatefulWidget {
   State<StatefulWidget> createState() => _PlacesState();
 }
 
-class _PlacesState extends State<Places> {
+class _PlacesState extends State<Places> with SingleTickerProviderStateMixin {
   LatLng initialPosition = kInitialPosition;
   Place? selectedPlace;
   PlaceSorting _selectedSorting = PlaceSorting.DATE_DESC;
   List<Place> _places = <Place>[];
 
   bool _mapsInitialized = false;
+  late TabController _tabController;
+  int _currentTabIndex = 0;
 
   final ScrollController _scrollController = ScrollController();
   bool _isVisible = true;
@@ -107,6 +111,10 @@ class _PlacesState extends State<Places> {
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      setState(() => _currentTabIndex = _tabController.index);
+    });
     if (widget.places != null){
       _places = widget.places!;
       _places = PlaceHelper.sortPlaces(_places, _selectedSorting);
@@ -116,6 +124,7 @@ class _PlacesState extends State<Places> {
 
   @override
   void dispose() {
+    _tabController.dispose();
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     super.dispose();
@@ -128,35 +137,25 @@ class _PlacesState extends State<Places> {
         title: const CustomText("Places", style: TextStyle(color: MyColors.navbarItemColor)),
         backgroundColor: MyColors.appbarColor,
         actions: [
-          buildSortingButton(),
+          if (_currentTabIndex == 0) buildSortingButton(),
         ],
+        bottom: TabBar(
+          controller: _tabController,
+          labelColor: MyColors.navbarItemColor,
+          unselectedLabelColor: MyColors.navbarItemColor.withOpacity(0.6),
+          indicatorColor: MyColors.navbarItemColor,
+          tabs: const [
+            Tab(text: "My Places"),
+            Tab(text: "Shared with Me"),
+          ],
+        ),
       ),
-      body: Center(
-        child:
-            _places.isNotEmpty
-                ? Column(
-                    children: [
-                      Expanded(
-                        child: ListView.builder(
-                          padding: const EdgeInsets.only(bottom: 20, top: 10),
-                          controller: _scrollController,
-                          itemBuilder: (context, index) {
-                            Place place = _places[index];
-                            return PlaceCard(
-                              place: place,
-                              onDeletePlace: widget.onDeletePlace,
-                              onInitPlaceForm: widget.onInitPlaceForm,
-                            );
-                          },
-                          itemCount: _places.length,
-                        ),
-                      ),
-                    ],
-                  )
-                : Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: buildEmptyState(), // Pass context
-                  ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          _buildMyPlacesTab(),
+          _buildSharedPlacesTab(),
+        ],
       ),
       floatingActionButton: showAddPlaceButton()
           ? AnimatedOpacity(
@@ -169,7 +168,56 @@ class _PlacesState extends State<Places> {
     );
   }
 
-  bool showAddPlaceButton() => _isVisible || (_places.length < 3);
+  Widget _buildMyPlacesTab() {
+    return Center(
+      child: _places.isNotEmpty
+          ? Column(
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.only(bottom: 20, top: 10),
+                    controller: _scrollController,
+                    itemBuilder: (context, index) {
+                      Place place = _places[index];
+                      return PlaceCard(
+                        place: place,
+                        onDeletePlace: widget.onDeletePlace,
+                        onInitPlaceForm: widget.onInitPlaceForm,
+                      );
+                    },
+                    itemCount: _places.length,
+                  ),
+                ),
+              ],
+            )
+          : Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: buildEmptyState(),
+            ),
+    );
+  }
+
+  Widget _buildSharedPlacesTab() {
+    final shared = widget.sharedPlaces;
+    if (shared == null || shared.isEmpty) {
+      return const Center(
+        child: CustomText("No places shared with you yet."),
+      );
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.only(bottom: 20, top: 10),
+      itemCount: shared.length,
+      itemBuilder: (context, index) {
+        return PlaceCard(
+          place: shared[index],
+          onDeletePlace: widget.onDeletePlace,
+          onInitPlaceForm: widget.onInitPlaceForm,
+        );
+      },
+    );
+  }
+
+  bool showAddPlaceButton() => _currentTabIndex == 0 && (_isVisible || (_places.length < 3));
 
   List<Widget> buildEmptyState() {
     return <Widget>[

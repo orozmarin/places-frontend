@@ -7,23 +7,21 @@ part of 'places_state.dart';
 // **************************************************************************
 
 PlacesState _$PlacesStateFromJson(Map<String, dynamic> json) => PlacesState(
-  places:
-      (json['places'] as List<dynamic>?)
-          ?.map((e) => Place.fromJson(e as Map<String, dynamic>))
-          .toList(),
-  nearbyPlaces:
-      (json['nearbyPlaces'] as List<dynamic>?)
-          ?.map((e) => Place.fromJson(e as Map<String, dynamic>))
-          .toList(),
-  favoritePlaces:
-      (json['favoritePlaces'] as List<dynamic>?)
-          ?.map((e) => Place.fromJson(e as Map<String, dynamic>))
-          .toList(),
-  place:
-      json['place'] == null
-          ? null
-          : Place.fromJson(json['place'] as Map<String, dynamic>),
-  isLoading: json['isLoading'] as bool?,
+  places: (json['places'] as List<dynamic>?)
+      ?.map((e) => Place.fromJson(e as Map<String, dynamic>))
+      .toList(),
+  nearbyPlaces: (json['nearbyPlaces'] as List<dynamic>?)
+      ?.map((e) => Place.fromJson(e as Map<String, dynamic>))
+      .toList(),
+  favoritePlaces: (json['favoritePlaces'] as List<dynamic>?)
+      ?.map((e) => Place.fromJson(e as Map<String, dynamic>))
+      .toList(),
+  sharedPlaces: (json['sharedPlaces'] as List<dynamic>?)
+      ?.map((e) => Place.fromJson(e as Map<String, dynamic>))
+      .toList(),
+  place: json['place'] == null
+      ? null
+      : Place.fromJson(json['place'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$PlacesStateToJson(
@@ -32,6 +30,6 @@ Map<String, dynamic> _$PlacesStateToJson(
   'places': instance.places?.map((e) => e.toJson()).toList(),
   'nearbyPlaces': instance.nearbyPlaces?.map((e) => e.toJson()).toList(),
   'favoritePlaces': instance.favoritePlaces?.map((e) => e.toJson()).toList(),
+  'sharedPlaces': instance.sharedPlaces?.map((e) => e.toJson()).toList(),
   'place': instance.place?.toJson(),
-  'isLoading': instance.isLoading,
 };

@@ -65,3 +65,14 @@ When a task involves both frontend and backend changes (e.g., new API endpoint +
 Check these files when working on related tasks:
 
 - `.claude/docs/architectural_patterns.md` — Redux action lifecycle, Page/Screen split, ViewModel factory, Manager pattern, router guards
+
+## Memory System
+
+Project memory lives in `~/.claude/projects/-Users-marinoroz-Documents-OrozDigital-places-frontend/memory/`.
+
+**`MEMORY.md`** is always loaded — it's a short index of pointers to individual memory files.
+
+Rules for saving memory:
+- **Feedback** (`feedback_*.md`) — whenever something breaks in a non-obvious way or a workaround is needed. These are the most valuable — they prevent repeating mistakes.
+- **Project** (`project_*.md`) — active features, infra state, business reasons behind architectural decisions. Update when state changes.
+- **Do NOT save**: code patterns, file paths, architecture (derivable from codebase), git history (belongs in commits), in-progress task state (belongs in tasks).

@@ -4,18 +4,18 @@ import 'package:json_annotation/json_annotation.dart';
 part 'places_state.g.dart';
 
 @JsonSerializable(explicitToJson: true)
-class PlacesState{
+class PlacesState {
   List<Place>? places;
   List<Place>? nearbyPlaces;
   List<Place>? favoritePlaces;
+  List<Place>? sharedPlaces;
   Place? place;
-  bool? isLoading;
 
-  PlacesState.init(){
+  PlacesState.init() {
     this.places = List<Place>.empty();
     this.nearbyPlaces = List<Place>.empty();
     this.favoritePlaces = List<Place>.empty();
-    this.isLoading = false;
+    this.sharedPlaces = List<Place>.empty();
   }
 
   factory PlacesState.fromJson(Map<String, dynamic> json) => _$PlacesStateFromJson(json);
@@ -27,8 +27,8 @@ class PlacesState{
     this.places,
     this.nearbyPlaces,
     this.favoritePlaces,
+    this.sharedPlaces,
     this.place,
-    this.isLoading,
   });
 
   @override
@@ -39,12 +39,16 @@ class PlacesState{
           places == other.places &&
           nearbyPlaces == other.nearbyPlaces &&
           favoritePlaces == other.favoritePlaces &&
-          place == other.place &&
-          isLoading == other.isLoading);
+          sharedPlaces == other.sharedPlaces &&
+          place == other.place);
 
   @override
   int get hashCode =>
-      places.hashCode ^ nearbyPlaces.hashCode ^ favoritePlaces.hashCode ^ place.hashCode ^ isLoading.hashCode;
+      places.hashCode ^
+      nearbyPlaces.hashCode ^
+      favoritePlaces.hashCode ^
+      sharedPlaces.hashCode ^
+      place.hashCode;
 
   @override
   String toString() {
@@ -52,8 +56,8 @@ class PlacesState{
         ' places: $places,' +
         ' nearbyPlaces: $nearbyPlaces,' +
         ' favoritePlaces: $favoritePlaces,' +
+        ' sharedPlaces: $sharedPlaces,' +
         ' place: $place,' +
-        ' isLoading: $isLoading,' +
         '}';
   }
 
@@ -61,16 +65,15 @@ class PlacesState{
     List<Place>? places,
     List<Place>? nearbyPlaces,
     List<Place>? favoritePlaces,
+    List<Place>? sharedPlaces,
     Place? place,
-    bool? isLoading,
   }) {
-    print("copyWith called with isLoading: $isLoading");
     return PlacesState(
       places: places ?? this.places,
       nearbyPlaces: nearbyPlaces ?? this.nearbyPlaces,
       favoritePlaces: favoritePlaces ?? this.favoritePlaces,
+      sharedPlaces: sharedPlaces ?? this.sharedPlaces,
       place: place ?? this.place,
-      isLoading: isLoading ?? this.isLoading,
     );
   }
 
@@ -83,8 +86,8 @@ class PlacesState{
       keyMapper('places'): this.places,
       keyMapper('nearbyPlaces'): this.nearbyPlaces,
       keyMapper('favoritePlaces'): this.favoritePlaces,
+      keyMapper('sharedPlaces'): this.sharedPlaces,
       keyMapper('place'): this.place,
-      keyMapper('isLoading'): this.isLoading,
     };
   }
 
@@ -98,8 +101,8 @@ class PlacesState{
       places: map[keyMapper('places')] as List<Place>,
       nearbyPlaces: map[keyMapper('nearbyPlaces')] as List<Place>,
       favoritePlaces: map[keyMapper('favoritePlaces')] as List<Place>,
+      sharedPlaces: map[keyMapper('sharedPlaces')] as List<Place>?,
       place: map[keyMapper('place')] as Place,
-      isLoading: map[keyMapper('isLoading')] as bool,
     );
   }
 
