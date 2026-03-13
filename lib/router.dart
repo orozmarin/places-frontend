@@ -2,11 +2,16 @@
 import 'package:flutter/material.dart';
 import 'package:gastrorate/http/auth_helper.dart';
 import 'package:gastrorate/screens/favorites_page.dart';
+import 'package:gastrorate/screens/friend_requests_page.dart';
+import 'package:gastrorate/screens/friends_page.dart';
 import 'package:gastrorate/screens/home_page.dart';
 import 'package:gastrorate/screens/login/login_page.dart';
 import 'package:gastrorate/screens/new_place_page.dart';
+import 'package:gastrorate/screens/notifications_page.dart';
+import 'package:gastrorate/screens/pending_invitations_page.dart';
 import 'package:gastrorate/screens/places_page.dart';
 import 'package:gastrorate/screens/profile_page.dart';
+import 'package:gastrorate/screens/rate_shared_place_page.dart';
 import 'package:gastrorate/widgets/scaffold_nested_navigation.dart';
 import 'package:go_router/go_router.dart';
 
@@ -39,6 +44,31 @@ final goRouter = GoRouter(
     GoRoute(
       path: '/login',
       builder: (context, state) => const LoginPage(),
+    ),
+    GoRoute(
+      path: '/friends',
+      parentNavigatorKey: rootNavigatorKey,
+      builder: (context, state) => const FriendsPage(),
+    ),
+    GoRoute(
+      path: '/notifications',
+      parentNavigatorKey: rootNavigatorKey,
+      builder: (context, state) => const NotificationsPage(),
+    ),
+    GoRoute(
+      path: '/friend-requests',
+      parentNavigatorKey: rootNavigatorKey,
+      builder: (context, state) => const FriendRequestsPage(),
+    ),
+    GoRoute(
+      path: '/pending-invitations',
+      parentNavigatorKey: rootNavigatorKey,
+      builder: (context, state) => const PendingInvitationsPage(),
+    ),
+    GoRoute(
+      path: '/rate-shared-place',
+      parentNavigatorKey: rootNavigatorKey,
+      builder: (context, state) => const RateSharedPlacePage(),
     ),
     // Stateful nested navigation based on:
     // https://github.com/flutter/packages/blob/main/packages/go_router/example/lib/stateful_shell_route.dart

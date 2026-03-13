@@ -9,6 +9,7 @@ class RegisterRequest{
   String? password;
   String? firstName;
   String? lastName;
+  String? username;
   Sex? sex;
   DateTime? dateOfBirth;
 
@@ -21,6 +22,7 @@ class RegisterRequest{
     this.password,
     this.firstName,
     this.lastName,
+    this.username,
     this.sex,
     this.dateOfBirth,
   });
@@ -34,12 +36,13 @@ class RegisterRequest{
           password == other.password &&
           firstName == other.firstName &&
           lastName == other.lastName &&
+          username == other.username &&
           sex == other.sex &&
           dateOfBirth == other.dateOfBirth);
 
   @override
   int get hashCode =>
-      email.hashCode ^ password.hashCode ^ firstName.hashCode ^ lastName.hashCode ^ sex.hashCode ^ dateOfBirth.hashCode;
+      email.hashCode ^ password.hashCode ^ firstName.hashCode ^ lastName.hashCode ^ username.hashCode ^ sex.hashCode ^ dateOfBirth.hashCode;
 
   @override
   String toString() {
@@ -48,6 +51,7 @@ class RegisterRequest{
         ' password: $password,' +
         ' firstName: $firstName,' +
         ' lastName: $lastName,' +
+        ' username: $username,' +
         ' sex: $sex,' +
         ' dateOfBirth: $dateOfBirth,' +
         '}';
@@ -58,6 +62,7 @@ class RegisterRequest{
     String? password,
     String? firstName,
     String? lastName,
+    String? username,
     Sex? sex,
     DateTime? dateOfBirth,
   }) {
@@ -66,6 +71,7 @@ class RegisterRequest{
       password: password ?? this.password,
       firstName: firstName ?? this.firstName,
       lastName: lastName ?? this.lastName,
+      username: username ?? this.username,
       sex: sex ?? this.sex,
       dateOfBirth: dateOfBirth ?? this.dateOfBirth,
     );

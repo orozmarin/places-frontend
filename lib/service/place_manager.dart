@@ -11,6 +11,7 @@ class PlaceManager {
   static const String FIND_ALL_PLACES = "/places/find/{userId}";
   static const String DELETE_PLACE = "/places/delete/{placeId}";
   static const String FIND_FAVORITE_PLACES = "/places/find/favorites/{userId}";
+  static const String FIND_SHARED_PLACES = "/places/find/shared/{userId}";
 
   static const String FIND_NEARBY_PLACES_API = "https://places.googleapis.com/v1/places:searchNearby";
 
@@ -49,6 +50,14 @@ class PlaceManager {
   Future<List<Place>> findFavoritePlaces(String userId) async {
     final Map<String, dynamic> params = <String, dynamic>{"userId": userId};
     final String url = ServicesUriHelper.getUrlWithParams(dotenv.env['API_BASE_URI'].toString() + FIND_FAVORITE_PLACES, params);
+    final Response<List<dynamic>> response = await client.get(url);
+    return (response.data as List<dynamic>).map((dynamic place) => Place.fromJson(place)).toList();
+  }
+
+  Future<List<Place>> findSharedPlaces(String userId) async {
+    final Map<String, dynamic> params = <String, dynamic>{"userId": userId};
+    final String url = ServicesUriHelper.getUrlWithParams(
+        dotenv.env['API_BASE_URI'].toString() + FIND_SHARED_PLACES, params);
     final Response<List<dynamic>> response = await client.get(url);
     return (response.data as List<dynamic>).map((dynamic place) => Place.fromJson(place)).toList();
   }

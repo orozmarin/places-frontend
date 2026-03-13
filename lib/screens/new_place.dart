@@ -1,10 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:gastrorate/models/auth/user.dart';
 import 'package:gastrorate/models/place.dart';
 import 'package:gastrorate/models/place_review.dart';
 import 'package:gastrorate/models/rating.dart';
 import 'package:gastrorate/screens/dialogs/place_review_dialog.dart';
 import 'package:gastrorate/theme/my_colors.dart';
+import 'package:gastrorate/widgets/add_visitors_sheet.dart';
 import 'package:gastrorate/widgets/custom_app_bar.dart';
 import 'package:gastrorate/widgets/custom_text.dart';
 import 'package:gastrorate/widgets/date_input_with_date_picker.dart';
@@ -20,11 +22,20 @@ import 'package:gastrorate/widgets/vertical_spacer.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class NewPlace extends StatefulWidget {
-  const NewPlace({super.key, required this.place, required this.onSavePlace, required this.onDeletePlace});
+  const NewPlace({
+    super.key,
+    required this.place,
+    required this.onSavePlace,
+    required this.onDeletePlace,
+    required this.onInviteVisitor,
+    required this.friends,
+  });
 
   final Place? place;
   final Function(Place place) onSavePlace;
   final Function(Place place) onDeletePlace;
+  final Function(String placeId, String friendId) onInviteVisitor;
+  final List<User>? friends;
 
   @override
   State<StatefulWidget> createState() => _NewPlaceState();
@@ -95,7 +106,6 @@ class _NewPlaceState extends State<NewPlace> {
               children: [
                 buildAddress(context),
                 buildPlaceInformation(context),
-                //if (currentPlace.openingHours != null) buildOpeningHours(context),
                 const VerticalSpacer(16),
                 if (currentPlace.reviews != null && currentPlace.reviews!.isNotEmpty)
                   ReviewSwiper(
@@ -109,28 +119,73 @@ class _NewPlaceState extends State<NewPlace> {
                 const VerticalSpacer(8),
                 Align(
                   alignment: Alignment.center,
-                  child: CustomText("Ratings", style: Theme.of(context).textTheme.headlineSmall),
+                  child: CustomText("My Rating", style: Theme.of(context).textTheme.headlineSmall),
                 ),
                 const VerticalSpacer(8),
-                buildRatings(),
+                buildOwnerRating(),
                 const VerticalSpacer(12),
                 Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 38),
-                    child: Row(
-                      children: [
-                        CustomText("Visited at:", style: Theme.of(context).textTheme.bodyLarge),
-                        const HorizontalSpacer(8),
-                        DateInputWithDatePicker(
-                          title: 'Select date',
-                          maximumDate: _latestDate,
-                          width: 150,
-                          minimumDate: _earliestDate,
-                          date: _visitedAt,
-                          onDateChanged: (DateTime newDate) => _onDateChanged(newDate),
-                        ),
-                      ],
+                  padding: const EdgeInsets.symmetric(horizontal: 38),
+                  child: Row(
+                    children: [
+                      CustomText("Visited at:", style: Theme.of(context).textTheme.bodyLarge),
+                      const HorizontalSpacer(8),
+                      DateInputWithDatePicker(
+                        title: 'Select date',
+                        maximumDate: _latestDate,
+                        width: 150,
+                        minimumDate: _earliestDate,
+                        date: _visitedAt,
+                        onDateChanged: (DateTime newDate) => _onDateChanged(newDate),
+                      ),
+                    ],
                   ),
                 ),
+                if (currentPlace.id != null) ...[
+                  const VerticalSpacer(16),
+                  const HorizontalLine(),
+                  const VerticalSpacer(12),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CustomText(
+                          "Co-visitors",
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        ),
+                        const VerticalSpacer(8),
+                        if (currentPlace.coVisitors != null && currentPlace.coVisitors!.isNotEmpty)
+                          ...currentPlace.coVisitors!.map((visitor) => Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 4),
+                                child: Row(
+                                  children: [
+                                    CircleAvatar(
+                                      radius: 18,
+                                      backgroundImage: visitor.profileImageUrl != null
+                                          ? NetworkImage(visitor.profileImageUrl!)
+                                          : null,
+                                      child: visitor.profileImageUrl == null
+                                          ? Text(
+                                              '${visitor.firstName?[0] ?? '?'}${visitor.lastName?[0] ?? ''}',
+                                              style: const TextStyle(fontSize: 12),
+                                            )
+                                          : null,
+                                    ),
+                                    const HorizontalSpacer(8),
+                                    CustomText('${visitor.firstName ?? ''} ${visitor.lastName ?? ''}'),
+                                  ],
+                                ),
+                              )),
+                        const VerticalSpacer(8),
+                        ButtonComponent.outlinedButtonSmall(
+                          text: "Add co-visitors",
+                          onPressed: _showAddVisitorsSheet,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -138,24 +193,22 @@ class _NewPlaceState extends State<NewPlace> {
       ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(12),
-        child: currentPlace.placeRating == null
+        child: currentPlace.rating == null
             ? ButtonComponent(
                 text: "Save",
-                isDisabled: currentPlace.firstRating == null || currentPlace.secondRating == null,
+                isDisabled: currentPlace.rating == null,
                 onPressed: () {
                   widget.onSavePlace(currentPlace);
-
-                  //TODO - remove these pop() methods and add routing to correct page
                   Navigator.pop(context);
                 },
               )
             : Row(
                 children: [
                   Expanded(
-                    flex: 4, // 80%
+                    flex: 4,
                     child: ButtonComponent(
                       text: "Save",
-                      isDisabled: currentPlace.firstRating == null || currentPlace.secondRating == null,
+                      isDisabled: currentPlace.rating == null,
                       onPressed: () {
                         widget.onSavePlace(currentPlace);
                         Navigator.pop(context);
@@ -164,7 +217,7 @@ class _NewPlaceState extends State<NewPlace> {
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    flex: 1, // 20%
+                    flex: 1,
                     child: ButtonComponent(
                       iconData: CupertinoIcons.delete_simple,
                       onPressed: () {
@@ -178,24 +231,14 @@ class _NewPlaceState extends State<NewPlace> {
     );
   }
 
-  Row buildRatings() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _buildRatingCard(currentPlace.firstRating, () {
-          setState(() {
-            currentPlace.firstRating ??= Rating(ambientRating: 1, foodRating: 1, priceRating: 1);
-            showRatingDialog(currentPlace.firstRating!);
-          });
-        }),
-        const HorizontalSpacer(16),
-        _buildRatingCard(currentPlace.secondRating, () {
-          setState(() {
-            currentPlace.secondRating ??= Rating(ambientRating: 1, foodRating: 1, priceRating: 1);
-            showRatingDialog(currentPlace.secondRating!);
-          });
-        }),
-      ],
+  Widget buildOwnerRating() {
+    return Center(
+      child: _buildRatingCard(currentPlace.rating, () {
+        setState(() {
+          currentPlace.rating ??= Rating(ambientRating: 1, foodRating: 1, priceRating: 1);
+          showRatingDialog(currentPlace.rating!);
+        });
+      }),
     );
   }
 
@@ -259,13 +302,13 @@ class _NewPlaceState extends State<NewPlace> {
           Row(
             children: [
               CustomText(
-                currentPlace.openingHours!.openNow == true ? "Open now" : "Closed",
+                currentPlace.openingHours?.openNow == true ? "Open now" : "Closed",
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const HorizontalSpacer(8),
               Icon(
                 Icons.circle,
-                color: currentPlace.openingHours!.openNow == true ? Colors.green : Colors.red,
+                color: currentPlace.openingHours?.openNow == true ? Colors.green : Colors.red,
                 size: 12,
               ),
             ],
@@ -284,9 +327,9 @@ class _NewPlaceState extends State<NewPlace> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 4.0, left: 16),
       child: CustomText(
-        "${currentPlace.address}, ${currentPlace.city}",
+        "${currentPlace.address ?? ''}${currentPlace.city != null ? ', ${currentPlace.city}' : ''}",
         style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontSize: 20),
-        softWrap: true, // Ensures text wraps if needed
+        softWrap: true,
       ),
     );
   }
@@ -327,11 +370,7 @@ class _NewPlaceState extends State<NewPlace> {
             onEditRating: () => showRatingDialog(rating),
             onDeleteRating: () {
               setState(() {
-                if (rating == currentPlace.firstRating) {
-                  currentPlace.firstRating = null;
-                } else {
-                  currentPlace.secondRating = null;
-                }
+                currentPlace.rating = null;
               });
             },
           );
@@ -428,6 +467,21 @@ class _NewPlaceState extends State<NewPlace> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showAddVisitorsSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return AddVisitorsSheet(
+          place: currentPlace,
+          friends: widget.friends ?? [],
+          onInvite: widget.onInviteVisitor,
+        );
+      },
     );
   }
 
