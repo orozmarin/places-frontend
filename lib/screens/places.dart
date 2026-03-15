@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:gastrorate/models/auth/user.dart';
 import 'package:gastrorate/models/place.dart';
 import 'package:gastrorate/models/place_search_form.dart';
 import 'package:gastrorate/theme/my_colors.dart';
@@ -9,9 +10,7 @@ import 'package:gastrorate/theme/theme_helper.dart';
 import 'package:gastrorate/tools/place_helper.dart';
 import 'package:gastrorate/widgets/custom_app_bar.dart';
 import 'package:gastrorate/widgets/custom_text.dart';
-import 'package:gastrorate/widgets/default_button.dart';
 import 'package:gastrorate/widgets/place_card.dart';
-import 'package:gastrorate/widgets/vertical_spacer.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
@@ -25,13 +24,17 @@ class Places extends StatefulWidget {
       required this.sharedPlaces,
       required this.onFindAllPlaces,
       required this.onDeletePlace,
-      required this.onInitPlaceForm});
+      required this.onInitPlaceForm,
+      this.friends,
+      this.onInviteCoVisitor});
 
   final Function(PlaceSearchForm) onFindAllPlaces;
   final List<Place>? places;
   final List<Place>? sharedPlaces;
   final Function(Place place) onDeletePlace;
   final Function(Place place) onInitPlaceForm;
+  final List<User>? friends;
+  final Function(String placeId, String friendId)? onInviteCoVisitor;
 
   final GoogleMapsFlutterPlatform mapsImplementation = GoogleMapsFlutterPlatform.instance;
 
@@ -77,7 +80,7 @@ class _PlacesState extends State<Places> with SingleTickerProviderStateMixin {
     _getCurrentLocation().then((value) => initialPosition = LatLng(value.latitude, value.longitude));
     setState(() {
       _mapsInitialized = true;
-      (widget.mapsImplementation as GoogleMapsFlutterAndroid).useAndroidViewSurface = true;
+      (widget.mapsImplementation as GoogleMapsFlutterAndroid).useAndroidViewSurface = false;
     });
   }
 
@@ -183,6 +186,8 @@ class _PlacesState extends State<Places> with SingleTickerProviderStateMixin {
                         place: place,
                         onDeletePlace: widget.onDeletePlace,
                         onInitPlaceForm: widget.onInitPlaceForm,
+                        friends: widget.friends,
+                        onInviteCoVisitor: widget.onInviteCoVisitor,
                       );
                     },
                     itemCount: _places.length,
@@ -263,10 +268,11 @@ class _PlacesState extends State<Places> with SingleTickerProviderStateMixin {
                 selectedPlaceWidgetBuilder: (context, selectedPlace, state, isSearchBarFocused) =>
                     _defaultPlaceWidgetBuilder(context, selectedPlace, state),
                 zoomControlsEnabled: true,
+                autocompleteRadius: 50000,
+                autocompleteTypes: ['restaurant'],
                 onPlacePicked: (PickResult result) {
                   setState(() {
                     selectedPlace = Place.fromPickResult(result);
-                    // check if place is rated already
                     selectedPlace = _places.firstWhere(
                       (place) => place.url == selectedPlace?.url,
                       orElse: () => selectedPlace ?? Place(),
@@ -288,68 +294,135 @@ class _PlacesState extends State<Places> with SingleTickerProviderStateMixin {
 
   Widget _defaultPlaceWidgetBuilder(BuildContext context, PickResult? data, SearchingState state) {
     return FloatingCard(
-      bottomPosition: MediaQuery.of(context).size.height * 0.1,
-      leftPosition: MediaQuery.of(context).size.width * 0.15,
-      rightPosition: MediaQuery.of(context).size.width * 0.15,
-      width: MediaQuery.of(context).size.width * 0.7,
-      borderRadius: BorderRadius.circular(12.0),
-      elevation: 4.0,
+      bottomPosition: 0,
+      leftPosition: 0,
+      rightPosition: 0,
+      width: double.infinity,
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      elevation: 10.0,
       color: Theme.of(context).cardColor,
       child: state == SearchingState.Searching ? _buildLoadingIndicator() : _buildSelectionDetails(context, data!),
     );
   }
 
   Widget _buildLoadingIndicator() {
-    return Container(
-      height: 48,
-      child: const Center(
-        child: SizedBox(
-          width: 24,
-          height: 24,
-          child: CircularProgressIndicator(),
-        ),
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 32),
+      child: Center(
+        child: SizedBox(width: 28, height: 28, child: CircularProgressIndicator()),
       ),
     );
   }
 
   Widget _buildSelectionDetails(BuildContext context, PickResult result) {
     selectedPlace = Place.fromPickResult(result);
-    return Container(
-      margin: const EdgeInsets.all(10),
+    final rating = result.rating;
+    final openNow = result.openingHours?.openNow;
+    final priceLevelText = _priceLevelText(result.priceLevel?.index);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
       child: Column(
-        children: <Widget>[
-          CustomText(
-            selectedPlace?.name ?? "",
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-            textAlign: TextAlign.center,
-          ),
-          const VerticalSpacer(4),
-          CustomText(
-            "${selectedPlace?.address}, ${selectedPlace?.city}",
-            style: Theme.of(context).textTheme.bodyMedium,
-            softWrap: true,
-          ),
-          const VerticalSpacer(8),
-          SizedBox.fromSize(
-            size: const Size(60, 40),
-            child: Material(
-              child: ButtonComponent(
-                text: "GO",
-                onPressed: () {
-                  setState(() {
-                    selectedPlace = _places.firstWhere(
-                      (place) => place.url == selectedPlace?.url,
-                      orElse: () => selectedPlace ?? Place(),
-                    );
-                    widget.onInitPlaceForm(selectedPlace ?? Place());
-                  });
-                },
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Center(
+            child: Container(
+              width: 40, height: 4,
+              margin: const EdgeInsets.only(bottom: 16),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
               ),
             ),
-          )
+          ),
+          Text(
+            selectedPlace?.name ?? "",
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              if (rating != null) ...[
+                const Icon(Icons.star_rounded, color: Color(0xFFFFB300), size: 18),
+                const SizedBox(width: 3),
+                Text(rating.toStringAsFixed(1), style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                const SizedBox(width: 12),
+              ],
+              if (priceLevelText != null) ...[
+                Text(priceLevelText, style: TextStyle(color: Colors.green.shade700, fontSize: 14, fontWeight: FontWeight.w600)),
+                const SizedBox(width: 12),
+              ],
+              if (openNow != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: openNow ? Colors.green.shade100 : Colors.red.shade100,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    openNow ? "Open now" : "Closed",
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: openNow ? Colors.green.shade800 : Colors.red.shade800,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.location_on_outlined, size: 16, color: Colors.grey.shade600),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  result.formattedAddress ?? "${selectedPlace?.address ?? ''}, ${selectedPlace?.city ?? ''}",
+                  style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: () {
+                setState(() {
+                  selectedPlace = _places.firstWhere(
+                    (place) => place.url == selectedPlace?.url,
+                    orElse: () => selectedPlace ?? Place(),
+                  );
+                  widget.onInitPlaceForm(selectedPlace ?? Place());
+                });
+              },
+              style: FilledButton.styleFrom(
+                backgroundColor: MyColors.primaryDarkColor,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              child: const Text("Select this place", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: MyColors.navbarItemColor)),
+            ),
+          ),
         ],
       ),
     );
+  }
+
+  String? _priceLevelText(int? index) {
+    switch (index) {
+      case 1: return '€';
+      case 2: return '€€';
+      case 3: return '€€€';
+      case 4: return '€€€€';
+      default: return null;
+    }
   }
 
   PopupMenuButton<PlaceSorting> buildSortingButton() {
