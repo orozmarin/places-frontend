@@ -40,31 +40,63 @@ class Place {
   factory Place.fromJson(Map<String, dynamic> json) => _$PlaceFromJson(json);
 
   factory Place.fromGoogleJson(Map<String, dynamic> json) {
-    final displayName = json['displayName'] as Map<String, dynamic>?;
-    final currentOpeningHours = json['currentOpeningHours'] as Map<String, dynamic>?;
+    const priceLevelMap = {
+      'FREE': PriceLevel.FREE,
+      'INEXPENSIVE': PriceLevel.INEXPENSIVE,
+      'MODERATE': PriceLevel.MODERATE,
+      'EXPENSIVE': PriceLevel.EXPENSIVE,
+      'VERY_EXPENSIVE': PriceLevel.VERY_EXPENSIVE,
+      'UNKNOWN': PriceLevel.UNKNOWN,
+      'PRICE_LEVEL_FREE': PriceLevel.PRICE_LEVEL_FREE,
+      'PRICE_LEVEL_INEXPENSIVE': PriceLevel.PRICE_LEVEL_INEXPENSIVE,
+      'PRICE_LEVEL_MODERATE': PriceLevel.PRICE_LEVEL_MODERATE,
+      'PRICE_LEVEL_EXPENSIVE': PriceLevel.PRICE_LEVEL_EXPENSIVE,
+      'PRICE_LEVEL_VERY_EXPENSIVE': PriceLevel.PRICE_LEVEL_VERY_EXPENSIVE,
+    };
     return Place(
-      name: displayName?['text'] as String?,
+      id: json['id'] ?? (json['name'] as String?)?.split('/').last,
+      name: json['displayName']?['text'] ?? json['name'],
       address: json['formattedAddress'] as String?,
-      googleRating: (json['rating'] as num?)?.toDouble(),
-      url: json['googleMapsUri'] as String?,
-      webSiteUrl: json['websiteUri'] as String?,
-      contactNumber: json['nationalPhoneNumber'] as String?,
-      openingHours: currentOpeningHours != null
-          ? PlaceOpeningHours(
-              openNow: currentOpeningHours['openNow'] as bool?,
-              weekdayText: (currentOpeningHours['weekdayDescriptions'] as List<dynamic>?)
-                  ?.map((e) => e as String)
-                  .toList(),
-            )
-          : null,
-      photos: (json['photos'] as List<dynamic>?)
+      city: (json['addressComponents'] as List?)
+          ?.firstWhere(
+            (comp) => (comp['types'] as List?)?.contains('locality') ?? false,
+            orElse: () => null,
+          )?['longText'] as String?,
+      postalCode: int.tryParse(
+        (json['addressComponents'] as List?)
+                ?.firstWhere(
+                  (comp) => (comp['types'] as List?)?.contains('postal_code') ?? false,
+                  orElse: () => null,
+                )?['longText'] ??
+            '',
+      ),
+      country: (json['addressComponents'] as List?)
+          ?.firstWhere(
+            (comp) => (comp['types'] as List?)?.contains('country') ?? false,
+            orElse: () => null,
+          )?['longText'] as String?,
+      contactNumber: json['internationalPhoneNumber'] as String?,
+      openingHours: json['regularOpeningHours'] == null
+          ? null
+          : PlaceOpeningHours.fromJson(json['regularOpeningHours'] as Map<String, dynamic>),
+      photos: (json['photos'] as List?)
           ?.map((e) => Photo.fromGoogleJson(e as Map<String, dynamic>))
           .toList(),
+      priceLevel: priceLevelMap[json['priceLevel'] as String?],
       reviews: (json['reviews'] as List<dynamic>?)
           ?.map((e) => PlaceReview.fromGoogleJson(e as Map<String, dynamic>))
           .toList(),
-      visitedAt: DateTime.now(),
+      googleRating: (json['rating'] as num?)?.toDouble(),
+      url: json['googleMapsUri'] as String?,
+      webSiteUrl: json['websiteUri'] as String?,
+      coordinates: json['location'] == null
+          ? null
+          : Coordinates(
+              latitude: (json['location']['latitude'] as num?)?.toDouble(),
+              longitude: (json['location']['longitude'] as num?)?.toDouble(),
+            ),
       isFavorite: false,
+      distance: null,
     );
   }
   Map<String, dynamic> toJson() => _$PlaceToJson(this);

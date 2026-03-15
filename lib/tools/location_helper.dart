@@ -35,12 +35,13 @@ class LocationHelper {
         .getCurrentLocation()
         .then((value) => initialPosition = Coordinates(latitude: value.latitude, longitude: value.longitude));
     return NearbyPlacesSearchForm(
-      includedTypes: ['restaurant'],
-      maxResultCount: 10,
+      includedPrimaryTypes: ['restaurant'],
+      maxResultCount: 20,
+      rankPreference: 'POPULARITY',
       locationRestriction: LocationRestriction(
         circle: Circle(
           center: initialPosition!,
-          radius: 10000.0,
+          radius: 3000.0,
         ),
       ),
     );

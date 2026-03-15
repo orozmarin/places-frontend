@@ -29,6 +29,8 @@ class AcceptInvitationAction extends AppAction {
   @override
   Future<AppState?> reduce() async {
     final UserVisit visit = await InvitationManager().acceptInvitation(invitationId);
+    final userId = state.authState.loggedUser!.id!;
+    dispatch(FetchPendingInvitationsAction(userId));
     rootNavigatorKey.currentContext!.push('/rate-shared-place');
     return state.copyWith(
       invitationsState: state.invitationsState.copyWith(activeVisit: visit),
