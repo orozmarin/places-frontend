@@ -1,19 +1,22 @@
 import 'package:gastrorate/models/coordinates.dart';
 
 class NearbyPlacesSearchForm {
-  List<String> includedTypes;
+  List<String> includedPrimaryTypes;
   int maxResultCount;
+  String rankPreference;
   LocationRestriction locationRestriction;
 
   NearbyPlacesSearchForm({
-    required this.includedTypes,
+    required this.includedPrimaryTypes,
     required this.maxResultCount,
+    this.rankPreference = 'DISTANCE',
     required this.locationRestriction,
   });
 
   Map<String, dynamic> toJson() => {
-        'includedTypes': includedTypes,
+        'includedPrimaryTypes': includedPrimaryTypes,
         'maxResultCount': maxResultCount,
+        'rankPreference': rankPreference,
         'locationRestriction': locationRestriction.toJson(),
       };
 }
