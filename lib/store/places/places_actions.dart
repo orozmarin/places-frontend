@@ -118,6 +118,13 @@ class FetchNearbyPlacesAction extends AppAction {
       return place;
     }));
 
+    places = places
+        .where((p) => p.photos != null && p.photos!.isNotEmpty)
+        .where((p) => p.googleRating != null && p.googleRating! >= 3.5)
+        .toList();
+    places.sort((a, b) => (a.distance ?? double.maxFinite).compareTo(b.distance ?? double.maxFinite));
+    if (places.length > 10) places = places.sublist(0, 10);
+
     dispatch(FetchNearbyPlacesSuccessAction(places));
     return null;
   }

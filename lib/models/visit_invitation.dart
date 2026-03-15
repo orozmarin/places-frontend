@@ -8,6 +8,8 @@ class VisitInvitation {
   String? placeId;
   String? placeName;
   String? inviterId;
+  String? inviterName;
+  String? inviterProfileImageUrl;
   String? inviteeId;
   String? status; // "PENDING" | "ACCEPTED" | "DECLINED"
   DateTime? createdAt;
@@ -20,6 +22,8 @@ class VisitInvitation {
     this.placeId,
     this.placeName,
     this.inviterId,
+    this.inviterName,
+    this.inviterProfileImageUrl,
     this.inviteeId,
     this.status,
     this.createdAt,
@@ -34,6 +38,8 @@ class VisitInvitation {
           placeId == other.placeId &&
           placeName == other.placeName &&
           inviterId == other.inviterId &&
+          inviterName == other.inviterName &&
+          inviterProfileImageUrl == other.inviterProfileImageUrl &&
           inviteeId == other.inviteeId &&
           status == other.status &&
           createdAt == other.createdAt);
@@ -44,19 +50,23 @@ class VisitInvitation {
       placeId.hashCode ^
       placeName.hashCode ^
       inviterId.hashCode ^
+      inviterName.hashCode ^
+      inviterProfileImageUrl.hashCode ^
       inviteeId.hashCode ^
       status.hashCode ^
       createdAt.hashCode;
 
   @override
   String toString() =>
-      'VisitInvitation{ id: $id, placeId: $placeId, placeName: $placeName, inviterId: $inviterId, inviteeId: $inviteeId, status: $status, createdAt: $createdAt }';
+      'VisitInvitation{ id: $id, placeId: $placeId, placeName: $placeName, inviterId: $inviterId, inviterName: $inviterName, inviteeId: $inviteeId, status: $status, createdAt: $createdAt }';
 
   VisitInvitation copyWith({
     String? id,
     String? placeId,
     String? placeName,
     String? inviterId,
+    String? inviterName,
+    String? inviterProfileImageUrl,
     String? inviteeId,
     String? status,
     DateTime? createdAt,
@@ -66,6 +76,8 @@ class VisitInvitation {
       placeId: placeId ?? this.placeId,
       placeName: placeName ?? this.placeName,
       inviterId: inviterId ?? this.inviterId,
+      inviterName: inviterName ?? this.inviterName,
+      inviterProfileImageUrl: inviterProfileImageUrl ?? this.inviterProfileImageUrl,
       inviteeId: inviteeId ?? this.inviteeId,
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
@@ -77,6 +89,8 @@ class VisitInvitation {
         'placeId': placeId,
         'placeName': placeName,
         'inviterId': inviterId,
+        'inviterName': inviterName,
+        'inviterProfileImageUrl': inviterProfileImageUrl,
         'inviteeId': inviteeId,
         'status': status,
         'createdAt': createdAt?.toIso8601String(),
@@ -87,6 +101,8 @@ class VisitInvitation {
         placeId: map['placeId'] as String?,
         placeName: map['placeName'] as String?,
         inviterId: map['inviterId'] as String?,
+        inviterName: map['inviterName'] as String?,
+        inviterProfileImageUrl: map['inviterProfileImageUrl'] as String?,
         inviteeId: map['inviteeId'] as String?,
         status: map['status'] as String?,
         createdAt: map['createdAt'] != null ? DateTime.parse(map['createdAt']) : null,

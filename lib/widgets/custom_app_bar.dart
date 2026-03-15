@@ -79,7 +79,8 @@ class _CustomAppBarState extends State<CustomAppBar> {
     return StoreConnector<AppState, _AppBarVm>(
       converter: (Store<AppState> store) => _AppBarVm(
         user: store.state.authState.loggedUser,
-        pendingCount: store.state.friendshipsState.pendingRequests?.length ?? 0,
+        pendingCount: (store.state.friendshipsState.pendingRequests?.length ?? 0) +
+            (store.state.invitationsState.pendingInvitations?.length ?? 0),
       ),
       builder: (context, vm) {
         return AppBar(

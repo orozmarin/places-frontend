@@ -51,7 +51,7 @@ class PendingInvitations extends StatelessWidget {
                         ),
                         const VerticalSpacer(4),
                         CustomText(
-                          "Invited by: ${invitation.inviterId ?? ''}",
+                          "Invited by: ${invitation.inviterName ?? invitation.inviterId ?? ''}",
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                         const VerticalSpacer(12),

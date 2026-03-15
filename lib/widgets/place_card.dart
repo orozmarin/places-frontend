@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:gastrorate/models/auth/user.dart';
 import 'package:gastrorate/models/place.dart';
 import 'package:gastrorate/theme/my_colors.dart';
 import 'package:gastrorate/widgets/custom_text.dart';
@@ -10,12 +11,16 @@ class PlaceCard extends StatelessWidget {
   final Place place;
   final Function(Place) onDeletePlace;
   final Function(Place) onInitPlaceForm;
+  final List<User>? friends;
+  final Function(String placeId, String friendId)? onInviteCoVisitor;
 
   const PlaceCard({
     Key? key,
     required this.place,
     required this.onDeletePlace,
     required this.onInitPlaceForm,
+    this.friends,
+    this.onInviteCoVisitor,
   }) : super(key: key);
 
   String _photoUrl(String ref, int maxWidth) {
@@ -29,6 +34,58 @@ class PlaceCard extends StatelessWidget {
     if (place.city != null && place.country != null) return "${place.city}, ${place.country}";
     if (place.address != null && place.address!.isNotEmpty) return place.address!;
     return "";
+  }
+
+  void _showInviteFriendSheet(BuildContext context) {
+    final friendList = friends ?? [];
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: CustomText(
+                "Invite a friend to ${place.name ?? 'this place'}",
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+            ),
+            if (friendList.isEmpty)
+              const Padding(
+                padding: EdgeInsets.all(24),
+                child: CustomText("No friends to invite yet."),
+              )
+            else
+              ...friendList.map((friend) => ListTile(
+                    leading: CircleAvatar(
+                      backgroundImage: friend.profileImageUrl != null
+                          ? NetworkImage(friend.profileImageUrl!)
+                          : null,
+                      child: friend.profileImageUrl == null
+                          ? Text(friend.getUserInitials())
+                          : null,
+                    ),
+                    title: CustomText(friend.getFullName()),
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      onInviteCoVisitor!(place.id!, friend.id!);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Invitation sent to ${friend.getFullName()}'),
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    },
+                  )),
+          ],
+        ),
+      ),
+    );
   }
 
   void _showDeleteConfirmationDialog(BuildContext context) {
@@ -174,9 +231,20 @@ class PlaceCard extends StatelessWidget {
                         "⭐ ${place.googleRating}",
                         style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                       ),
-                      IconButton(
-                        onPressed: () => _showDeleteConfirmationDialog(context),
-                        icon: const Icon(CupertinoIcons.delete_simple, color: Colors.red),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (onInviteCoVisitor != null)
+                            IconButton(
+                              onPressed: () => _showInviteFriendSheet(context),
+                              icon: const Icon(Icons.person_add_outlined, color: MyColors.primaryDarkColor),
+                              tooltip: "Invite friend",
+                            ),
+                          IconButton(
+                            onPressed: () => _showDeleteConfirmationDialog(context),
+                            icon: const Icon(CupertinoIcons.delete_simple, color: Colors.red),
+                          ),
+                        ],
                       ),
                     ],
                   ),
