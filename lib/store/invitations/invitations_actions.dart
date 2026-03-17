@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:gastrorate/models/place.dart';
 import 'package:gastrorate/models/rating.dart';
 import 'package:gastrorate/models/user_visit.dart';
 import 'package:gastrorate/router.dart';
@@ -33,7 +34,6 @@ class AcceptInvitationAction extends AppAction {
       final UserVisit visit = await InvitationManager().acceptInvitation(invitationId);
       final userId = state.authState.loggedUser!.id!;
       dispatch(FetchPendingInvitationsAction(userId));
-      toastHelperMobile.showToastSuccess("Invitation accepted");
       rootNavigatorKey.currentContext!.push('/rate-shared-place');
       return state.copyWith(
         invitationsState: state.invitationsState.copyWith(activeVisit: visit),
@@ -89,6 +89,14 @@ class RateVisitAction extends AppAction {
   Future<AppState?> reduce() async {
     await InvitationManager().rateVisit(visitId, rating);
     final userId = state.authState.loggedUser!.id!;
+    final placeId = state.invitationsState.activeVisit?.placeId;
+    final allPlaces = [
+      ...?(state.placesState.places),
+      ...?(state.placesState.sharedPlaces),
+    ];
+    final place = allPlaces.firstWhere((p) => p.id == placeId, orElse: () => Place());
+    final label = place.name != null ? "${place.name} added!" : "Place added!";
+    toastHelperMobile.showToastSuccess(label);
     dispatch(FetchSharedPlacesAction(userId));
     rootNavigatorKey.currentContext!.pop();
     return state.copyWith(
