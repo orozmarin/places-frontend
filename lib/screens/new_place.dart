@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:gastrorate/models/auth/user.dart';
+import 'package:gastrorate/models/co_visitor.dart';
 import 'package:gastrorate/models/place.dart';
 import 'package:gastrorate/models/place_review.dart';
 import 'package:gastrorate/models/rating.dart';
@@ -29,6 +30,8 @@ class NewPlace extends StatefulWidget {
     required this.onDeletePlace,
     required this.onInviteVisitor,
     required this.friends,
+    required this.loggedInUserId,
+    required this.onRemoveCoVisitor,
   });
 
   final Place? place;
@@ -36,6 +39,8 @@ class NewPlace extends StatefulWidget {
   final Function(Place place) onDeletePlace;
   final Function(String placeId, String friendId) onInviteVisitor;
   final List<User>? friends;
+  final String? loggedInUserId;
+  final Function(String placeId, String coVisitorUserId) onRemoveCoVisitor;
 
   @override
   State<StatefulWidget> createState() => _NewPlaceState();
@@ -123,6 +128,8 @@ class _NewPlaceState extends State<NewPlace> {
                 ),
                 const VerticalSpacer(8),
                 buildOwnerRating(),
+                const VerticalSpacer(12),
+                _buildCoVisitorsSection(),
                 const VerticalSpacer(12),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 38),
@@ -483,6 +490,98 @@ class _NewPlaceState extends State<NewPlace> {
         );
       },
     );
+  }
+
+  Widget _buildCoVisitorsSection() {
+    final coVisitors = currentPlace.coVisitors;
+    if (coVisitors == null || coVisitors.isEmpty) return const SizedBox.shrink();
+
+    final filtered = coVisitors.where((cv) => cv.userId != widget.loggedInUserId).toList();
+    if (filtered.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const HorizontalLine(),
+        const VerticalSpacer(8),
+        Align(
+          alignment: Alignment.center,
+          child: CustomText("Co-visitors", style: Theme.of(context).textTheme.headlineSmall),
+        ),
+        const VerticalSpacer(8),
+        ...filtered.map(
+          (cv) => ListTile(
+            leading: CircleAvatar(
+              backgroundImage:
+                  cv.profileImageUrl != null ? NetworkImage(cv.profileImageUrl!) : null,
+              child: cv.profileImageUrl == null
+                  ? Text(_getCoVisitorInitials(cv))
+                  : null,
+            ),
+            title: CustomText('${cv.firstName ?? ''} ${cv.lastName ?? ''}'.trim()),
+            trailing: const Icon(Icons.info_outline),
+            onTap: () => _showCoVisitorSheet(context, cv),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showCoVisitorSheet(BuildContext context, CoVisitor coVisitor) {
+    final isOwner = currentPlace.userId == widget.loggedInUserId;
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) => Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircleAvatar(
+              radius: 40,
+              backgroundImage: coVisitor.profileImageUrl != null
+                  ? NetworkImage(coVisitor.profileImageUrl!)
+                  : null,
+              child: coVisitor.profileImageUrl == null
+                  ? Text(
+                      _getCoVisitorInitials(coVisitor),
+                      style: const TextStyle(fontSize: 22),
+                    )
+                  : null,
+            ),
+            const VerticalSpacer(12),
+            CustomText(
+              '${coVisitor.firstName ?? ''} ${coVisitor.lastName ?? ''}'.trim(),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const VerticalSpacer(24),
+            if (isOwner)
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red,
+                    side: const BorderSide(color: Colors.red),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    widget.onRemoveCoVisitor(currentPlace.id!, coVisitor.userId!);
+                  },
+                  child: const Text("Remove co-visitor"),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _getCoVisitorInitials(CoVisitor cv) {
+    final first = (cv.firstName?.isNotEmpty == true) ? cv.firstName![0] : '';
+    final last = (cv.lastName?.isNotEmpty == true) ? cv.lastName![0] : '';
+    return '$first$last'.toUpperCase();
   }
 
   void _onDateChanged(DateTime newDate) {
