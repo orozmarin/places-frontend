@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:gastrorate/service/friendship_manager.dart';
 import 'package:gastrorate/store/app_action.dart';
 import 'package:gastrorate/store/app_state.dart';
+import 'package:gastrorate/tools/toast_helper.dart';
 
 class FetchFriendsAction extends AppAction {
   final String userId;
@@ -35,11 +36,17 @@ class SendFriendRequestAction extends AppAction {
 
   @override
   Future<AppState?> reduce() async {
-    await FriendshipManager().sendFriendRequest(addresseeId);
-    final List<String> updated = [...(state.friendshipsState.sentRequestIds ?? []), addresseeId];
-    return state.copyWith(
-      friendshipsState: state.friendshipsState.copyWith(sentRequestIds: updated),
-    );
+    try {
+      await FriendshipManager().sendFriendRequest(addresseeId);
+      final List<String> updated = [...(state.friendshipsState.sentRequestIds ?? []), addresseeId];
+      toastHelperMobile.showToastSuccess("Friend request sent");
+      return state.copyWith(
+        friendshipsState: state.friendshipsState.copyWith(sentRequestIds: updated),
+      );
+    } catch (_) {
+      toastHelperMobile.showToastError("Failed to send friend request");
+      return null;
+    }
   }
 }
 
@@ -61,11 +68,16 @@ class AcceptFriendRequestAction extends AppAction {
 
   @override
   Future<AppState?> reduce() async {
-    await FriendshipManager().acceptFriendRequest(friendshipId);
-    final userId = state.authState.loggedUser!.id!;
-    dispatch(FetchPendingFriendRequestsAction());
-    dispatch(FetchAllFriendRequestsAction(userId));
-    dispatch(FetchFriendsAction(userId));
+    try {
+      await FriendshipManager().acceptFriendRequest(friendshipId);
+      final userId = state.authState.loggedUser!.id!;
+      dispatch(FetchPendingFriendRequestsAction());
+      dispatch(FetchAllFriendRequestsAction(userId));
+      dispatch(FetchFriendsAction(userId));
+      toastHelperMobile.showToastSuccess("Friend request accepted");
+    } catch (_) {
+      toastHelperMobile.showToastError("Failed to accept friend request");
+    }
     return null;
   }
 }
@@ -76,10 +88,15 @@ class DeclineFriendRequestAction extends AppAction {
 
   @override
   Future<AppState?> reduce() async {
-    await FriendshipManager().declineFriendRequest(friendshipId);
-    final userId = state.authState.loggedUser!.id!;
-    dispatch(FetchPendingFriendRequestsAction());
-    dispatch(FetchAllFriendRequestsAction(userId));
+    try {
+      await FriendshipManager().declineFriendRequest(friendshipId);
+      final userId = state.authState.loggedUser!.id!;
+      dispatch(FetchPendingFriendRequestsAction());
+      dispatch(FetchAllFriendRequestsAction(userId));
+      toastHelperMobile.showToastSuccess("Friend request declined");
+    } catch (_) {
+      toastHelperMobile.showToastError("Failed to decline friend request");
+    }
     return null;
   }
 }

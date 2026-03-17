@@ -182,15 +182,7 @@ class _FriendsState extends State<Friends> {
                               child: const Text("Sent"),
                             )
                           : OutlinedButton(
-                              onPressed: () {
-                                widget.onSendRequest(user.id!);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Friend request sent to ${user.getFullName()}'),
-                                    duration: const Duration(seconds: 2),
-                                  ),
-                                );
-                              },
+                              onPressed: () => widget.onSendRequest(user.id!),
                               child: const Text("Add"),
                             ),
                 )),

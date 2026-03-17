@@ -20,6 +20,8 @@ class NewPlacePage extends StatelessWidget {
         onDeletePlace: vm.onDeletePlace,
         onInviteVisitor: vm.onInviteVisitor,
         friends: vm.friends,
+        loggedInUserId: vm.loggedInUserId,
+        onRemoveCoVisitor: vm.onRemoveCoVisitor,
       ),
     );
   }
@@ -36,6 +38,9 @@ class Factory extends VmFactory<AppState, NewPlacePage, ViewModel> {
         onDeletePlace: (place) => dispatch(DeletePlaceAction(place)),
         onInviteVisitor: (String placeId, String friendId) =>
             dispatch(SendVisitInvitationAction(placeId, friendId)),
+        loggedInUserId: state.authState.loggedUser?.id,
+        onRemoveCoVisitor: (placeId, coVisitorUserId) =>
+            dispatch(RemoveCoVisitorAction(placeId, coVisitorUserId)),
       );
 }
 
@@ -45,6 +50,8 @@ class ViewModel extends Vm {
   final Function(Place place) onSavePlace;
   final Function(Place place) onDeletePlace;
   final Function(String placeId, String friendId) onInviteVisitor;
+  final String? loggedInUserId;
+  final Function(String placeId, String coVisitorUserId) onRemoveCoVisitor;
 
   ViewModel({
     required this.foundPlace,
@@ -52,6 +59,8 @@ class ViewModel extends Vm {
     required this.onSavePlace,
     required this.onDeletePlace,
     required this.onInviteVisitor,
+    required this.loggedInUserId,
+    required this.onRemoveCoVisitor,
   });
 
   @override
@@ -64,7 +73,9 @@ class ViewModel extends Vm {
           friends == other.friends &&
           onSavePlace == other.onSavePlace &&
           onDeletePlace == other.onDeletePlace &&
-          onInviteVisitor == other.onInviteVisitor;
+          onInviteVisitor == other.onInviteVisitor &&
+          loggedInUserId == other.loggedInUserId &&
+          onRemoveCoVisitor == other.onRemoveCoVisitor;
 
   @override
   int get hashCode =>
@@ -73,5 +84,7 @@ class ViewModel extends Vm {
       friends.hashCode ^
       onSavePlace.hashCode ^
       onDeletePlace.hashCode ^
-      onInviteVisitor.hashCode;
+      onInviteVisitor.hashCode ^
+      loggedInUserId.hashCode ^
+      onRemoveCoVisitor.hashCode;
 }

@@ -5,6 +5,7 @@ import 'package:gastrorate/theme/my_colors.dart';
 import 'package:gastrorate/tools/place_helper.dart';
 import 'package:gastrorate/widgets/custom_app_bar.dart';
 import 'package:gastrorate/widgets/place_card.dart';
+import 'package:gastrorate/widgets/place_search_bar.dart';
 import 'package:lottie/lottie.dart';
 
 import '../widgets/custom_text.dart';
@@ -24,6 +25,18 @@ class _FavoritesState extends State<Favorites> {
   List<Place> _places = <Place>[];
   PlaceSorting _selectedSorting = PlaceSorting.DATE_DESC;
 
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  List<Place> get _displayedPlaces {
+    if (_searchQuery.isEmpty) return _places;
+    final q = _searchQuery.toLowerCase();
+    return _places.where((p) =>
+        (p.name?.toLowerCase().contains(q) ?? false) ||
+        (p.city?.toLowerCase().contains(q) ?? false) ||
+        (p.address?.toLowerCase().contains(q) ?? false)).toList();
+  }
+
   @override
   void didUpdateWidget(covariant Favorites oldWidget) {
     if (widget.favoritePlaces != null) {
@@ -31,6 +44,12 @@ class _FavoritesState extends State<Favorites> {
       _places = PlaceHelper.sortPlaces(_places, _selectedSorting);
     }
     super.didUpdateWidget(oldWidget);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -45,6 +64,7 @@ class _FavoritesState extends State<Favorites> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: CustomAppBar(
         title: const CustomText("Your Favorites", style: TextStyle(color: MyColors.navbarItemColor)),
         backgroundColor: MyColors.appbarColor,
@@ -52,31 +72,35 @@ class _FavoritesState extends State<Favorites> {
           buildSortingButton(),
         ],
       ),
-      body: Center(
-        child: //
-            _places.isNotEmpty
-                ? Column(
-                    children: [
-                      Expanded(
-                        child: ListView.builder(
-                          padding: const EdgeInsets.only(bottom: 20, top: 10),
-                          itemBuilder: (context, index) {
-                            Place place = _places[index];
-                            return PlaceCard(
-                              place: place,
-                              onDeletePlace: widget.onDeletePlace,
-                              onInitPlaceForm: widget.onInitPlaceForm,
-                            );
-                          },
-                          itemCount: _places.length,
-                        ),
-                      ),
-                    ],
+      body: Column(
+        children: [
+          PlaceSearchBar(
+            controller: _searchController,
+            query: _searchQuery,
+            onChanged: (q) => setState(() => _searchQuery = q),
+          ),
+          Expanded(
+            child: _displayedPlaces.isNotEmpty
+                ? ListView.builder(
+                    padding: const EdgeInsets.only(bottom: 20, top: 10),
+                    itemBuilder: (context, index) {
+                      Place place = _displayedPlaces[index];
+                      return PlaceCard(
+                        place: place,
+                        onDeletePlace: widget.onDeletePlace,
+                        onInitPlaceForm: widget.onInitPlaceForm,
+                      );
+                    },
+                    itemCount: _displayedPlaces.length,
                   )
-                : Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: buildEmptyState(), // Pass context
+                : Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: buildEmptyState(),
+                    ),
                   ),
+          ),
+        ],
       ),
     );
   }
