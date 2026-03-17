@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:gastrorate/models/rating.dart';
 import 'package:gastrorate/models/user_visit.dart';
+import 'package:gastrorate/models/visit_invitation.dart';
 import 'package:gastrorate/router.dart';
 import 'package:gastrorate/service/invitation_manager.dart';
 import 'package:gastrorate/store/app_action.dart';
