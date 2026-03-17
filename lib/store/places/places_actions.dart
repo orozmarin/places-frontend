@@ -13,6 +13,7 @@ import 'package:gastrorate/store/app_action.dart';
 import 'package:gastrorate/store/app_state.dart';
 import 'package:gastrorate/store/auth/auth.actions.dart';
 import 'package:gastrorate/tools/location_helper.dart';
+import 'package:gastrorate/tools/toast_helper.dart';
 import 'package:go_router/go_router.dart';
 
 class FetchPlacesAction extends AppAction {
@@ -149,6 +150,26 @@ class FetchFavoritePlacesAction extends AppAction {
     User? user = state.authState.loggedUser;
     List<Place>? places = await PlaceManager().findFavoritePlaces(user!.id!);
     dispatch(FetchFavoritePlacesSuccessAction(places));
+    return null;
+  }
+}
+
+class RemoveCoVisitorAction extends AppAction {
+  final String placeId;
+  final String coVisitorUserId;
+  RemoveCoVisitorAction(this.placeId, this.coVisitorUserId);
+
+  @override
+  Future<AppState?> reduce() async {
+    try {
+      await PlaceManager().removeCoVisitor(placeId, coVisitorUserId);
+      final userId = state.authState.loggedUser!.id!;
+      dispatch(FetchPlacesAction());
+      dispatch(FetchSharedPlacesAction(userId));
+      toastHelperMobile.showToastSuccess("Co-visitor removed");
+    } catch (_) {
+      toastHelperMobile.showToastError("Failed to remove co-visitor");
+    }
     return null;
   }
 }
