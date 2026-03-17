@@ -8,6 +8,7 @@ class PlacesState{
   List<Place>? places;
   List<Place>? nearbyPlaces;
   List<Place>? favoritePlaces;
+  List<Place>? sharedPlaces;
   Place? place;
   bool? isLoading;
 
@@ -15,6 +16,7 @@ class PlacesState{
     this.places = List<Place>.empty();
     this.nearbyPlaces = List<Place>.empty();
     this.favoritePlaces = List<Place>.empty();
+    this.sharedPlaces = List<Place>.empty();
     this.isLoading = false;
   }
 
@@ -27,6 +29,7 @@ class PlacesState{
     this.places,
     this.nearbyPlaces,
     this.favoritePlaces,
+    this.sharedPlaces,
     this.place,
     this.isLoading,
   });
@@ -39,12 +42,13 @@ class PlacesState{
           places == other.places &&
           nearbyPlaces == other.nearbyPlaces &&
           favoritePlaces == other.favoritePlaces &&
+          sharedPlaces == other.sharedPlaces &&
           place == other.place &&
           isLoading == other.isLoading);
 
   @override
   int get hashCode =>
-      places.hashCode ^ nearbyPlaces.hashCode ^ favoritePlaces.hashCode ^ place.hashCode ^ isLoading.hashCode;
+      places.hashCode ^ nearbyPlaces.hashCode ^ favoritePlaces.hashCode ^ sharedPlaces.hashCode ^ place.hashCode ^ isLoading.hashCode;
 
   @override
   String toString() {
@@ -52,6 +56,7 @@ class PlacesState{
         ' places: $places,' +
         ' nearbyPlaces: $nearbyPlaces,' +
         ' favoritePlaces: $favoritePlaces,' +
+        ' sharedPlaces: $sharedPlaces,' +
         ' place: $place,' +
         ' isLoading: $isLoading,' +
         '}';
@@ -61,6 +66,7 @@ class PlacesState{
     List<Place>? places,
     List<Place>? nearbyPlaces,
     List<Place>? favoritePlaces,
+    List<Place>? sharedPlaces,
     Place? place,
     bool? isLoading,
   }) {
@@ -69,6 +75,7 @@ class PlacesState{
       places: places ?? this.places,
       nearbyPlaces: nearbyPlaces ?? this.nearbyPlaces,
       favoritePlaces: favoritePlaces ?? this.favoritePlaces,
+      sharedPlaces: sharedPlaces ?? this.sharedPlaces,
       place: place ?? this.place,
       isLoading: isLoading ?? this.isLoading,
     );

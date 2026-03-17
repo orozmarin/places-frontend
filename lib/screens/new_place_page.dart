@@ -16,6 +16,8 @@ class NewPlacePage extends StatelessWidget {
         place: vm.foundPlace,
         onSavePlace: vm.onSavePlace,
         onDeletePlace: vm.onDeletePlace,
+        loggedInUserId: vm.loggedInUserId,
+        onRemoveCoVisitor: vm.onRemoveCoVisitor,
       ),
     );
   }
@@ -29,6 +31,9 @@ class Factory extends VmFactory<AppState, NewPlacePage, ViewModel> {
         foundPlace: state.placesState.place,
         onSavePlace: (Place place) => dispatch(SaveOrUpdatePlaceAction(place)),
         onDeletePlace: (place) => dispatch(DeletePlaceAction(place)),
+        loggedInUserId: state.authState.loggedUser?.id,
+        onRemoveCoVisitor: (placeId, coVisitorUserId) =>
+            dispatch(RemoveCoVisitorAction(placeId, coVisitorUserId)),
       );
 }
 
@@ -36,8 +41,16 @@ class ViewModel extends Vm {
   final Place? foundPlace;
   final Function(Place place) onSavePlace;
   final Function(Place place) onDeletePlace;
+  final String? loggedInUserId;
+  final Function(String placeId, String coVisitorUserId) onRemoveCoVisitor;
 
-  ViewModel({required this.foundPlace, required this.onSavePlace, required this.onDeletePlace});
+  ViewModel({
+    required this.foundPlace,
+    required this.onSavePlace,
+    required this.onDeletePlace,
+    required this.loggedInUserId,
+    required this.onRemoveCoVisitor,
+  });
 
   @override
   bool operator ==(Object other) =>
@@ -47,8 +60,16 @@ class ViewModel extends Vm {
           runtimeType == other.runtimeType &&
           foundPlace == other.foundPlace &&
           onSavePlace == other.onSavePlace &&
-          onDeletePlace == other.onDeletePlace;
+          onDeletePlace == other.onDeletePlace &&
+          loggedInUserId == other.loggedInUserId &&
+          onRemoveCoVisitor == other.onRemoveCoVisitor;
 
   @override
-  int get hashCode => super.hashCode ^ foundPlace.hashCode ^ onSavePlace.hashCode ^ onDeletePlace.hashCode;
+  int get hashCode =>
+      super.hashCode ^
+      foundPlace.hashCode ^
+      onSavePlace.hashCode ^
+      onDeletePlace.hashCode ^
+      loggedInUserId.hashCode ^
+      onRemoveCoVisitor.hashCode;
 }

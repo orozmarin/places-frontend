@@ -12,6 +12,7 @@ import 'package:gastrorate/service/place_manager.dart';
 import 'package:gastrorate/store/app_state.dart';
 import 'package:gastrorate/store/auth/auth.actions.dart';
 import 'package:gastrorate/tools/location_helper.dart';
+import 'package:gastrorate/tools/toast_helper.dart';
 import 'package:go_router/go_router.dart';
 
 class FetchPlacesAction extends ReduxAction<AppState>{
@@ -174,6 +175,37 @@ class FetchFavoritePlacesAction extends ReduxAction<AppState> {
     User? user = state.authState.loggedUser;
     List<Place>? places = await PlaceManager().findFavoritePlaces(user!.id!);
     dispatch(FetchFavoritePlacesSuccessAction(places));
+    return null;
+  }
+}
+
+class FetchSharedPlacesAction extends ReduxAction<AppState> {
+  final String userId;
+  FetchSharedPlacesAction(this.userId);
+
+  @override
+  Future<AppState?> reduce() async {
+    List<Place> places = await PlaceManager().findSharedPlaces(userId);
+    return state.copyWith(placesState: state.placesState.copyWith(sharedPlaces: places));
+  }
+}
+
+class RemoveCoVisitorAction extends ReduxAction<AppState> {
+  final String placeId;
+  final String coVisitorUserId;
+  RemoveCoVisitorAction(this.placeId, this.coVisitorUserId);
+
+  @override
+  Future<AppState?> reduce() async {
+    try {
+      await PlaceManager().removeCoVisitor(placeId, coVisitorUserId);
+      final userId = state.authState.loggedUser!.id!;
+      dispatch(FetchPlacesAction());
+      dispatch(FetchSharedPlacesAction(userId));
+      toastHelperMobile.showToastSuccess("Co-visitor removed");
+    } catch (_) {
+      toastHelperMobile.showToastError("Failed to remove co-visitor");
+    }
     return null;
   }
 }

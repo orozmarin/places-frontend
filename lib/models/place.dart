@@ -1,3 +1,4 @@
+import 'package:gastrorate/models/co_visitor.dart';
 import 'package:gastrorate/models/coordinates.dart';
 import 'package:gastrorate/models/photo.dart';
 import 'package:gastrorate/models/place_opening_hours.dart';
@@ -36,8 +37,18 @@ class Place {
   DateTime? visitedAt;
   bool? isFavorite;
   double? distance;
+  @JsonKey(includeToJson: false, includeFromJson: false)
+  List<CoVisitor>? coVisitors;
 
-  factory Place.fromJson(Map<String, dynamic> json) => _$PlaceFromJson(json);
+  factory Place.fromJson(Map<String, dynamic> json) {
+    final place = _$PlaceFromJson(json);
+    if (json['coVisitors'] != null) {
+      place.coVisitors = (json['coVisitors'] as List)
+          .map((e) => CoVisitor.fromJson(e as Map<String, dynamic>))
+          .toList();
+    }
+    return place;
+  }
 
   factory Place.fromGoogleJson(Map<String, dynamic> json) => _$PlaceFromGoogleJson(json);
   Map<String, dynamic> toJson() => _$PlaceToJson(this);
@@ -65,6 +76,7 @@ class Place {
     this.visitedAt,
     this.isFavorite,
     this.distance,
+    this.coVisitors,
   });
 
   factory Place.fromPickResult(PickResult result) {
@@ -144,7 +156,8 @@ class Place {
               placeRating == other.placeRating &&
           visitedAt == other.visitedAt &&
           isFavorite == other.isFavorite &&
-          distance == other.distance);
+          distance == other.distance &&
+          coVisitors == other.coVisitors);
 
   @override
   int get hashCode =>
@@ -169,11 +182,12 @@ class Place {
       coordinates.hashCode ^
       visitedAt.hashCode ^
       isFavorite.hashCode ^
-      distance.hashCode;
+      distance.hashCode ^
+      coVisitors.hashCode;
 
   @override
   String toString() {
-    return 'Place{ id: $id, userId: $userId, name: $name, address: $address, city: $city, postalCode: $postalCode, country: $country, contactNumber: $contactNumber, openingHours: $openingHours, photos: $photos, priceLevel: $priceLevel, reviews: $reviews, googleRating: $googleRating, url: $url, webSiteUrl: $webSiteUrl, coordinates: $coordinates, firstRating: $firstRating, secondRating: $secondRating, placeRating: $placeRating, visitedAt: $visitedAt, isFavorite: $isFavorite, distance: $distance }';
+    return 'Place{ id: $id, userId: $userId, name: $name, address: $address, city: $city, postalCode: $postalCode, country: $country, contactNumber: $contactNumber, openingHours: $openingHours, photos: $photos, priceLevel: $priceLevel, reviews: $reviews, googleRating: $googleRating, url: $url, webSiteUrl: $webSiteUrl, coordinates: $coordinates, firstRating: $firstRating, secondRating: $secondRating, placeRating: $placeRating, visitedAt: $visitedAt, isFavorite: $isFavorite, distance: $distance, coVisitors: $coVisitors }';
   }
 
   Place copyWith({
@@ -199,6 +213,7 @@ class Place {
     DateTime? visitedAt,
     bool? isFavorite,
     double? distance,
+    List<CoVisitor>? coVisitors,
   }) {
     return Place(
       id: id ?? this.id,
@@ -223,6 +238,7 @@ class Place {
       visitedAt: visitedAt ?? this.visitedAt,
       isFavorite: isFavorite ?? this.isFavorite,
       distance: distance ?? this.distance,
+      coVisitors: coVisitors ?? this.coVisitors,
     );
   }
 
