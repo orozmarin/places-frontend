@@ -11,6 +11,9 @@ CoVisitor _$CoVisitorFromJson(Map<String, dynamic> json) => CoVisitor(
   firstName: json['firstName'] as String?,
   lastName: json['lastName'] as String?,
   profileImageUrl: json['profileImageUrl'] as String?,
+  rating: json['rating'] == null
+      ? null
+      : Rating.fromJson(json['rating'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$CoVisitorToJson(CoVisitor instance) => <String, dynamic>{
@@ -18,4 +21,5 @@ Map<String, dynamic> _$CoVisitorToJson(CoVisitor instance) => <String, dynamic>{
   'firstName': instance.firstName,
   'lastName': instance.lastName,
   'profileImageUrl': instance.profileImageUrl,
+  'rating': instance.rating?.toJson(),
 };

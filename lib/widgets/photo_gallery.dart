@@ -33,6 +33,7 @@ class _PhotoGalleryState extends State<PhotoGallery> {
       children: [
         GridView.builder(
           shrinkWrap: true,
+          padding: EdgeInsets.zero,
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 3,
