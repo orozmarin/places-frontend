@@ -1,24 +1,27 @@
+import 'dart:math';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:gastrorate/models/auth/user.dart';
+import 'package:gastrorate/models/co_visitor.dart';
 import 'package:gastrorate/models/place.dart';
 import 'package:gastrorate/models/place_review.dart';
+import 'package:gastrorate/models/price_level.dart';
 import 'package:gastrorate/models/rating.dart';
 import 'package:gastrorate/screens/dialogs/place_review_dialog.dart';
 import 'package:gastrorate/theme/my_colors.dart';
 import 'package:gastrorate/widgets/add_visitors_sheet.dart';
-import 'package:gastrorate/widgets/custom_app_bar.dart';
 import 'package:gastrorate/widgets/custom_text.dart';
-import 'package:gastrorate/widgets/date_input_with_date_picker.dart';
 import 'package:gastrorate/widgets/default_button.dart';
-import 'package:gastrorate/widgets/horizontal_line.dart';
-import 'package:gastrorate/widgets/horizontal_spacer.dart';
-import 'package:gastrorate/widgets/page_body_card.dart';
 import 'package:gastrorate/widgets/photo_gallery.dart';
 import 'package:gastrorate/widgets/place_rating_dialog.dart';
 import 'package:gastrorate/widgets/rating_summary_card.dart';
 import 'package:gastrorate/widgets/review_swiper.dart';
 import 'package:gastrorate/widgets/vertical_spacer.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class NewPlace extends StatefulWidget {
@@ -29,6 +32,8 @@ class NewPlace extends StatefulWidget {
     required this.onDeletePlace,
     required this.onInviteVisitor,
     required this.friends,
+    required this.loggedInUserId,
+    required this.onRemoveCoVisitor,
   });
 
   final Place? place;
@@ -36,6 +41,8 @@ class NewPlace extends StatefulWidget {
   final Function(Place place) onDeletePlace;
   final Function(String placeId, String friendId) onInviteVisitor;
   final List<User>? friends;
+  final String? loggedInUserId;
+  final Function(String placeId, String coVisitorUserId) onRemoveCoVisitor;
 
   @override
   State<StatefulWidget> createState() => _NewPlaceState();
@@ -54,327 +61,675 @@ class _NewPlaceState extends State<NewPlace> {
     _visitedAt = currentPlace.visitedAt ?? DateTime.now();
     currentPlace.visitedAt = _visitedAt;
     final now = DateTime.now();
-    _latestDate = DateTime(
-      now.year,
-      now.month,
-      now.day,
-      23,
-      59,
-      59,
-    );
+    _latestDate = DateTime(now.year, now.month, now.day, 23, 59, 59);
     currentPlace.isFavorite ??= false;
   }
+
+  // ─── Build ────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(
-        title: CustomText(
-          currentPlace.name ?? "N/A",
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(currentPlace.isFavorite ?? false ? CupertinoIcons.heart_fill : CupertinoIcons.heart),
-            onPressed: () {
-              setState(() {
-                currentPlace.isFavorite = !currentPlace.isFavorite!;
-              });
-            },
-          ),
-          if (currentPlace.url != null)
-            IconButton(
-              icon: const Icon(Icons.location_on),
-              onPressed: () async {
-                final Uri mapsUri = Uri.parse(currentPlace.url!);
-                if (await canLaunchUrl(mapsUri)) {
-                  await launchUrl(mapsUri);
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Could not open Google Maps.')),
-                  );
-                }
-              },
-            ),
-        ],
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: PageBodyCard(
+      backgroundColor: const Color(0xFFF5F5F5),
+      body: CustomScrollView(
+        slivers: [
+          _buildSliverHero(),
+          SliverToBoxAdapter(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                buildAddress(context),
-                buildPlaceInformation(context),
-                const VerticalSpacer(16),
-                if (currentPlace.reviews != null && currentPlace.reviews!.isNotEmpty)
-                  ReviewSwiper(
-                    reviews: currentPlace.reviews ?? <PlaceReview>[],
-                    onTap: (PlaceReview review) => showReviewDialog(review),
-                  ),
-                const VerticalSpacer(12),
-                const HorizontalLine(),
-                if (currentPlace.photos != null && currentPlace.photos!.isNotEmpty)
-                  PhotoGallery(photos: currentPlace.photos ?? []),
-                const VerticalSpacer(8),
-                Align(
-                  alignment: Alignment.center,
-                  child: CustomText("My Rating", style: Theme.of(context).textTheme.headlineSmall),
-                ),
-                const VerticalSpacer(8),
-                buildOwnerRating(),
-                const VerticalSpacer(12),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 38),
-                  child: Row(
-                    children: [
-                      CustomText("Visited at:", style: Theme.of(context).textTheme.bodyLarge),
-                      const HorizontalSpacer(8),
-                      DateInputWithDatePicker(
-                        title: 'Select date',
-                        maximumDate: _latestDate,
-                        width: 150,
-                        minimumDate: _earliestDate,
-                        date: _visitedAt,
-                        onDateChanged: (DateTime newDate) => _onDateChanged(newDate),
-                      ),
-                    ],
-                  ),
-                ),
-                if (currentPlace.id != null) ...[
-                  const VerticalSpacer(16),
-                  const HorizontalLine(),
-                  const VerticalSpacer(12),
+                const SizedBox(height: 12),
+                _buildInfoStrip(),
+                const SizedBox(height: 16),
+                _buildRatingSection(),
+                const SizedBox(height: 16),
+                if (currentPlace.userId != null) ...[
+                  _buildCoVisitorsSection(),
+                  const SizedBox(height: 16),
+                ],
+                _buildVisitDateChip(),
+                const SizedBox(height: 16),
+                if (currentPlace.reviews != null && currentPlace.reviews!.isNotEmpty) ...[
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CustomText(
-                          "Co-visitors",
-                          style: Theme.of(context).textTheme.headlineSmall,
-                        ),
-                        const VerticalSpacer(8),
-                        if (currentPlace.coVisitors != null && currentPlace.coVisitors!.isNotEmpty)
-                          ...currentPlace.coVisitors!.map((visitor) => Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 4),
-                                child: Row(
-                                  children: [
-                                    CircleAvatar(
-                                      radius: 18,
-                                      backgroundImage: visitor.profileImageUrl != null
-                                          ? NetworkImage(visitor.profileImageUrl!)
-                                          : null,
-                                      child: visitor.profileImageUrl == null
-                                          ? Text(
-                                              '${visitor.firstName?[0] ?? '?'}${visitor.lastName?[0] ?? ''}',
-                                              style: const TextStyle(fontSize: 12),
-                                            )
-                                          : null,
-                                    ),
-                                    const HorizontalSpacer(8),
-                                    CustomText('${visitor.firstName ?? ''} ${visitor.lastName ?? ''}'),
-                                  ],
-                                ),
-                              )),
-                        const VerticalSpacer(8),
-                        ButtonComponent.outlinedButtonSmall(
-                          text: "Add co-visitors",
-                          onPressed: _showAddVisitorsSheet,
-                        ),
-                      ],
+                    child: Text(
+                      'Google Reviews',
+                      style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600),
                     ),
                   ),
+                  const SizedBox(height: 8),
+                  ReviewSwiper(
+                    reviews: currentPlace.reviews ?? [],
+                    onTap: (PlaceReview review) => showReviewDialog(review),
+                  ),
+                  const SizedBox(height: 16),
                 ],
+                if (currentPlace.photos != null && currentPlace.photos!.isNotEmpty) ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      'Photos',
+                      style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: PhotoGallery(photos: currentPlace.photos ?? []),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                const SizedBox(height: 80),
               ],
             ),
           ),
-        ),
+        ],
       ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(12),
-        child: currentPlace.rating == null
-            ? ButtonComponent(
-                text: "Save",
-                isDisabled: currentPlace.rating == null,
-                onPressed: () {
-                  widget.onSavePlace(currentPlace);
-                  Navigator.pop(context);
-                },
-              )
-            : Row(
-                children: [
-                  Expanded(
-                    flex: 4,
-                    child: ButtonComponent(
-                      text: "Save",
-                      isDisabled: currentPlace.rating == null,
-                      onPressed: () {
-                        widget.onSavePlace(currentPlace);
-                        Navigator.pop(context);
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    flex: 1,
-                    child: ButtonComponent(
-                      iconData: CupertinoIcons.delete_simple,
-                      onPressed: () {
-                        _showDeleteConfirmationDialog(context);
-                      },
-                    ),
-                  ),
-                ],
-              ),
+      bottomNavigationBar: SafeArea(child: _buildBottomBar()),
+    );
+  }
+
+  // ─── Hero ────────────────────────────────────────────────────────────────
+
+  SliverAppBar _buildSliverHero() {
+    return SliverAppBar(
+      expandedHeight: 300,
+      pinned: true,
+      backgroundColor: Colors.black,
+      foregroundColor: Colors.white,
+      automaticallyImplyLeading: false,
+      systemOverlayStyle: SystemUiOverlayStyle.light,
+      leading: _buildAppBarIconButton(
+        Icons.arrow_back_ios_new,
+        () => Navigator.of(context).pop(),
+      ),
+      actions: [
+        _buildAppBarIconButton(
+          currentPlace.isFavorite ?? false
+              ? CupertinoIcons.heart_fill
+              : CupertinoIcons.heart,
+          () => setState(() {
+            currentPlace.isFavorite = !(currentPlace.isFavorite ?? false);
+          }),
+        ),
+        if (currentPlace.url != null)
+          _buildAppBarIconButton(Icons.location_on, _launchMaps),
+        const SizedBox(width: 4),
+      ],
+      flexibleSpace: FlexibleSpaceBar(
+        background: _buildHeroBackground(),
       ),
     );
   }
 
-  Widget buildOwnerRating() {
-    return Center(
-      child: _buildRatingCard(currentPlace.rating, () {
+  Widget _buildHeroBackground() {
+    final firstRef = currentPlace.photos?.isNotEmpty == true
+        ? currentPlace.photos!.first.photoReference
+        : null;
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        if (firstRef != null)
+          Image.network(
+            _photoUrl(firstRef, 800),
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stack) => _heroPlaceholder(),
+          )
+        else
+          _heroPlaceholder(),
+        // Bottom gradient scrim
+        Positioned(
+          bottom: 0,
+          left: 0,
+          right: 0,
+          child: Container(
+            height: 160,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Colors.transparent, Colors.black87],
+              ),
+            ),
+          ),
+        ),
+        // Place name + status pills
+        Positioned(
+          bottom: 24,
+          left: 16,
+          right: 16,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  if (_priceLevelText(currentPlace.priceLevel) != null) ...[
+                    _buildHeroPill(_priceLevelText(currentPlace.priceLevel)!),
+                    const SizedBox(width: 6),
+                  ],
+                  if (currentPlace.openingHours != null)
+                    _buildHeroPill(
+                      currentPlace.openingHours!.openNow == true ? 'Open' : 'Closed',
+                      color: currentPlace.openingHours!.openNow == true
+                          ? const Color(0xFF4CAF50)
+                          : Colors.red,
+                    ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                currentPlace.name ?? 'N/A',
+                style: GoogleFonts.outfit(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _heroPlaceholder() {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFF1A1A2E), Color(0xFF16213E)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeroPill(String text, {Color color = Colors.white54}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.85),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        text,
+        style: GoogleFonts.outfit(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAppBarIconButton(IconData icon, VoidCallback? onPressed) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          width: 36,
+          height: 36,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.45),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: Colors.white, size: 20),
+        ),
+      ),
+    );
+  }
+
+  String _photoUrl(String? ref, int maxWidth) {
+    if (ref == null) return '';
+    if (ref.startsWith('places/')) {
+      return 'https://places.googleapis.com/v1/$ref/media?maxWidthPx=$maxWidth&key=${dotenv.env['MAPS_API']}';
+    }
+    return 'https://maps.googleapis.com/maps/api/place/photo?maxwidth=$maxWidth&photo_reference=$ref&key=${dotenv.env['MAPS_API']}';
+  }
+
+  String? _priceLevelText(PriceLevel? level) {
+    switch (level) {
+      case PriceLevel.FREE:
+      case PriceLevel.PRICE_LEVEL_FREE:
+        return 'Free';
+      case PriceLevel.INEXPENSIVE:
+      case PriceLevel.PRICE_LEVEL_INEXPENSIVE:
+        return '€';
+      case PriceLevel.MODERATE:
+      case PriceLevel.PRICE_LEVEL_MODERATE:
+        return '€€';
+      case PriceLevel.EXPENSIVE:
+      case PriceLevel.PRICE_LEVEL_EXPENSIVE:
+        return '€€€';
+      case PriceLevel.VERY_EXPENSIVE:
+      case PriceLevel.PRICE_LEVEL_VERY_EXPENSIVE:
+        return '€€€€';
+      default:
+        return null;
+    }
+  }
+
+  // ─── Info Strip ───────────────────────────────────────────────────────────
+
+  Widget _buildInfoStrip() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: const [
+            BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 2)),
+          ],
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.location_on_outlined, size: 14, color: Colors.grey[600]),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          [
+                            if (currentPlace.city != null) currentPlace.city!,
+                            if (currentPlace.address != null) currentPlace.address!,
+                          ].join(', '),
+                          style: GoogleFonts.outfit(fontSize: 13, color: Colors.grey[700]),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (currentPlace.googleRating != null || currentPlace.distance != null) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        if (currentPlace.googleRating != null) ...[
+                          const Icon(Icons.star_rounded, size: 14, color: Color(0xFFFFC107)),
+                          const SizedBox(width: 2),
+                          Text(
+                            '${currentPlace.googleRating}',
+                            style: GoogleFonts.outfit(fontSize: 12, color: Colors.grey[700]),
+                          ),
+                        ],
+                        if (currentPlace.googleRating != null && currentPlace.distance != null)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 6),
+                            child: Text('·', style: TextStyle(color: Colors.grey[400])),
+                          ),
+                        if (currentPlace.distance != null)
+                          Text(
+                            '${(currentPlace.distance! / 1000).toStringAsFixed(1)} km',
+                            style: GoogleFonts.outfit(fontSize: 12, color: Colors.grey[700]),
+                          ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            if (currentPlace.contactNumber != null)
+              GestureDetector(
+                onTap: _launchPhone,
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.phone, size: 20, color: Colors.black87),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─── Rating Section ───────────────────────────────────────────────────────
+
+  Widget _buildRatingSection() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'My Rating',
+            style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 12),
+          currentPlace.rating == null
+              ? _buildAddRatingCard()
+              : RatingSummaryCard(
+                  rating: currentPlace.rating!,
+                  onEditRating: () => showRatingDialog(currentPlace.rating!),
+                  onDeleteRating: () {
+                    setState(() {
+                      currentPlace.rating = null;
+                    });
+                  },
+                ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAddRatingCard() {
+    return InkWell(
+      onTap: () {
         setState(() {
           currentPlace.rating ??= Rating(ambientRating: 1, foodRating: 1, priceRating: 1);
           showRatingDialog(currentPlace.rating!);
         });
-      }),
-    );
-  }
-
-  ExpansionTile buildOpeningHours(BuildContext context) {
-    return ExpansionTile(
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(12), bottom: Radius.circular(12)),
-      ),
-      title: CustomText(
-        "Opening Hours",
-        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: MyColors.primaryColor,
-            ),
-      ),
-      children: currentPlace.openingHours!.weekdayText?.map((day) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 16),
-              child: CustomText(
-                day,
-                style: Theme.of(context).textTheme.bodyMedium,
-                textAlign: TextAlign.start,
-              ),
-            );
-          }).toList() ??
-          [],
-    );
-  }
-
-  Padding buildPlaceInformation(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 16),
-      child: Row(
-        children: [
-          if (currentPlace.contactNumber != null)
-            Row(
-              children: [
-                const Icon(Icons.phone, size: 18, color: Colors.grey),
-                const HorizontalSpacer(8),
-                GestureDetector(
-                  onTap: () async {
-                    final String phoneNumber = currentPlace.contactNumber!.replaceAll(" ", "");
-                    final Uri phoneUri = Uri(path: phoneNumber, scheme: "tel");
-
-                    if (await canLaunchUrl(phoneUri)) {
-                      await launchUrl(phoneUri);
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Could not launch the dialer.')),
-                      );
-                    }
-                  },
-                  child: CustomText(
-                    currentPlace.contactNumber!,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                ),
-              ],
-            ),
-          const HorizontalSpacer(16),
-          Row(
+      },
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey.shade300),
+          boxShadow: const [
+            BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 2)),
+          ],
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 28),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              CustomText(
-                currentPlace.openingHours?.openNow == true ? "Open now" : "Closed",
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              const HorizontalSpacer(8),
-              Icon(
-                Icons.circle,
-                color: currentPlace.openingHours?.openNow == true ? Colors.green : Colors.red,
-                size: 12,
+              const Icon(Icons.star_border_rounded, size: 32, color: Colors.black54),
+              const SizedBox(height: 8),
+              Text(
+                '+ Rate this place',
+                style: GoogleFonts.outfit(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
               ),
             ],
           ),
-          const HorizontalSpacer(22),
-          CustomText(
-            "⭐ ${currentPlace.googleRating}",
-            style: Theme.of(context).textTheme.bodyMedium,
+        ),
+      ),
+    );
+  }
+
+  // ─── Co-visitors ──────────────────────────────────────────────────────────
+
+  Widget _buildCoVisitorsSection() {
+    final allCoVisitors = currentPlace.coVisitors ?? [];
+    final filtered =
+        allCoVisitors.where((cv) => cv.userId != widget.loggedInUserId).toList();
+    final isOwner = currentPlace.userId == widget.loggedInUserId;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Co-visitors${filtered.isNotEmpty ? ' (${filtered.length})' : ''}',
+                style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
+              TextButton.icon(
+                onPressed: _showAddVisitorsSheet,
+                icon: const Icon(Icons.add, size: 16),
+                label: Text('Invite', style: GoogleFonts.outfit(fontSize: 14)),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.black,
+                  padding: EdgeInsets.zero,
+                  minimumSize: const Size(0, 0),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+              ),
+            ],
+          ),
+          if (filtered.isNotEmpty || isOwner) ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 88,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: [
+                  if (filtered.isEmpty) _buildDashedInviteCircle(),
+                  ...filtered.map(_buildCoVisitorAvatar),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCoVisitorAvatar(CoVisitor cv) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 12),
+      child: GestureDetector(
+        onTap: () => _showCoVisitorSheet(context, cv),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircleAvatar(
+              radius: 32,
+              backgroundImage: cv.profileImageUrl != null
+                  ? NetworkImage(cv.profileImageUrl!)
+                  : null,
+              backgroundColor: MyColors.avatarBackgroundColor,
+              child: cv.profileImageUrl == null
+                  ? Text(
+                      _getCoVisitorInitials(cv),
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                    )
+                  : null,
+            ),
+            const SizedBox(height: 4),
+            SizedBox(
+              width: 64,
+              child: Text(
+                cv.firstName ?? '',
+                style: GoogleFonts.outfit(fontSize: 12),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDashedInviteCircle() {
+    return Padding(
+      padding: const EdgeInsets.only(right: 12),
+      child: GestureDetector(
+        onTap: _showAddVisitorsSheet,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CustomPaint(
+              size: const Size(64, 64),
+              painter: _DashedCirclePainter(),
+              child: const SizedBox(
+                width: 64,
+                height: 64,
+                child: Center(child: Icon(Icons.add, size: 24, color: Colors.grey)),
+              ),
+            ),
+            const SizedBox(height: 4),
+            SizedBox(
+              width: 64,
+              child: Text(
+                'Invite',
+                style: GoogleFonts.outfit(fontSize: 12, color: Colors.grey),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─── Visit Date ───────────────────────────────────────────────────────────
+
+  Widget _buildVisitDateChip() {
+    final dateLabel = _visitedAt != null
+        ? DateFormat('d MMM yyyy').format(_visitedAt!)
+        : 'Set visit date';
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: GestureDetector(
+        onTap: () => _openDatePicker(),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+          decoration: BoxDecoration(
+            border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.calendar_today_outlined, size: 16, color: Colors.grey[600]),
+              const SizedBox(width: 8),
+              Text(
+                'Visited: $dateLabel',
+                style: GoogleFonts.outfit(
+                  fontSize: 14,
+                  color: _visitedAt != null ? Colors.black87 : Colors.grey[500],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openDatePicker() async {
+    DateTime temp = _visitedAt ?? DateTime.now();
+    await showCupertinoModalPopup<void>(
+      context: context,
+      builder: (BuildContext popupContext) => Material(
+        type: MaterialType.transparency,
+        child: Center(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              width: MediaQuery.of(popupContext).size.width * 0.8,
+              color: CupertinoColors.systemBackground.resolveFrom(popupContext),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    color: MyColors.mainBackgroundColor,
+                    child: const Text(
+                      'Select date',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 180,
+                    child: CupertinoDatePicker(
+                      minimumDate: _earliestDate,
+                      maximumDate: _latestDate,
+                      initialDateTime: _visitedAt ?? DateTime.now(),
+                      mode: CupertinoDatePickerMode.date,
+                      onDateTimeChanged: (DateTime newDate) => temp = newDate,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: MyColors.primaryColor),
+                      onPressed: () {
+                        Navigator.of(popupContext).pop();
+                        _onDateChanged(temp);
+                      },
+                      child: const Text('Select',
+                          style: TextStyle(color: Colors.white)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ─── Bottom Bar ───────────────────────────────────────────────────────────
+
+  Widget _buildBottomBar() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      child: Row(
+        children: [
+          if (currentPlace.rating != null) ...[
+            OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.red,
+                side: const BorderSide(color: Colors.red),
+                minimumSize: const Size(56, 52),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+              ),
+              onPressed: () => _showDeleteConfirmationDialog(context),
+              child: const Icon(CupertinoIcons.delete_simple),
+            ),
+            const SizedBox(width: 12),
+          ],
+          Expanded(
+            child: SizedBox(
+              height: 52,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                  foregroundColor: Colors.white,
+                  disabledBackgroundColor: Colors.grey.shade300,
+                  disabledForegroundColor: Colors.grey.shade600,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: currentPlace.rating == null
+                    ? null
+                    : () {
+                        widget.onSavePlace(currentPlace);
+                        Navigator.pop(context);
+                      },
+                child: Text(
+                  'Save',
+                  style: GoogleFonts.outfit(
+                      fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget buildAddress(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4.0, left: 16),
-      child: CustomText(
-        "${currentPlace.address ?? ''}${currentPlace.city != null ? ', ${currentPlace.city}' : ''}",
-        style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontSize: 20),
-        softWrap: true,
-      ),
-    );
-  }
-
-  Widget _buildRatingCard(Rating? rating, VoidCallback onAdd) {
-    return rating == null
-        ? InkWell(
-            onTap: onAdd,
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              width: 120,
-              height: 80,
-              decoration: BoxDecoration(
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 6,
-                    spreadRadius: 1,
-                    offset: Offset(0, 1),
-                  ),
-                ],
-                color: MyColors.mainBackgroundColor,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: MyColors.primaryColor, width: 1),
-              ),
-              child: const Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.add, size: 25, color: MyColors.primaryColor),
-                  VerticalSpacer(4),
-                  CustomText("Add Rating", style: TextStyle(color: MyColors.primaryColor))
-                ],
-              ),
-            ),
-          )
-        : RatingSummaryCard(
-            rating: rating,
-            onEditRating: () => showRatingDialog(rating),
-            onDeleteRating: () {
-              setState(() {
-                currentPlace.rating = null;
-              });
-            },
-          );
-  }
+  // ─── Dialogs (unchanged logic) ────────────────────────────────────────────
 
   void showRatingDialog(Rating rating) {
     showModalBottomSheet(
@@ -429,10 +784,8 @@ class _NewPlaceState extends State<NewPlace> {
             children: [
               TextSpan(
                 text: widget.place!.name,
-                style: Theme.of(context)
-                    .textTheme
-                    .headlineSmall
-                    ?.copyWith(fontWeight: FontWeight.bold, fontStyle: FontStyle.italic),
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold, fontStyle: FontStyle.italic),
               ),
               const TextSpan(text: " ?"),
             ],
@@ -485,9 +838,133 @@ class _NewPlaceState extends State<NewPlace> {
     );
   }
 
+  void _showCoVisitorSheet(BuildContext context, CoVisitor coVisitor) {
+    final isOwner = currentPlace.userId == widget.loggedInUserId;
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) => Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircleAvatar(
+              radius: 40,
+              backgroundImage: coVisitor.profileImageUrl != null
+                  ? NetworkImage(coVisitor.profileImageUrl!)
+                  : null,
+              child: coVisitor.profileImageUrl == null
+                  ? Text(
+                      _getCoVisitorInitials(coVisitor),
+                      style: const TextStyle(fontSize: 22),
+                    )
+                  : null,
+            ),
+            const VerticalSpacer(12),
+            CustomText(
+              '${coVisitor.firstName ?? ''} ${coVisitor.lastName ?? ''}'.trim(),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            if (coVisitor.rating != null) ...[
+              const VerticalSpacer(8),
+              Text(
+                '${coVisitor.rating!.placeRating!.toStringAsFixed(0)}/30',
+                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              ),
+              Text(
+                'Experience: ${coVisitor.rating!.ambientRating?.toStringAsFixed(0)}/10 · Food: ${coVisitor.rating!.foodRating?.toStringAsFixed(0)}/10 · Price: ${coVisitor.rating!.priceRating?.toStringAsFixed(0)}/10',
+                style: GoogleFonts.outfit(fontSize: 13, color: Colors.grey[600]),
+              ),
+            ],
+            const VerticalSpacer(24),
+            if (isOwner)
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red,
+                    side: const BorderSide(color: Colors.red),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    widget.onRemoveCoVisitor(currentPlace.id!, coVisitor.userId!);
+                  },
+                  child: const Text("Remove co-visitor"),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─── Helpers ──────────────────────────────────────────────────────────────
+
+  String _getCoVisitorInitials(CoVisitor cv) {
+    final first = (cv.firstName?.isNotEmpty == true) ? cv.firstName![0] : '';
+    final last = (cv.lastName?.isNotEmpty == true) ? cv.lastName![0] : '';
+    return '$first$last'.toUpperCase();
+  }
+
   void _onDateChanged(DateTime newDate) {
     _visitedAt = newDate;
     currentPlace.visitedAt = _visitedAt;
     setState(() {});
   }
+
+  Future<void> _launchPhone() async {
+    final phoneNumber = currentPlace.contactNumber;
+    if (phoneNumber == null) return;
+    final Uri phoneUri = Uri(scheme: 'tel', path: phoneNumber.replaceAll(' ', ''));
+    if (await canLaunchUrl(phoneUri)) {
+      await launchUrl(phoneUri);
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not launch the dialer.')),
+      );
+    }
+  }
+
+  Future<void> _launchMaps() async {
+    if (currentPlace.url == null) return;
+    final Uri mapsUri = Uri.parse(currentPlace.url!);
+    if (await canLaunchUrl(mapsUri)) {
+      await launchUrl(mapsUri);
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not open Google Maps.')),
+      );
+    }
+  }
+}
+
+// ─── Painters ─────────────────────────────────────────────────────────────────
+
+class _DashedCirclePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.grey.shade400
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2 - 4;
+    const dashCount = 12;
+    const sweepPerDash = (2 * pi) / dashCount;
+    const dashSweep = sweepPerDash * 0.6;
+    for (int i = 0; i < dashCount; i++) {
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius),
+        i * sweepPerDash,
+        dashSweep,
+        false,
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DashedCirclePainter old) => false;
 }
