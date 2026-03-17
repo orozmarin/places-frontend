@@ -123,7 +123,6 @@ class Place {
     this.visitedAt,
     this.isFavorite,
     this.distance,
-    this.coVisitors,
   });
 
   factory Place.fromPickResult(PickResult result) {
@@ -256,7 +255,6 @@ class Place {
     DateTime? visitedAt,
     bool? isFavorite,
     double? distance,
-    List<CoVisitor>? coVisitors,
   }) {
     return Place(
       id: id ?? this.id,
@@ -280,7 +278,6 @@ class Place {
       visitedAt: visitedAt ?? this.visitedAt,
       isFavorite: isFavorite ?? this.isFavorite,
       distance: distance ?? this.distance,
-      coVisitors: coVisitors ?? this.coVisitors,
     );
   }
 

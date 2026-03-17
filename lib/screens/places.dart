@@ -11,6 +11,7 @@ import 'package:gastrorate/tools/place_helper.dart';
 import 'package:gastrorate/widgets/custom_app_bar.dart';
 import 'package:gastrorate/widgets/custom_text.dart';
 import 'package:gastrorate/widgets/place_card.dart';
+import 'package:gastrorate/widgets/place_search_bar.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
@@ -55,6 +56,28 @@ class _PlacesState extends State<Places> with SingleTickerProviderStateMixin {
   final ScrollController _scrollController = ScrollController();
   bool _isVisible = true;
   double _previousScrollOffset = 0;
+
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  List<Place> get _displayedMyPlaces {
+    if (_searchQuery.isEmpty) return _places;
+    final q = _searchQuery.toLowerCase();
+    return _places.where((p) =>
+        (p.name?.toLowerCase().contains(q) ?? false) ||
+        (p.city?.toLowerCase().contains(q) ?? false) ||
+        (p.address?.toLowerCase().contains(q) ?? false)).toList();
+  }
+
+  List<Place> get _displayedSharedPlaces {
+    final shared = widget.sharedPlaces ?? [];
+    if (_searchQuery.isEmpty) return shared;
+    final q = _searchQuery.toLowerCase();
+    return shared.where((p) =>
+        (p.name?.toLowerCase().contains(q) ?? false) ||
+        (p.city?.toLowerCase().contains(q) ?? false) ||
+        (p.address?.toLowerCase().contains(q) ?? false)).toList();
+  }
 
   // Detect scroll direction and show or hide the button
   void _onScroll() {
@@ -130,12 +153,14 @@ class _PlacesState extends State<Places> with SingleTickerProviderStateMixin {
     _tabController.dispose();
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: CustomAppBar(
         title: const CustomText("Places", style: TextStyle(color: MyColors.navbarItemColor)),
         backgroundColor: MyColors.appbarColor,
@@ -153,11 +178,22 @@ class _PlacesState extends State<Places> with SingleTickerProviderStateMixin {
           ],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
+      body: Column(
         children: [
-          _buildMyPlacesTab(),
-          _buildSharedPlacesTab(),
+          PlaceSearchBar(
+            controller: _searchController,
+            query: _searchQuery,
+            onChanged: (q) => setState(() => _searchQuery = q),
+          ),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildMyPlacesTab(),
+                _buildSharedPlacesTab(),
+              ],
+            ),
+          ),
         ],
       ),
       floatingActionButton: showAddPlaceButton()
@@ -172,8 +208,9 @@ class _PlacesState extends State<Places> with SingleTickerProviderStateMixin {
   }
 
   Widget _buildMyPlacesTab() {
+    final displayed = _displayedMyPlaces;
     return Center(
-      child: _places.isNotEmpty
+      child: displayed.isNotEmpty
           ? Column(
               children: [
                 Expanded(
@@ -181,7 +218,7 @@ class _PlacesState extends State<Places> with SingleTickerProviderStateMixin {
                     padding: const EdgeInsets.only(bottom: 20, top: 10),
                     controller: _scrollController,
                     itemBuilder: (context, index) {
-                      Place place = _places[index];
+                      Place place = displayed[index];
                       return PlaceCard(
                         place: place,
                         onDeletePlace: widget.onDeletePlace,
@@ -190,12 +227,13 @@ class _PlacesState extends State<Places> with SingleTickerProviderStateMixin {
                         onInviteCoVisitor: widget.onInviteCoVisitor,
                       );
                     },
-                    itemCount: _places.length,
+                    itemCount: displayed.length,
                   ),
                 ),
               ],
             )
           : Column(
+              mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: buildEmptyState(),
             ),
@@ -203,18 +241,27 @@ class _PlacesState extends State<Places> with SingleTickerProviderStateMixin {
   }
 
   Widget _buildSharedPlacesTab() {
-    final shared = widget.sharedPlaces;
-    if (shared == null || shared.isEmpty) {
+    final shared = widget.sharedPlaces ?? [];
+    if (shared.isEmpty) {
       return const Center(
         child: CustomText("No places shared with you yet."),
       );
     }
+    final displayed = _displayedSharedPlaces;
+    if (displayed.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: buildEmptyState(),
+        ),
+      );
+    }
     return ListView.builder(
       padding: const EdgeInsets.only(bottom: 20, top: 10),
-      itemCount: shared.length,
+      itemCount: displayed.length,
       itemBuilder: (context, index) {
         return PlaceCard(
-          place: shared[index],
+          place: displayed[index],
           onDeletePlace: widget.onDeletePlace,
           onInitPlaceForm: widget.onInitPlaceForm,
         );

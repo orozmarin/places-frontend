@@ -162,11 +162,14 @@ class RemoveCoVisitorAction extends AppAction {
   @override
   Future<AppState?> reduce() async {
     try {
-      await PlaceManager().removeCoVisitor(placeId, coVisitorUserId);
+      final updatedPlace = await PlaceManager().removeCoVisitor(placeId, coVisitorUserId);
       final userId = state.authState.loggedUser!.id!;
       dispatch(FetchPlacesAction());
       dispatch(FetchSharedPlacesAction(userId));
       toastHelperMobile.showToastSuccess("Co-visitor removed");
+      return state.copyWith(
+        placesState: state.placesState.copyWith(place: updatedPlace),
+      );
     } catch (_) {
       toastHelperMobile.showToastError("Failed to remove co-visitor");
     }
