@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:gastrorate/models/place.dart';
 import 'package:gastrorate/models/rating.dart';
 import 'package:gastrorate/models/user_visit.dart';
 import 'package:gastrorate/router.dart';
@@ -31,12 +30,18 @@ class AcceptInvitationAction extends AppAction {
   @override
   Future<AppState?> reduce() async {
     try {
+      final placeName = state.invitationsState.pendingInvitations
+          ?.firstWhere((i) => i.id == invitationId, orElse: () => VisitInvitation())
+          .placeName;
       final UserVisit visit = await InvitationManager().acceptInvitation(invitationId);
       final userId = state.authState.loggedUser!.id!;
       dispatch(FetchPendingInvitationsAction(userId));
       rootNavigatorKey.currentContext!.push('/rate-shared-place');
       return state.copyWith(
-        invitationsState: state.invitationsState.copyWith(activeVisit: visit),
+        invitationsState: state.invitationsState.copyWith(
+          activeVisit: visit,
+          activePlaceName: placeName,
+        ),
       );
     } catch (_) {
       toastHelperMobile.showToastError("Failed to accept invitation");
@@ -89,13 +94,8 @@ class RateVisitAction extends AppAction {
   Future<AppState?> reduce() async {
     await InvitationManager().rateVisit(visitId, rating);
     final userId = state.authState.loggedUser!.id!;
-    final placeId = state.invitationsState.activeVisit?.placeId;
-    final allPlaces = [
-      ...?(state.placesState.places),
-      ...?(state.placesState.sharedPlaces),
-    ];
-    final place = allPlaces.firstWhere((p) => p.id == placeId, orElse: () => Place());
-    final label = place.name != null ? "${place.name} added!" : "Place added!";
+    final placeName = state.invitationsState.activePlaceName;
+    final label = placeName != null ? "$placeName added!" : "Place added!";
     toastHelperMobile.showToastSuccess(label);
     dispatch(FetchSharedPlacesAction(userId));
     rootNavigatorKey.currentContext!.pop();

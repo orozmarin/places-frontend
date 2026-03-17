@@ -9,6 +9,8 @@ class InvitationsState {
   List<VisitInvitation>? pendingInvitations;
   UserVisit? activeVisit;
   bool? isLoading;
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  String? activePlaceName;
 
   InvitationsState.init() {
     pendingInvitations = List<VisitInvitation>.empty();
@@ -19,7 +21,7 @@ class InvitationsState {
       _$InvitationsStateFromJson(json);
   Map<String, dynamic> toJson() => _$InvitationsStateToJson(this);
 
-  InvitationsState({this.pendingInvitations, this.activeVisit, this.isLoading});
+  InvitationsState({this.pendingInvitations, this.activeVisit, this.isLoading, this.activePlaceName});
 
   @override
   bool operator ==(Object other) =>
@@ -42,11 +44,13 @@ class InvitationsState {
     List<VisitInvitation>? pendingInvitations,
     UserVisit? activeVisit,
     bool? isLoading,
+    String? activePlaceName,
   }) {
     return InvitationsState(
       pendingInvitations: pendingInvitations ?? this.pendingInvitations,
       activeVisit: activeVisit ?? this.activeVisit,
       isLoading: isLoading ?? this.isLoading,
+      activePlaceName: activePlaceName ?? this.activePlaceName,
     );
   }
 }
