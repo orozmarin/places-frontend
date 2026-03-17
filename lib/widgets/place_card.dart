@@ -74,12 +74,6 @@ class PlaceCard extends StatelessWidget {
                     onTap: () {
                       Navigator.of(context).pop();
                       onInviteCoVisitor!(place.id!, friend.id!);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Invitation sent to ${friend.getFullName()}'),
-                          duration: const Duration(seconds: 2),
-                        ),
-                      );
                     },
                   )),
           ],

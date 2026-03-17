@@ -7,6 +7,7 @@ import 'package:gastrorate/service/invitation_manager.dart';
 import 'package:gastrorate/store/app_action.dart';
 import 'package:gastrorate/store/app_state.dart';
 import 'package:gastrorate/store/places/places_actions.dart';
+import 'package:gastrorate/tools/toast_helper.dart';
 import 'package:go_router/go_router.dart';
 
 class FetchPendingInvitationsAction extends AppAction {
@@ -28,13 +29,19 @@ class AcceptInvitationAction extends AppAction {
 
   @override
   Future<AppState?> reduce() async {
-    final UserVisit visit = await InvitationManager().acceptInvitation(invitationId);
-    final userId = state.authState.loggedUser!.id!;
-    dispatch(FetchPendingInvitationsAction(userId));
-    rootNavigatorKey.currentContext!.push('/rate-shared-place');
-    return state.copyWith(
-      invitationsState: state.invitationsState.copyWith(activeVisit: visit),
-    );
+    try {
+      final UserVisit visit = await InvitationManager().acceptInvitation(invitationId);
+      final userId = state.authState.loggedUser!.id!;
+      dispatch(FetchPendingInvitationsAction(userId));
+      toastHelperMobile.showToastSuccess("Invitation accepted");
+      rootNavigatorKey.currentContext!.push('/rate-shared-place');
+      return state.copyWith(
+        invitationsState: state.invitationsState.copyWith(activeVisit: visit),
+      );
+    } catch (_) {
+      toastHelperMobile.showToastError("Failed to accept invitation");
+      return null;
+    }
   }
 }
 
@@ -44,9 +51,14 @@ class DeclineInvitationAction extends AppAction {
 
   @override
   Future<AppState?> reduce() async {
-    await InvitationManager().declineInvitation(invitationId);
-    final userId = state.authState.loggedUser!.id!;
-    dispatch(FetchPendingInvitationsAction(userId));
+    try {
+      await InvitationManager().declineInvitation(invitationId);
+      final userId = state.authState.loggedUser!.id!;
+      dispatch(FetchPendingInvitationsAction(userId));
+      toastHelperMobile.showToastSuccess("Invitation declined");
+    } catch (_) {
+      toastHelperMobile.showToastError("Failed to decline invitation");
+    }
     return null;
   }
 }
@@ -58,7 +70,12 @@ class SendVisitInvitationAction extends AppAction {
 
   @override
   Future<AppState?> reduce() async {
-    await InvitationManager().sendInvitation(placeId, inviteeId);
+    try {
+      await InvitationManager().sendInvitation(placeId, inviteeId);
+      toastHelperMobile.showToastSuccess("Invitation sent");
+    } catch (_) {
+      toastHelperMobile.showToastError("Failed to send invitation");
+    }
     return null;
   }
 }
