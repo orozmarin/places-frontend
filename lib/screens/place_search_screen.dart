@@ -9,6 +9,7 @@ import 'package:gastrorate/theme/my_colors.dart';
 import 'package:gastrorate/tools/location_helper.dart';
 import 'package:gastrorate/widgets/custom_app_bar.dart';
 import 'package:gastrorate/widgets/custom_text.dart';
+import 'package:geolocator/geolocator.dart';
 
 class PlaceSearchScreen extends StatefulWidget {
   const PlaceSearchScreen({
@@ -38,7 +39,11 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
   String? _error;
   List<_Suggestion> _suggestions = [];
   Timer? _debounce;
-  Map<String, dynamic>? _locationBias;
+
+  double? _currentLat;
+  double? _currentLng;
+  final Map<String, String?> _photoUrls = {};
+  final Map<String, double?> _distances = {};
 
   @override
   void initState() {
@@ -46,12 +51,10 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
     _controller.addListener(_onControllerChanged);
     LocationHelper().getCurrentLocation().then((position) {
       if (mounted) {
-        _locationBias = {
-          'circle': {
-            'center': {'latitude': position.latitude, 'longitude': position.longitude},
-            'radius': 50000.0,
-          },
-        };
+        setState(() {
+          _currentLat = position.latitude;
+          _currentLng = position.longitude;
+        });
       }
     }).catchError((_) {});
   }
@@ -81,7 +84,14 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
       final body = <String, dynamic>{
         'input': input,
         'includedPrimaryTypes': ['restaurant'],
-        if (_locationBias != null) 'locationBias': _locationBias,
+        'rankPreference': 'DISTANCE',
+        if (_currentLat != null && _currentLng != null)
+          'locationBias': {
+            'circle': {
+              'center': {'latitude': _currentLat, 'longitude': _currentLng},
+              'radius': 50000.0,
+            },
+          },
       };
       final response = await Dio().post(
         'https://places.googleapis.com/v1/places:autocomplete',
@@ -99,9 +109,56 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
             );
           })
           .toList();
-      if (mounted) setState(() => _suggestions = suggestions);
+      if (!mounted) return;
+      setState(() => _suggestions = suggestions);
+      for (final s in suggestions) {
+        _fetchSuggestionMeta(s.placeId);
+      }
     } catch (_) {
       if (mounted) setState(() => _suggestions = []);
+    }
+  }
+
+  Future<void> _fetchSuggestionMeta(String placeId) async {
+    if (_photoUrls.containsKey(placeId)) return;
+    try {
+      final apiKey = dotenv.env['MAPS_API']!;
+      final response = await Dio().get(
+        'https://places.googleapis.com/v1/places/$placeId',
+        options: Options(headers: {
+          'X-Goog-Api-Key': apiKey,
+          'X-Goog-FieldMask': 'photos,location',
+        }),
+      );
+      final data = response.data as Map<String, dynamic>;
+
+      String? photoUrl;
+      final photos = data['photos'] as List?;
+      if (photos != null && photos.isNotEmpty) {
+        final photoName = photos[0]['name'] as String;
+        photoUrl = 'https://places.googleapis.com/v1/$photoName/media?maxWidthPx=80&key=$apiKey';
+      }
+
+      double? distance;
+      final location = data['location'] as Map<String, dynamic>?;
+      if (location != null && _currentLat != null && _currentLng != null) {
+        final distMeters = Geolocator.distanceBetween(
+          _currentLat!,
+          _currentLng!,
+          (location['latitude'] as num).toDouble(),
+          (location['longitude'] as num).toDouble(),
+        );
+        distance = distMeters;
+      }
+
+      if (mounted) {
+        setState(() {
+          _photoUrls[placeId] = photoUrl;
+          _distances[placeId] = distance;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _photoUrls[placeId] = null);
     }
   }
 
@@ -255,12 +312,36 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
         separatorBuilder: (_, __) => Divider(height: 1, color: Colors.grey.shade100),
         itemBuilder: (context, index) {
           final s = _suggestions[index];
+          final photoUrl = _photoUrls[s.placeId];
+          final distance = _distances[s.placeId];
+
           return ListTile(
-            leading: Icon(Icons.restaurant, color: Colors.grey.shade400, size: 20),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+            leading: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: SizedBox(
+                width: 44,
+                height: 44,
+                child: photoUrl != null
+                    ? Image.network(photoUrl, fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => _photoPlaceholder())
+                    : _photoPlaceholder(),
+              ),
+            ),
             title: Text(s.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-            subtitle: s.secondary != null
-                ? Text(s.secondary!, style: TextStyle(fontSize: 12, color: Colors.grey.shade500))
-                : null,
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (s.secondary != null)
+                  Text(s.secondary!, style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+                if (distance != null)
+                  Text(
+                    _formatDistance(distance),
+                    style: TextStyle(fontSize: 11, color: Colors.grey.shade400, fontWeight: FontWeight.w500),
+                  ),
+              ],
+            ),
+            isThreeLine: s.secondary != null && distance != null,
             onTap: () {
               _controller.text = s.name;
               setState(() => _suggestions = []);
@@ -272,9 +353,30 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
     );
   }
 
+  Widget _photoPlaceholder() {
+    return Container(
+      color: Colors.grey.shade100,
+      child: Icon(Icons.restaurant, color: Colors.grey.shade300, size: 22),
+    );
+  }
+
+  String _formatDistance(double meters) {
+    if (meters < 1000) return '${meters.round()} m';
+    return '${(meters / 1000).toStringAsFixed(1)} km';
+  }
+
   Widget _buildSelectionDetails(BuildContext context, Place place) {
     final openNow = place.openingHours?.openNow;
     final priceLevelText = _priceLevelText(place.priceLevel);
+
+    double? distanceToPlace;
+    if (_currentLat != null && _currentLng != null &&
+        place.coordinates?.latitude != null && place.coordinates?.longitude != null) {
+      distanceToPlace = Geolocator.distanceBetween(
+        _currentLat!, _currentLng!,
+        place.coordinates!.latitude!, place.coordinates!.longitude!,
+      );
+    }
 
     return Card(
       margin: const EdgeInsets.fromLTRB(16, 8, 16, 16),
@@ -344,6 +446,13 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
+                  if (distanceToPlace != null) ...[
+                    const SizedBox(width: 8),
+                    Text(
+                      _formatDistance(distanceToPlace),
+                      style: TextStyle(fontSize: 13, color: Colors.grey.shade500, fontWeight: FontWeight.w500),
+                    ),
+                  ],
                 ],
               ),
             const SizedBox(height: 20),
