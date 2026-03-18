@@ -4,6 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:gastrorate/models/place.dart';
 import 'package:gastrorate/models/price_level.dart';
 import 'package:gastrorate/theme/my_colors.dart';
+import 'package:gastrorate/tools/location_helper.dart';
 import 'package:gastrorate/widgets/custom_app_bar.dart';
 import 'package:gastrorate/widgets/custom_text.dart';
 import 'package:google_places_autocomplete_text_field/google_places_autocomplete_text_field.dart';
@@ -27,6 +28,22 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
   Place? _selectedPlace;
   bool _isLoading = false;
   String? _error;
+  LocationConfig? _locationBias;
+
+  @override
+  void initState() {
+    super.initState();
+    LocationHelper().getCurrentLocation().then((position) {
+      if (mounted) {
+        setState(() {
+          _locationBias = LocationConfig.circle(
+            circleCenter: Coordinates(latitude: position.latitude, longitude: position.longitude),
+            circleRadiusInKilometers: 50.0,
+          );
+        });
+      }
+    }).catchError((_) {});
+  }
 
   @override
   void dispose() {
@@ -92,6 +109,7 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
               config: GoogleApiConfig(
                 apiKey: dotenv.env['MAPS_API']!,
                 debounceTime: 400,
+                locationBias: _locationBias,
               ),
               textEditingController: _controller,
               decoration: InputDecoration(
