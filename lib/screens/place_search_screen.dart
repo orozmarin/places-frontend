@@ -33,6 +33,7 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
   @override
   void initState() {
     super.initState();
+    _controller.addListener(_onControllerChanged);
     LocationHelper().getCurrentLocation().then((position) {
       if (mounted) {
         setState(() {
@@ -45,8 +46,11 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
     }).catchError((_) {});
   }
 
+  void _onControllerChanged() => setState(() {});
+
   @override
   void dispose() {
+    _controller.removeListener(_onControllerChanged);
     _controller.dispose();
     super.dispose();
   }
@@ -104,27 +108,70 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: GooglePlacesAutoCompleteTextFormField(
-              config: GoogleApiConfig(
-                apiKey: dotenv.env['MAPS_API']!,
-                debounceTime: 400,
-                locationBias: _locationBias,
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.08),
+                    blurRadius: 12,
+                    spreadRadius: 0,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
-              textEditingController: _controller,
-              decoration: InputDecoration(
-                hintText: 'Search restaurants...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                filled: true,
+              child: GooglePlacesAutoCompleteTextFormField(
+                config: GoogleApiConfig(
+                  apiKey: dotenv.env['MAPS_API']!,
+                  debounceTime: 400,
+                  locationBias: _locationBias,
+                ),
+                textEditingController: _controller,
+                style: const TextStyle(fontSize: 15),
+                decoration: InputDecoration(
+                  hintText: 'Search restaurants...',
+                  hintStyle: TextStyle(
+                    color: Colors.grey.shade400,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w400,
+                  ),
+                  prefixIcon: Icon(Icons.search_rounded, color: Colors.grey.shade400, size: 22),
+                  suffixIcon: _controller.text.isNotEmpty
+                      ? IconButton(
+                          icon: Icon(Icons.cancel_rounded, color: Colors.grey.shade400, size: 20),
+                          onPressed: () => setState(() {
+                            _controller.clear();
+                            _selectedPlace = null;
+                            _error = null;
+                          }),
+                        )
+                      : null,
+                  filled: true,
+                  fillColor: Colors.transparent,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+                minInputLength: 2,
+                onSuggestionClicked: (Prediction prediction) {
+                  _controller.text = prediction.description ?? '';
+                  if (prediction.placeId != null) {
+                    _fetchPlaceDetails(prediction.placeId!);
+                  }
+                },
               ),
-              minInputLength: 2,
-              onSuggestionClicked: (Prediction prediction) {
-                _controller.text = prediction.description ?? '';
-                if (prediction.placeId != null) {
-                  _fetchPlaceDetails(prediction.placeId!);
-                }
-              },
             ),
           ),
           if (_isLoading)
