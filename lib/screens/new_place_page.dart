@@ -34,7 +34,14 @@ class Factory extends VmFactory<AppState, NewPlacePage, ViewModel> {
   ViewModel? fromStore() => ViewModel(
         foundPlace: state.placesState.place,
         friends: state.friendshipsState.friends,
-        onSavePlace: (Place place) => dispatch(SaveOrUpdatePlaceAction(place)),
+        onSavePlace: (Place place) {
+          final isOwner = place.userId == state.authState.loggedUser?.id;
+          if (isOwner || place.visitId == null) {
+            dispatch(SaveOrUpdatePlaceAction(place));
+          } else {
+            dispatch(UpdateCoVisitorRatingAction(place.visitId!, place.rating!));
+          }
+        },
         onDeletePlace: (place) => dispatch(DeletePlaceAction(place)),
         onInviteVisitor: (String placeId, String friendId) =>
             dispatch(SendVisitInvitationAction(placeId, friendId)),

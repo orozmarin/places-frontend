@@ -36,6 +36,8 @@ class Place {
   DateTime? visitedAt;
   bool? isFavorite;
   double? distance;
+  @JsonKey(includeToJson: false)
+  String? visitId;
 
   factory Place.fromJson(Map<String, dynamic> json) => _$PlaceFromJson(json);
 
@@ -123,6 +125,7 @@ class Place {
     this.visitedAt,
     this.isFavorite,
     this.distance,
+    this.visitId,
   });
 
   factory Place.fromPickResult(PickResult result) {
@@ -202,7 +205,8 @@ class Place {
               coVisitors == other.coVisitors &&
               visitedAt == other.visitedAt &&
               isFavorite == other.isFavorite &&
-              distance == other.distance);
+              distance == other.distance &&
+              visitId == other.visitId);
 
   @override
   int get hashCode =>
@@ -226,11 +230,12 @@ class Place {
       coordinates.hashCode ^
       visitedAt.hashCode ^
       isFavorite.hashCode ^
-      distance.hashCode;
+      distance.hashCode ^
+      visitId.hashCode;
 
   @override
   String toString() {
-    return 'Place{ id: $id, userId: $userId, name: $name, address: $address, city: $city, postalCode: $postalCode, country: $country, contactNumber: $contactNumber, openingHours: $openingHours, photos: $photos, priceLevel: $priceLevel, reviews: $reviews, googleRating: $googleRating, url: $url, webSiteUrl: $webSiteUrl, coordinates: $coordinates, rating: $rating, coVisitors: $coVisitors, visitedAt: $visitedAt, isFavorite: $isFavorite, distance: $distance }';
+    return 'Place{ id: $id, userId: $userId, name: $name, address: $address, city: $city, postalCode: $postalCode, country: $country, contactNumber: $contactNumber, openingHours: $openingHours, photos: $photos, priceLevel: $priceLevel, reviews: $reviews, googleRating: $googleRating, url: $url, webSiteUrl: $webSiteUrl, coordinates: $coordinates, rating: $rating, coVisitors: $coVisitors, visitedAt: $visitedAt, isFavorite: $isFavorite, distance: $distance, visitId: $visitId }';
   }
 
   Place copyWith({
@@ -255,6 +260,7 @@ class Place {
     DateTime? visitedAt,
     bool? isFavorite,
     double? distance,
+    String? visitId,
   }) {
     return Place(
       id: id ?? this.id,
@@ -278,6 +284,7 @@ class Place {
       visitedAt: visitedAt ?? this.visitedAt,
       isFavorite: isFavorite ?? this.isFavorite,
       distance: distance ?? this.distance,
+      visitId: visitId ?? this.visitId,
     );
   }
 
@@ -304,6 +311,7 @@ class Place {
       'visitedAt': visitedAt?.toIso8601String(),
       'isFavorite': isFavorite,
       'distance': distance,
+      'visitId': visitId,
     };
   }
 
@@ -334,6 +342,7 @@ class Place {
       visitedAt: map['visitedAt'] != null ? DateTime.parse(map['visitedAt']) : null,
       isFavorite: map['isFavorite'] as bool?,
       distance: map['distance'] as double?,
+      visitId: map['visitId'] as String?,
     );
   }
 }
