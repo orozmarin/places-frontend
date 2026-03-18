@@ -9,7 +9,8 @@ import 'package:gastrorate/tools/services_uri_helper.dart';
 class PlaceManager {
   static const String SAVE_OR_UPDATE_PLACE = "/places/save-or-update";
   static const String FIND_ALL_PLACES = "/places/find/{userId}";
-  static const String DELETE_PLACE = "/places/delete/{placeId}";
+  static const String DELETE_PLACE = "/places/delete/{placeId}/{requestingUserId}";
+  static const String ACKNOWLEDGE_TRANSFER = "/places/{placeId}/acknowledge-transfer";
   static const String FIND_FAVORITE_PLACES = "/places/find/favorites/{userId}";
   static const String FIND_SHARED_PLACES = "/places/find/shared/{userId}";
   static const String REMOVE_CO_VISITOR = "/visits/{placeId}/co-visitors/{coVisitorUserId}/remove";
@@ -41,9 +42,20 @@ class PlaceManager {
     return Place.fromJson(response.data);
   }
 
-  Future<void> deletePlace(String placeId) async {
-    final Map<String, dynamic> params = <String, dynamic>{"placeId": placeId};
+  Future<void> deletePlace(String placeId, String requestingUserId) async {
+    final Map<String, dynamic> params = <String, dynamic>{
+      "placeId": placeId,
+      "requestingUserId": requestingUserId,
+    };
     String url = dotenv.env['API_BASE_URI'].toString() + ServicesUriHelper.getUrlWithParams(DELETE_PLACE, params);
+    await client.post(url);
+    return;
+  }
+
+  Future<void> acknowledgeOwnershipTransfer(String placeId) async {
+    final Map<String, dynamic> params = <String, dynamic>{"placeId": placeId};
+    String url = dotenv.env['API_BASE_URI'].toString() +
+        ServicesUriHelper.getUrlWithParams(ACKNOWLEDGE_TRANSFER, params);
     await client.post(url);
     return;
   }

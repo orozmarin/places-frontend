@@ -12,7 +12,6 @@ import 'package:gastrorate/widgets/horizontal_line.dart';
 import 'package:gastrorate/widgets/place_card.dart';
 import 'package:gastrorate/widgets/place_card_swiper.dart';
 import 'package:gastrorate/widgets/vertical_spacer.dart';
-import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
 import 'package:google_maps_place_picker_mb/google_maps_place_picker.dart';
 import 'package:lottie/lottie.dart';
@@ -35,8 +34,6 @@ class Home extends StatefulWidget {
   final Function(Place place) onInitPlaceForm;
   final bool isLoading;
 
-  final GoogleMapsFlutterPlatform mapsImplementation = GoogleMapsFlutterPlatform.instance;
-
   @override
   State<StatefulWidget> createState() => _HomeState();
 }
@@ -44,8 +41,6 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   LatLng initialPosition = kInitialPosition;
   Place? selectedPlace;
-
-  bool _mapsInitialized = false;
 
   final ScrollController _scrollController = ScrollController();
   bool _isVisible = true;
@@ -69,18 +64,6 @@ class _HomeState extends State<Home> {
       });
     }
     _previousScrollOffset = _scrollController.offset;
-  }
-
-  void initRenderer() {
-    if (_mapsInitialized) return;
-    if (widget.mapsImplementation is GoogleMapsFlutterAndroid) {
-      (widget.mapsImplementation as GoogleMapsFlutterAndroid).initializeWithRenderer(AndroidMapRenderer.latest);
-    }
-    LocationHelper().getCurrentLocation().then((value) => initialPosition = LatLng(value.latitude, value.longitude));
-    setState(() {
-      _mapsInitialized = true;
-      (widget.mapsImplementation as GoogleMapsFlutterAndroid).useAndroidViewSurface = false;
-    });
   }
 
   @override
@@ -191,7 +174,7 @@ class _HomeState extends State<Home> {
         ),
       ),
       onPressed: () {
-        initRenderer();
+        LocationHelper().getCurrentLocation().then((value) => initialPosition = LatLng(value.latitude, value.longitude));
         Navigator.push(
           context,
           MaterialPageRoute(
