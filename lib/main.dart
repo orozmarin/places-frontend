@@ -17,7 +17,7 @@ void main() async {
   // before any map widget is created
   final mapsImpl = GoogleMapsFlutterPlatform.instance;
   if (mapsImpl is GoogleMapsFlutterAndroid) {
-    await mapsImpl.initializeWithRenderer(AndroidMapRenderer.latest);
+    await mapsImpl.initializeWithRenderer(AndroidMapRenderer.legacy);
     mapsImpl.useAndroidViewSurface = true; // SurfaceView = full resolution
   }
 

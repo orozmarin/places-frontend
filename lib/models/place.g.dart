@@ -45,6 +45,10 @@ Place _$PlaceFromJson(Map<String, dynamic> json) => Place(
   isFavorite: json['isFavorite'] as bool?,
   distance: (json['distance'] as num?)?.toDouble(),
   visitId: json['visitId'] as String?,
+  ownershipTransferredFromName: json['ownershipTransferredFromName'] as String?,
+  ownershipTransferredAt: json['ownershipTransferredAt'] == null
+      ? null
+      : DateTime.parse(json['ownershipTransferredAt'] as String),
 );
 
 Map<String, dynamic> _$PlaceToJson(Place instance) => <String, dynamic>{
