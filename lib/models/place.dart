@@ -7,7 +7,6 @@ import 'package:gastrorate/models/place_opening_hours_time.dart';
 import 'package:gastrorate/models/place_review.dart';
 import 'package:gastrorate/models/price_level.dart';
 import 'package:gastrorate/models/rating.dart';
-import 'package:google_maps_place_picker_mb/google_maps_place_picker.dart';
 import 'package:html/dom.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -133,59 +132,6 @@ class Place {
     this.ownershipTransferredFromName,
     this.ownershipTransferredAt,
   });
-
-  factory Place.fromPickResult(PickResult result) {
-    var document = Document.html(result.adrAddress ?? "");
-
-    return Place(
-      address: document.querySelector('.street-address')?.text ?? '',
-      postalCode: int.tryParse(document.querySelector('.postal-code')?.text ?? ''),
-      city: document.querySelector('.locality')?.text ?? '',
-      country: document.querySelector('.country-name')?.text ?? '',
-      name: result.name,
-      contactNumber: result.internationalPhoneNumber,
-      googleRating: result.rating as double?,
-      url: result.url,
-      webSiteUrl: result.website,
-      photos: result.photos
-          ?.map((photo) => Photo(
-        photoReference: photo.photoReference,
-        height: photo.height as int,
-        width: photo.width as int,
-        htmlAttributions: photo.htmlAttributions,
-      ))
-          .toList(),
-      reviews: result.reviews
-          ?.map((review) => PlaceReview(
-        text: review.text,
-        authorName: review.authorName,
-        authorUrl: review.authorUrl,
-        language: review.language,
-        profilePhotoUrl: review.profilePhotoUrl,
-        rating: review.rating as int,
-        relativeTimeDescription: review.relativeTimeDescription,
-        time: review.time as int,
-      ))
-          .toList(),
-      openingHours: result.openingHours == null
-          ? null
-          : PlaceOpeningHours(
-        openNow: result.openingHours?.openNow,
-        weekdayText: result.openingHours?.weekdayText,
-        periods: result.openingHours?.periods
-            .map((e) => PlaceOpeningHoursPeriod(
-          open: PlaceOpeningHoursTime(time: e.open?.time, day: e.open?.day),
-          close: PlaceOpeningHoursTime(time: e.close?.time, day: e.close?.day),
-        ))
-            .toList(),
-      ),
-      coordinates: Coordinates(latitude: result.geometry?.location.lat, longitude: result.geometry?.location.lng),
-      priceLevel: convertPriceLevelByName(result.priceLevel?.name),
-      visitedAt: DateTime.now(),
-      isFavorite: false,
-      distance: null,
-    );
-  }
 
   @override
   bool operator ==(Object other) =>
