@@ -27,6 +27,12 @@ class _AddVisitorsSheetState extends State<AddVisitorsSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final existingUserIds = {
+      if (widget.place.userId != null) widget.place.userId!,
+      ...?widget.place.coVisitors?.map((cv) => cv.userId).whereType<String>(),
+    };
+    final availableFriends = widget.friends.where((f) => !existingUserIds.contains(f.id)).toList();
+
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
@@ -41,10 +47,10 @@ class _AddVisitorsSheetState extends State<AddVisitorsSheet> {
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const VerticalSpacer(8),
-          if (widget.friends.isEmpty)
+          if (availableFriends.isEmpty)
             const Padding(
               padding: EdgeInsets.all(16),
-              child: CustomText("No friends yet. Add friends first."),
+              child: CustomText("No friends available to invite."),
             )
           else
             ConstrainedBox(
@@ -53,9 +59,9 @@ class _AddVisitorsSheetState extends State<AddVisitorsSheet> {
               ),
               child: ListView.builder(
                 shrinkWrap: true,
-                itemCount: widget.friends.length,
+                itemCount: availableFriends.length,
                 itemBuilder: (context, index) {
-                  final friend = widget.friends[index];
+                  final friend = availableFriends[index];
                   final isSelected = _selectedIds.contains(friend.id);
                   return ListTile(
                     leading: CircleAvatar(
