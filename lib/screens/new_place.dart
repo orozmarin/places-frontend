@@ -681,11 +681,13 @@ class _NewPlaceState extends State<NewPlace> {
   // ─── Bottom Bar ───────────────────────────────────────────────────────────
 
   Widget _buildBottomBar() {
+    final isOwner = widget.loggedInUserId != null && currentPlace.userId == widget.loggedInUserId;
+    final isCoVisitor = widget.loggedInUserId != null && currentPlace.userId != widget.loggedInUserId;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
       child: Row(
         children: [
-          if (currentPlace.rating != null) ...[
+          if (currentPlace.rating != null && isOwner) ...[
             OutlinedButton(
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.red,
@@ -696,6 +698,20 @@ class _NewPlaceState extends State<NewPlace> {
               ),
               onPressed: () => _showDeleteConfirmationDialog(context),
               child: const Icon(CupertinoIcons.delete_simple),
+            ),
+            const SizedBox(width: 12),
+          ],
+          if (currentPlace.rating != null && isCoVisitor) ...[
+            OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.amber.shade700,
+                side: BorderSide(color: Colors.amber.shade700),
+                minimumSize: const Size(56, 52),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+              ),
+              onPressed: () => _showLeaveConfirmationSheet(context),
+              child: const Icon(Icons.exit_to_app),
             ),
             const SizedBox(width: 12),
           ],
@@ -820,6 +836,79 @@ class _NewPlaceState extends State<NewPlace> {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  void _showLeaveConfirmationSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            Text(
+              "Leave ${currentPlace.name ?? 'this place'}?",
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              "Your rating and visit will be removed. The place stays saved for the host and other visitors.",
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    onPressed: () => Navigator.of(sheetContext).pop(),
+                    child: const Text("Cancel"),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.amber.shade700,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    icon: const Icon(Icons.exit_to_app, size: 18),
+                    label: const Text("Leave", style: TextStyle(fontWeight: FontWeight.w600)),
+                    onPressed: () {
+                      Navigator.of(sheetContext).pop();
+                      Navigator.of(context).pop();
+                      widget.onRemoveCoVisitor(currentPlace.id!, widget.loggedInUserId!);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

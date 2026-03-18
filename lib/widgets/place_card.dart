@@ -9,18 +9,20 @@ import 'package:gastrorate/widgets/default_button.dart';
 
 class PlaceCard extends StatelessWidget {
   final Place place;
-  final Function(Place) onDeletePlace;
+  final Function(Place)? onDeletePlace;
   final Function(Place) onInitPlaceForm;
   final List<User>? friends;
   final Function(String placeId, String friendId)? onInviteCoVisitor;
+  final Function(Place)? onLeavePlace;
 
   const PlaceCard({
     Key? key,
     required this.place,
-    required this.onDeletePlace,
+    this.onDeletePlace,
     required this.onInitPlaceForm,
     this.friends,
     this.onInviteCoVisitor,
+    this.onLeavePlace,
   }) : super(key: key);
 
   String _photoUrl(String ref, int maxWidth) {
@@ -121,7 +123,7 @@ class PlaceCard extends StatelessWidget {
                   Expanded(
                     child: ButtonComponent.smallButton(
                       onPressed: () {
-                        onDeletePlace(place);
+                        onDeletePlace?.call(place);
                       },
                       text: "Delete",
                     ),
@@ -131,6 +133,74 @@ class PlaceCard extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  void _showLeaveConfirmationSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            Text(
+              "Leave ${place.name ?? 'this place'}?",
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              "Your rating and visit will be removed. The place stays saved for the host and other visitors.",
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: ButtonComponent.outlinedButtonSmall(
+                    onPressed: () => Navigator.of(sheetContext).pop(),
+                    text: "Cancel",
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.amber.shade700,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    icon: const Icon(Icons.exit_to_app, size: 18),
+                    label: const Text("Leave", style: TextStyle(fontWeight: FontWeight.w600)),
+                    onPressed: () {
+                      Navigator.of(sheetContext).pop();
+                      onLeavePlace?.call(place);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -234,10 +304,17 @@ class PlaceCard extends StatelessWidget {
                               icon: const Icon(Icons.person_add_outlined, color: MyColors.primaryDarkColor),
                               tooltip: "Invite friend",
                             ),
-                          IconButton(
-                            onPressed: () => _showDeleteConfirmationDialog(context),
-                            icon: const Icon(CupertinoIcons.delete_simple, color: Colors.red),
-                          ),
+                          if (onLeavePlace != null)
+                            IconButton(
+                              onPressed: () => _showLeaveConfirmationSheet(context),
+                              icon: Icon(Icons.exit_to_app, color: Colors.amber.shade700),
+                              tooltip: "Leave place",
+                            )
+                          else if (onDeletePlace != null)
+                            IconButton(
+                              onPressed: () => _showDeleteConfirmationDialog(context),
+                              icon: const Icon(CupertinoIcons.delete_simple, color: Colors.red),
+                            ),
                         ],
                       ),
                     ],

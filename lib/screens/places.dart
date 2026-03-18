@@ -13,7 +13,6 @@ import 'package:gastrorate/widgets/custom_text.dart';
 import 'package:gastrorate/widgets/place_card.dart';
 import 'package:gastrorate/widgets/place_search_bar.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
 import 'package:google_maps_place_picker_mb/google_maps_place_picker.dart';
 import 'package:lottie/lottie.dart';
@@ -27,7 +26,9 @@ class Places extends StatefulWidget {
       required this.onDeletePlace,
       required this.onInitPlaceForm,
       this.friends,
-      this.onInviteCoVisitor});
+      this.onInviteCoVisitor,
+      this.onLeavePlace,
+      this.onAcknowledgeTransfer});
 
   final Function(PlaceSearchForm) onFindAllPlaces;
   final List<Place>? places;
@@ -36,8 +37,8 @@ class Places extends StatefulWidget {
   final Function(Place place) onInitPlaceForm;
   final List<User>? friends;
   final Function(String placeId, String friendId)? onInviteCoVisitor;
-
-  final GoogleMapsFlutterPlatform mapsImplementation = GoogleMapsFlutterPlatform.instance;
+  final Function(Place place)? onLeavePlace;
+  final Function(String placeId)? onAcknowledgeTransfer;
 
   @override
   State<StatefulWidget> createState() => _PlacesState();
@@ -49,7 +50,6 @@ class _PlacesState extends State<Places> with SingleTickerProviderStateMixin {
   PlaceSorting _selectedSorting = PlaceSorting.DATE_DESC;
   List<Place> _places = <Place>[];
 
-  bool _mapsInitialized = false;
   late TabController _tabController;
   int _currentTabIndex = 0;
 
@@ -93,18 +93,6 @@ class _PlacesState extends State<Places> with SingleTickerProviderStateMixin {
       });
     }
     _previousScrollOffset = _scrollController.offset;
-  }
-
-  void initRenderer() {
-    if (_mapsInitialized) return;
-    if (widget.mapsImplementation is GoogleMapsFlutterAndroid) {
-      (widget.mapsImplementation as GoogleMapsFlutterAndroid).initializeWithRenderer(AndroidMapRenderer.latest);
-    }
-    _getCurrentLocation().then((value) => initialPosition = LatLng(value.latitude, value.longitude));
-    setState(() {
-      _mapsInitialized = true;
-      (widget.mapsImplementation as GoogleMapsFlutterAndroid).useAndroidViewSurface = false;
-    });
   }
 
   Future<Position> _getCurrentLocation() async {
@@ -207,8 +195,56 @@ class _PlacesState extends State<Places> with SingleTickerProviderStateMixin {
     );
   }
 
+  Widget _buildTransferBanner(BuildContext context, Place place) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.blue.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.blue.shade200),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.info_outline, color: Colors.blue.shade700, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text.rich(
+              TextSpan(
+                style: TextStyle(fontSize: 13, color: Colors.blue.shade900),
+                children: [
+                  TextSpan(
+                    text: place.ownershipTransferredFromName,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const TextSpan(text: " deleted "),
+                  TextSpan(
+                    text: place.name ?? 'a place',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontStyle: FontStyle.italic),
+                  ),
+                  const TextSpan(text: ". You are now the host of this place."),
+                ],
+              ),
+            ),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            onPressed: () => widget.onAcknowledgeTransfer?.call(place.id!),
+            child: Text("OK", style: TextStyle(color: Colors.blue.shade700, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildMyPlacesTab() {
     final displayed = _displayedMyPlaces;
+    final transferredPlaces = displayed.where((p) => p.ownershipTransferredFromName != null).toList();
     return Center(
       child: displayed.isNotEmpty
           ? Column(
@@ -218,13 +254,20 @@ class _PlacesState extends State<Places> with SingleTickerProviderStateMixin {
                     padding: const EdgeInsets.only(bottom: 20, top: 10),
                     controller: _scrollController,
                     itemBuilder: (context, index) {
-                      Place place = displayed[index];
-                      return PlaceCard(
-                        place: place,
-                        onDeletePlace: widget.onDeletePlace,
-                        onInitPlaceForm: widget.onInitPlaceForm,
-                        friends: widget.friends,
-                        onInviteCoVisitor: widget.onInviteCoVisitor,
+                      final place = displayed[index];
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (transferredPlaces.contains(place))
+                            _buildTransferBanner(context, place),
+                          PlaceCard(
+                            place: place,
+                            onDeletePlace: widget.onDeletePlace,
+                            onInitPlaceForm: widget.onInitPlaceForm,
+                            friends: widget.friends,
+                            onInviteCoVisitor: widget.onInviteCoVisitor,
+                          ),
+                        ],
                       );
                     },
                     itemCount: displayed.length,
@@ -260,10 +303,107 @@ class _PlacesState extends State<Places> with SingleTickerProviderStateMixin {
       padding: const EdgeInsets.only(bottom: 20, top: 10),
       itemCount: displayed.length,
       itemBuilder: (context, index) {
-        return PlaceCard(
-          place: displayed[index],
-          onDeletePlace: widget.onDeletePlace,
-          onInitPlaceForm: widget.onInitPlaceForm,
+        final place = displayed[index];
+        return Dismissible(
+          key: ValueKey(place.id),
+          direction: DismissDirection.endToStart,
+          background: const SizedBox.shrink(),
+          secondaryBackground: Container(
+            alignment: Alignment.centerRight,
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+            decoration: BoxDecoration(
+              color: Colors.amber.shade700,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text("Leave", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                SizedBox(width: 8),
+                Icon(Icons.exit_to_app, color: Colors.white),
+              ],
+            ),
+          ),
+          confirmDismiss: (direction) async {
+            bool confirmed = false;
+            await showModalBottomSheet(
+              context: context,
+              backgroundColor: Colors.transparent,
+              builder: (sheetContext) => Container(
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                ),
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    Text(
+                      "Leave ${place.name ?? 'this place'}?",
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      "Your rating and visit will be removed. The place stays saved for the host and other visitors.",
+                      style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
+                            onPressed: () => Navigator.of(sheetContext).pop(),
+                            child: const Text("Cancel"),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.amber.shade700,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
+                            icon: const Icon(Icons.exit_to_app, size: 18),
+                            label: const Text("Leave", style: TextStyle(fontWeight: FontWeight.w600)),
+                            onPressed: () {
+                              confirmed = true;
+                              Navigator.of(sheetContext).pop();
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+            return confirmed;
+          },
+          onDismissed: (direction) => widget.onLeavePlace?.call(place),
+          child: PlaceCard(
+            place: place,
+            onInitPlaceForm: widget.onInitPlaceForm,
+            onLeavePlace: widget.onLeavePlace,
+          ),
         );
       },
     );
@@ -297,7 +437,7 @@ class _PlacesState extends State<Places> with SingleTickerProviderStateMixin {
         ),
       ),
       onPressed: () {
-        initRenderer();
+        _getCurrentLocation().then((value) => initialPosition = LatLng(value.latitude, value.longitude));
         Navigator.push(
           context,
           MaterialPageRoute(
