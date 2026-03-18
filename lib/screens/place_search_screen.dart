@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -7,7 +9,6 @@ import 'package:gastrorate/theme/my_colors.dart';
 import 'package:gastrorate/tools/location_helper.dart';
 import 'package:gastrorate/widgets/custom_app_bar.dart';
 import 'package:gastrorate/widgets/custom_text.dart';
-import 'package:google_places_autocomplete_text_field/google_places_autocomplete_text_field.dart';
 
 class PlaceSearchScreen extends StatefulWidget {
   const PlaceSearchScreen({
@@ -23,12 +24,21 @@ class PlaceSearchScreen extends StatefulWidget {
   State<PlaceSearchScreen> createState() => _PlaceSearchScreenState();
 }
 
+class _Suggestion {
+  final String placeId;
+  final String name;
+  final String? secondary;
+  _Suggestion({required this.placeId, required this.name, this.secondary});
+}
+
 class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
   final TextEditingController _controller = TextEditingController();
   Place? _selectedPlace;
   bool _isLoading = false;
   String? _error;
-  LocationConfig? _locationBias;
+  List<_Suggestion> _suggestions = [];
+  Timer? _debounce;
+  Map<String, dynamic>? _locationBias;
 
   @override
   void initState() {
@@ -36,12 +46,12 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
     _controller.addListener(_onControllerChanged);
     LocationHelper().getCurrentLocation().then((position) {
       if (mounted) {
-        setState(() {
-          _locationBias = LocationConfig.circle(
-            circleCenter: Coordinates(latitude: position.latitude, longitude: position.longitude),
-            circleRadiusInKilometers: 50.0,
-          );
-        });
+        _locationBias = {
+          'circle': {
+            'center': {'latitude': position.latitude, 'longitude': position.longitude},
+            'radius': 50000.0,
+          },
+        };
       }
     }).catchError((_) {});
   }
@@ -50,9 +60,49 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _controller.removeListener(_onControllerChanged);
     _controller.dispose();
     super.dispose();
+  }
+
+  void _onTextChanged(String value) {
+    _debounce?.cancel();
+    if (value.length < 2) {
+      setState(() => _suggestions = []);
+      return;
+    }
+    _debounce = Timer(const Duration(milliseconds: 400), () => _getSuggestions(value));
+  }
+
+  Future<void> _getSuggestions(String input) async {
+    try {
+      final apiKey = dotenv.env['MAPS_API']!;
+      final body = <String, dynamic>{
+        'input': input,
+        'includedPrimaryTypes': ['restaurant'],
+        if (_locationBias != null) 'locationBias': _locationBias,
+      };
+      final response = await Dio().post(
+        'https://places.googleapis.com/v1/places:autocomplete',
+        data: body,
+        options: Options(headers: {'X-Goog-Api-Key': apiKey}),
+      );
+      final suggestions = ((response.data['suggestions'] as List?) ?? [])
+          .where((s) => s['placePrediction'] != null)
+          .map((s) {
+            final p = s['placePrediction'] as Map<String, dynamic>;
+            return _Suggestion(
+              placeId: p['placeId'] as String,
+              name: (p['structuredFormat']?['mainText']?['text'] ?? p['text']?['text'] ?? '') as String,
+              secondary: p['structuredFormat']?['secondaryText']?['text'] as String?,
+            );
+          })
+          .toList();
+      if (mounted) setState(() => _suggestions = suggestions);
+    } catch (_) {
+      if (mounted) setState(() => _suggestions = []);
+    }
   }
 
   Future<void> _fetchPlaceDetails(String placeId) async {
@@ -122,13 +172,9 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
                   ),
                 ],
               ),
-              child: GooglePlacesAutoCompleteTextFormField(
-                config: GoogleApiConfig(
-                  apiKey: dotenv.env['MAPS_API']!,
-                  debounceTime: 400,
-                  locationBias: _locationBias,
-                ),
-                textEditingController: _controller,
+              child: TextField(
+                controller: _controller,
+                onChanged: _onTextChanged,
                 style: const TextStyle(fontSize: 15),
                 decoration: InputDecoration(
                   hintText: 'Search restaurants...',
@@ -143,6 +189,7 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
                           icon: Icon(Icons.cancel_rounded, color: Colors.grey.shade400, size: 20),
                           onPressed: () => setState(() {
                             _controller.clear();
+                            _suggestions = [];
                             _selectedPlace = null;
                             _error = null;
                           }),
@@ -164,16 +211,10 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
                     borderSide: BorderSide.none,
                   ),
                 ),
-                minInputLength: 2,
-                onSuggestionClicked: (Prediction prediction) {
-                  _controller.text = prediction.description ?? '';
-                  if (prediction.placeId != null) {
-                    _fetchPlaceDetails(prediction.placeId!);
-                  }
-                },
               ),
             ),
           ),
+          if (_suggestions.isNotEmpty) _buildSuggestionsList(),
           if (_isLoading)
             const Padding(
               padding: EdgeInsets.all(32),
@@ -184,9 +225,49 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
               padding: const EdgeInsets.all(16),
               child: Text(_error!, style: const TextStyle(color: Colors.red)),
             ),
-          if (_selectedPlace != null && !_isLoading)
+          if (_selectedPlace != null && !_isLoading && _suggestions.isEmpty)
             _buildSelectionDetails(context, _selectedPlace!),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSuggestionsList() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 12,
+            spreadRadius: 0,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ListView.separated(
+        shrinkWrap: true,
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: _suggestions.length,
+        separatorBuilder: (_, __) => Divider(height: 1, color: Colors.grey.shade100),
+        itemBuilder: (context, index) {
+          final s = _suggestions[index];
+          return ListTile(
+            leading: Icon(Icons.restaurant, color: Colors.grey.shade400, size: 20),
+            title: Text(s.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+            subtitle: s.secondary != null
+                ? Text(s.secondary!, style: TextStyle(fontSize: 12, color: Colors.grey.shade500))
+                : null,
+            onTap: () {
+              _controller.text = s.name;
+              setState(() => _suggestions = []);
+              _fetchPlaceDetails(s.placeId);
+            },
+          );
+        },
       ),
     );
   }
