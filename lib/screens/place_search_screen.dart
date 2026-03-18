@@ -84,14 +84,15 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
       final body = <String, dynamic>{
         'input': input,
         'includedPrimaryTypes': ['restaurant'],
-        'rankPreference': 'DISTANCE',
-        if (_currentLat != null && _currentLng != null)
+        if (_currentLat != null && _currentLng != null) ...{
+          'rankPreference': 'DISTANCE',
           'locationBias': {
             'circle': {
               'center': {'latitude': _currentLat, 'longitude': _currentLng},
               'radius': 50000.0,
             },
           },
+        },
       };
       final response = await Dio().post(
         'https://places.googleapis.com/v1/places:autocomplete',
