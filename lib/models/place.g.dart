@@ -36,14 +36,16 @@ Place _$PlaceFromJson(Map<String, dynamic> json) => Place(
   rating: json['rating'] == null
       ? null
       : Rating.fromJson(json['rating'] as Map<String, dynamic>),
+  coVisitors: (json['coVisitors'] as List<dynamic>?)
+      ?.map((e) => CoVisitor.fromJson(e as Map<String, dynamic>))
+      .toList(),
   visitedAt: json['visitedAt'] == null
       ? null
       : DateTime.parse(json['visitedAt'] as String),
   isFavorite: json['isFavorite'] as bool?,
   distance: (json['distance'] as num?)?.toDouble(),
-)..coVisitors = (json['coVisitors'] as List<dynamic>?)
-    ?.map((e) => CoVisitor.fromJson(e as Map<String, dynamic>))
-    .toList();
+  visitId: json['visitId'] as String?,
+);
 
 Map<String, dynamic> _$PlaceToJson(Place instance) => <String, dynamic>{
   'id': instance.id,
