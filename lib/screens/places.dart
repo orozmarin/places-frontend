@@ -13,7 +13,6 @@ import 'package:gastrorate/widgets/custom_text.dart';
 import 'package:gastrorate/widgets/place_card.dart';
 import 'package:gastrorate/widgets/place_search_bar.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
 import 'package:google_maps_place_picker_mb/google_maps_place_picker.dart';
 import 'package:lottie/lottie.dart';
@@ -37,8 +36,6 @@ class Places extends StatefulWidget {
   final List<User>? friends;
   final Function(String placeId, String friendId)? onInviteCoVisitor;
 
-  final GoogleMapsFlutterPlatform mapsImplementation = GoogleMapsFlutterPlatform.instance;
-
   @override
   State<StatefulWidget> createState() => _PlacesState();
 }
@@ -49,7 +46,6 @@ class _PlacesState extends State<Places> with SingleTickerProviderStateMixin {
   PlaceSorting _selectedSorting = PlaceSorting.DATE_DESC;
   List<Place> _places = <Place>[];
 
-  bool _mapsInitialized = false;
   late TabController _tabController;
   int _currentTabIndex = 0;
 
@@ -93,18 +89,6 @@ class _PlacesState extends State<Places> with SingleTickerProviderStateMixin {
       });
     }
     _previousScrollOffset = _scrollController.offset;
-  }
-
-  void initRenderer() {
-    if (_mapsInitialized) return;
-    if (widget.mapsImplementation is GoogleMapsFlutterAndroid) {
-      (widget.mapsImplementation as GoogleMapsFlutterAndroid).initializeWithRenderer(AndroidMapRenderer.latest);
-    }
-    _getCurrentLocation().then((value) => initialPosition = LatLng(value.latitude, value.longitude));
-    setState(() {
-      _mapsInitialized = true;
-      (widget.mapsImplementation as GoogleMapsFlutterAndroid).useAndroidViewSurface = false;
-    });
   }
 
   Future<Position> _getCurrentLocation() async {
@@ -297,7 +281,7 @@ class _PlacesState extends State<Places> with SingleTickerProviderStateMixin {
         ),
       ),
       onPressed: () {
-        initRenderer();
+        _getCurrentLocation().then((value) => initialPosition = LatLng(value.latitude, value.longitude));
         Navigator.push(
           context,
           MaterialPageRoute(
