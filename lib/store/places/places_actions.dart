@@ -94,12 +94,26 @@ class DeletePlaceAction extends AppAction {
 
   @override
   Future<AppState?> reduce() async {
-    await PlaceManager().deletePlace(payload.id!);
+    final userId = state.authState.loggedUser!.id!;
+    await PlaceManager().deletePlace(payload.id!, userId);
     rootNavigatorKey.currentContext!.pop();
     rootNavigatorKey.currentContext!.pop();
     dispatch(FetchPlacesAction());
     dispatch(FetchNearbyPlacesAction());
     dispatch(FetchFavoritePlacesAction());
+    dispatch(FetchSharedPlacesAction(userId));
+    return null;
+  }
+}
+
+class AcknowledgeOwnershipTransferAction extends AppAction {
+  final String placeId;
+  AcknowledgeOwnershipTransferAction(this.placeId);
+
+  @override
+  Future<AppState?> reduce() async {
+    await PlaceManager().acknowledgeOwnershipTransfer(placeId);
+    dispatch(FetchPlacesAction());
     return null;
   }
 }
