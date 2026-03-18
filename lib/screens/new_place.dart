@@ -22,6 +22,7 @@ import 'package:gastrorate/widgets/review_swiper.dart';
 import 'package:gastrorate/widgets/vertical_spacer.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:gastrorate/tools/utils_helper.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class NewPlace extends StatefulWidget {
@@ -870,11 +871,11 @@ class _NewPlaceState extends State<NewPlace> {
             if (coVisitor.rating != null) ...[
               const VerticalSpacer(8),
               Text(
-                '${coVisitor.rating!.placeRating!.toStringAsFixed(0)}/30',
+                '${UtilsHelper.formatRating(coVisitor.rating!.placeRating)}/30',
                 style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
               Text(
-                'Experience: ${coVisitor.rating!.ambientRating?.toStringAsFixed(0)}/10 · Food: ${coVisitor.rating!.foodRating?.toStringAsFixed(0)}/10 · Price: ${coVisitor.rating!.priceRating?.toStringAsFixed(0)}/10',
+                'Experience: ${UtilsHelper.formatRating(coVisitor.rating!.ambientRating)}/10 · Food: ${UtilsHelper.formatRating(coVisitor.rating!.foodRating)}/10 · Price: ${UtilsHelper.formatRating(coVisitor.rating!.priceRating)}/10',
                 style: GoogleFonts.outfit(fontSize: 13, color: Colors.grey[600]),
               ),
             ],

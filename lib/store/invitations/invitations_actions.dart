@@ -105,3 +105,17 @@ class RateVisitAction extends AppAction {
     );
   }
 }
+
+class UpdateCoVisitorRatingAction extends AppAction {
+  final String visitId;
+  final Rating rating;
+  UpdateCoVisitorRatingAction(this.visitId, this.rating);
+
+  @override
+  Future<AppState?> reduce() async {
+    await InvitationManager().rateVisit(visitId, rating);
+    final userId = state.authState.loggedUser!.id!;
+    dispatch(FetchSharedPlacesAction(userId));
+    return null;
+  }
+}
