@@ -397,6 +397,7 @@ class _PlacesState extends State<Places> with SingleTickerProviderStateMixin {
 
   FloatingActionButton buildAddPlaceButton(BuildContext context) {
     return FloatingActionButton.extended(
+      heroTag: 'places_fab',
       icon: const Icon(Icons.add, color: MyColors.navbarItemColor),
       label: const CustomText(
         "Add Place",
