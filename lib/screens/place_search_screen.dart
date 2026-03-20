@@ -201,7 +201,7 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
         final photos = p['photos'] as List?;
         if (photos != null && photos.isNotEmpty) {
           final photoName = photos[0]['name'] as String;
-          photoUrl = 'https://places.googleapis.com/v1/$photoName/media?maxWidthPx=400&key=$apiKey';
+          photoUrl = 'https://places.googleapis.com/v1/$photoName/media?maxWidthPx=800&key=$apiKey';
         }
 
         double? distance;

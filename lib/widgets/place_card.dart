@@ -230,7 +230,7 @@ class PlaceCard extends StatelessWidget {
               borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
               child: place.photos?.first.photoReference != null && place.photos!.first.photoReference!.isNotEmpty
                   ? Image.network(
-                      _photoUrl(place.photos!.first.photoReference!, 200),
+                      _photoUrl(place.photos!.first.photoReference!, 800),
                       height: 150,
                       width: double.infinity,
                       fit: BoxFit.cover,
