@@ -16,6 +16,7 @@ class LoginPage extends StatelessWidget {
       builder: (BuildContext context, ViewModel vm) => Login(
         loginUser: vm.loginUser,
         registerUser: vm.registerUser,
+        isLoading: vm.isLoading,
       ),
     );
   }
@@ -26,16 +27,22 @@ class Factory extends VmFactory<AppState, LoginPage, ViewModel> {
 
   @override
   ViewModel? fromStore() => ViewModel(
-        (RegisterRequest registerRequest) => dispatch(RegisterAction(registerRequest)),
-        (LoginRequest loginRequest) => dispatch(LoginAction(loginRequest)),
+        registerUser: (RegisterRequest registerRequest) => dispatch(RegisterAction(registerRequest)),
+        loginUser: (LoginRequest loginRequest) => dispatch(LoginAction(loginRequest)),
+        isLoading: isWaiting(LoginAction),
       );
 }
 
 class ViewModel extends Vm {
-  ViewModel(this.registerUser, this.loginUser);
+  ViewModel({
+    required this.registerUser,
+    required this.loginUser,
+    required this.isLoading,
+  });
 
   final Function(RegisterRequest registerRequest) registerUser;
   final Function(LoginRequest loginRequest) loginUser;
+  final bool isLoading;
 
   @override
   bool operator ==(Object other) =>
@@ -44,8 +51,9 @@ class ViewModel extends Vm {
           other is ViewModel &&
           runtimeType == other.runtimeType &&
           registerUser == other.registerUser &&
-          loginUser == other.loginUser;
+          loginUser == other.loginUser &&
+          isLoading == other.isLoading;
 
   @override
-  int get hashCode => super.hashCode ^ registerUser.hashCode ^ loginUser.hashCode;
+  int get hashCode => super.hashCode ^ registerUser.hashCode ^ loginUser.hashCode ^ isLoading.hashCode;
 }
