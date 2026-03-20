@@ -49,9 +49,8 @@ dependencies:
   go_router: ^17.1.0
   intl: ^0.20.2
   google_fonts: ^8.0.2
-  google_maps_place_picker_mb: ^3.1.2
   permission_handler: ^12.0.1
-  geolocator: ^10.1.1  # Locked: google_maps_place_picker_mb 3.1.2 requires geolocator ^10.x
+  geolocator: ^13.0.0
   html: ^0.15.6
   flutter_widget_from_html: ^0.17.1
   card_swiper: ^3.0.1

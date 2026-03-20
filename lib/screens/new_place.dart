@@ -753,7 +753,7 @@ class _NewPlaceState extends State<NewPlace> {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (BuildContext context) {
+      builder: (BuildContext ctx) {
         return Container(
           decoration: const BoxDecoration(
             color: Colors.white,
@@ -767,12 +767,12 @@ class _NewPlaceState extends State<NewPlace> {
               const VerticalSpacer(9),
               ButtonComponent(
                 onPressed: () {
-                  Navigator.pop(context);
+                  Navigator.pop(ctx);
                   setState(() {});
                 },
                 text: "Save",
               ),
-              const VerticalSpacer(8),
+              SizedBox(height: 8 + MediaQuery.of(ctx).padding.bottom),
             ],
           ),
         );
@@ -849,7 +849,7 @@ class _NewPlaceState extends State<NewPlace> {
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
         ),
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+        padding: EdgeInsets.fromLTRB(20, 20, 20, 32 + MediaQuery.of(sheetContext).padding.bottom),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -935,8 +935,8 @@ class _NewPlaceState extends State<NewPlace> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (_) => Padding(
-        padding: const EdgeInsets.all(24),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.fromLTRB(24, 24, 24, 24 + MediaQuery.of(ctx).padding.bottom),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

@@ -71,7 +71,7 @@ class _RateSharedPlaceState extends State<RateSharedPlace> {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (BuildContext context) {
+      builder: (BuildContext ctx) {
         return Container(
           decoration: const BoxDecoration(
             color: Colors.white,
@@ -85,12 +85,12 @@ class _RateSharedPlaceState extends State<RateSharedPlace> {
               const VerticalSpacer(9),
               ButtonComponent(
                 onPressed: () {
-                  Navigator.pop(context);
+                  Navigator.pop(ctx);
                   setState(() {});
                 },
                 text: "Save",
               ),
-              const VerticalSpacer(8),
+              SizedBox(height: 8 + MediaQuery.of(ctx).padding.bottom),
             ],
           ),
         );
@@ -129,7 +129,8 @@ class _RateSharedPlaceState extends State<RateSharedPlace> {
           ],
         ),
       ),
-      bottomNavigationBar: Padding(
+      bottomNavigationBar: SafeArea(
+        child: Padding(
         padding: const EdgeInsets.all(12),
         child: ButtonComponent(
           text: "Confirm rating",
@@ -140,6 +141,7 @@ class _RateSharedPlaceState extends State<RateSharedPlace> {
             }
           },
         ),
+      ),
       ),
     );
   }
