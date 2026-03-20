@@ -103,7 +103,7 @@ class _AddVisitorsSheetState extends State<AddVisitorsSheet> {
               },
             ),
           ),
-          const VerticalSpacer(12),
+          SizedBox(height: 12 + MediaQuery.of(context).padding.bottom),
         ],
       ),
     );
