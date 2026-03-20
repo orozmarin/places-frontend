@@ -61,7 +61,7 @@ class _PhotoGalleryState extends State<PhotoGallery> {
                     height: 100,
                     decoration: BoxDecoration(
                       image: DecorationImage(
-                        image: NetworkImage(_photoUrl(photo.photoReference, 200)),
+                        image: NetworkImage(_photoUrl(photo.photoReference, 800)),
                         fit: BoxFit.cover,
                       ),
                       borderRadius: BorderRadius.circular(2),
