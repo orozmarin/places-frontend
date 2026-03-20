@@ -303,6 +303,7 @@ class _PlacesState extends State<Places> with SingleTickerProviderStateMixin {
             bool confirmed = false;
             await showModalBottomSheet(
               context: context,
+              useSafeArea: true,
               backgroundColor: Colors.transparent,
               builder: (sheetContext) => Container(
                 decoration: const BoxDecoration(

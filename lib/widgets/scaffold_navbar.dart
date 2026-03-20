@@ -23,7 +23,7 @@ class ScaffoldWithNavigationBar extends StatelessWidget {
         bottomNavigationBar: Container(
           color: MyColors.backgroundNavBarColor,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+            padding: EdgeInsets.fromLTRB(15, 15, 15, 15 + MediaQuery.of(context).padding.bottom),
             child: GNav(
               selectedIndex: selectedIndex,
               color: MyColors.navbarItemColor,
