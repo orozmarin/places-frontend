@@ -69,10 +69,9 @@ class _RateSharedPlaceState extends State<RateSharedPlace> {
     setState(() => _rating = ratingToEdit);
     showModalBottomSheet(
       context: context,
-      useSafeArea: true,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (BuildContext context) {
+      builder: (BuildContext ctx) {
         return Container(
           decoration: const BoxDecoration(
             color: Colors.white,
@@ -86,12 +85,12 @@ class _RateSharedPlaceState extends State<RateSharedPlace> {
               const VerticalSpacer(9),
               ButtonComponent(
                 onPressed: () {
-                  Navigator.pop(context);
+                  Navigator.pop(ctx);
                   setState(() {});
                 },
                 text: "Save",
               ),
-              const VerticalSpacer(8),
+              SizedBox(height: 8 + MediaQuery.of(ctx).padding.bottom),
             ],
           ),
         );

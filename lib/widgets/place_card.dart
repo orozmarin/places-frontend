@@ -42,12 +42,11 @@ class PlaceCard extends StatelessWidget {
     final friendList = friends ?? [];
     showModalBottomSheet(
       context: context,
-      useSafeArea: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (_) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(top: 16, bottom: 16 + MediaQuery.of(ctx).padding.bottom),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -141,14 +140,13 @@ class PlaceCard extends StatelessWidget {
   void _showLeaveConfirmationSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      useSafeArea: true,
       backgroundColor: Colors.transparent,
       builder: (sheetContext) => Container(
         decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
         ),
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+        padding: EdgeInsets.fromLTRB(20, 20, 20, 32 + MediaQuery.of(sheetContext).padding.bottom),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
