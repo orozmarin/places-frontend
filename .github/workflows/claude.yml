@@ -28,6 +28,7 @@ jobs:
       - name: Checkout frontend repository
         uses: actions/checkout@v4
         with:
+          token: ${{ secrets.GH_TOKEN }}
           fetch-depth: 1
 
       - name: Checkout backend repository
@@ -35,8 +36,12 @@ jobs:
         with:
           repository: orozmarin/places-backend
           path: places-backend
-          token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          token: ${{ secrets.GH_TOKEN }}
           fetch-depth: 1
+
+      - name: Configure git to use PAT for push
+        run: |
+          git config --global url."https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/".insteadOf "https://github.com/"
 
       - name: Run Claude Code
         id: claude
