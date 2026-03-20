@@ -40,7 +40,9 @@ class Notifications extends StatelessWidget {
         ),
         backgroundColor: MyColors.appbarColor,
       ),
-      body: !hasContent
+      body: SafeArea(
+        top: false,
+        child: !hasContent
           ? const Center(child: CustomText("No new notifications"))
           : ListView(
               padding: const EdgeInsets.all(16),
@@ -78,6 +80,7 @@ class Notifications extends StatelessWidget {
                 ],
               ],
             ),
+      ),
     );
   }
 }

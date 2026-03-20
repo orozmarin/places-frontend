@@ -29,7 +29,9 @@ class PendingInvitations extends StatelessWidget {
         ),
         backgroundColor: MyColors.appbarColor,
       ),
-      body: items.isEmpty
+      body: SafeArea(
+        top: false,
+        child: items.isEmpty
           ? const Center(child: CustomText("No pending invitations."))
           : ListView.builder(
               padding: const EdgeInsets.all(16),
@@ -79,6 +81,7 @@ class PendingInvitations extends StatelessWidget {
                 );
               },
             ),
+      ),
     );
   }
 }

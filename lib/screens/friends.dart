@@ -48,8 +48,8 @@ class _FriendsState extends State<Friends> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (_) => Padding(
-        padding: const EdgeInsets.all(24),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.fromLTRB(24, 24, 24, 24 + MediaQuery.of(ctx).padding.bottom),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -106,7 +106,9 @@ class _FriendsState extends State<Friends> {
         ),
         backgroundColor: MyColors.appbarColor,
       ),
-      body: ListView(
+      body: SafeArea(
+        top: false,
+        child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           // Search bar
@@ -226,6 +228,7 @@ class _FriendsState extends State<Friends> {
                   ),
                 )),
         ],
+      ),
       ),
     );
   }

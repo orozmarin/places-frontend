@@ -29,7 +29,9 @@ class _ProfileState extends State<Profile> {
         title: const CustomText("My Profile", style: TextStyle(color: MyColors.navbarItemColor)),
         backgroundColor: MyColors.appbarColor,
       ),
-      body: SingleChildScrollView(
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 60, 20, 20),
         child: Column(
           children: [
@@ -121,6 +123,7 @@ class _ProfileState extends State<Profile> {
             ),
           ],
         ),
+      ),
       ),
     );
   }
