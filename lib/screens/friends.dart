@@ -45,6 +45,7 @@ class _FriendsState extends State<Friends> {
   void _showFriendInfoSheet(BuildContext context, User friend) {
     showModalBottomSheet(
       context: context,
+      useSafeArea: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -106,7 +107,9 @@ class _FriendsState extends State<Friends> {
         ),
         backgroundColor: MyColors.appbarColor,
       ),
-      body: ListView(
+      body: SafeArea(
+        top: false,
+        child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           // Search bar
@@ -226,6 +229,7 @@ class _FriendsState extends State<Friends> {
                   ),
                 )),
         ],
+      ),
       ),
     );
   }

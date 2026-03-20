@@ -69,6 +69,7 @@ class _RateSharedPlaceState extends State<RateSharedPlace> {
     setState(() => _rating = ratingToEdit);
     showModalBottomSheet(
       context: context,
+      useSafeArea: true,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (BuildContext context) {
@@ -129,7 +130,8 @@ class _RateSharedPlaceState extends State<RateSharedPlace> {
           ],
         ),
       ),
-      bottomNavigationBar: Padding(
+      bottomNavigationBar: SafeArea(
+        child: Padding(
         padding: const EdgeInsets.all(12),
         child: ButtonComponent(
           text: "Confirm rating",
@@ -140,6 +142,7 @@ class _RateSharedPlaceState extends State<RateSharedPlace> {
             }
           },
         ),
+      ),
       ),
     );
   }

@@ -751,6 +751,7 @@ class _NewPlaceState extends State<NewPlace> {
   void showRatingDialog(Rating rating) {
     showModalBottomSheet(
       context: context,
+      useSafeArea: true,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (BuildContext context) {
@@ -843,6 +844,7 @@ class _NewPlaceState extends State<NewPlace> {
   void _showLeaveConfirmationSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      useSafeArea: true,
       backgroundColor: Colors.transparent,
       builder: (sheetContext) => Container(
         decoration: const BoxDecoration(
@@ -916,6 +918,7 @@ class _NewPlaceState extends State<NewPlace> {
   void _showAddVisitorsSheet() {
     showModalBottomSheet(
       context: context,
+      useSafeArea: true,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (BuildContext context) {
@@ -932,6 +935,7 @@ class _NewPlaceState extends State<NewPlace> {
     final isOwner = currentPlace.userId == widget.loggedInUserId;
     showModalBottomSheet(
       context: context,
+      useSafeArea: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),

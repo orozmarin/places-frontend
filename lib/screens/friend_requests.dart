@@ -30,7 +30,9 @@ class FriendRequests extends StatelessWidget {
         ),
         backgroundColor: MyColors.appbarColor,
       ),
-      body: ListView(
+      body: SafeArea(
+        top: false,
+        child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           if (pending.isNotEmpty) ...[
@@ -59,6 +61,7 @@ class FriendRequests extends StatelessWidget {
           if (pending.isEmpty && past.isEmpty)
             const Center(child: CustomText("No friend requests")),
         ],
+      ),
       ),
     );
   }
