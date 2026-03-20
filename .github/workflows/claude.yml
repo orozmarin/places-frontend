@@ -25,9 +25,17 @@ jobs:
       id-token: write
       actions: read # Required for Claude to read CI results on PRs
     steps:
-      - name: Checkout repository
+      - name: Checkout frontend repository
         uses: actions/checkout@v4
         with:
+          fetch-depth: 1
+
+      - name: Checkout backend repository
+        uses: actions/checkout@v4
+        with:
+          repository: orozmarin/places-backend
+          path: places-backend
+          token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           fetch-depth: 1
 
       - name: Run Claude Code
@@ -43,9 +51,14 @@ jobs:
           # Optional: Add claude_args to customize behavior and configuration
           # claude_args: '--allowed-tools Bash(gh pr:*)'
           prompt: |
-            This is a Flutter app (async_redux, go_router, json_serializable).
+            This is a Flutter frontend app (async_redux, go_router, json_serializable).
             Always use `fvm flutter` for Flutter commands.
             After model changes run: fvm flutter pub run build_runner build --delete-conflicting-outputs
             Follow patterns in CLAUDE.md and .claude/docs/architectural_patterns.md.
-            After implementing, open a PR that references this issue.
+
+            The Spring Boot backend repo is checked out at ./places-backend/ (Java 17, Spring Boot 3.2.3, MongoDB).
+            If the issue requires backend changes, make them in ./places-backend/ and open a separate PR
+            to orozmarin/places-backend using: gh pr create -R orozmarin/places-backend
+
+            After implementing, open a PR for each repo that was changed, referencing this issue.
 
