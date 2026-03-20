@@ -12,11 +12,12 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
   password: json['password'] as String?,
   firstName: json['firstName'] as String?,
   lastName: json['lastName'] as String?,
+  username: json['username'] as String?,
+  tag: json['tag'] as String?,
   sex: $enumDecodeNullable(_$SexEnumMap, json['sex']),
-  dateOfBirth:
-      json['dateOfBirth'] == null
-          ? null
-          : DateTime.parse(json['dateOfBirth'] as String),
+  dateOfBirth: json['dateOfBirth'] == null
+      ? null
+      : DateTime.parse(json['dateOfBirth'] as String),
   status: $enumDecodeNullable(_$UserStatusEnumMap, json['status']),
   profileImageUrl: json['profileImageUrl'] as String?,
 );
@@ -27,6 +28,8 @@ Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
   'password': instance.password,
   'firstName': instance.firstName,
   'lastName': instance.lastName,
+  'username': instance.username,
+  'tag': instance.tag,
   'sex': _$SexEnumMap[instance.sex],
   'dateOfBirth': instance.dateOfBirth?.toIso8601String(),
   'status': _$UserStatusEnumMap[instance.status],

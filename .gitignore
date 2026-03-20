@@ -62,4 +62,5 @@ firebase.json
 .env.*
 
 # FVM Version Cache
-.fvm/
+.fvm/android/.kotlin/
+devtools_options.yaml

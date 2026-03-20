@@ -10,6 +10,8 @@ class User {
   String? password;
   String? firstName;
   String? lastName;
+  String? username;
+  String? tag;
   Sex? sex;
   DateTime? dateOfBirth;
   UserStatus? status;
@@ -35,6 +37,8 @@ class User {
     this.password,
     this.firstName,
     this.lastName,
+    this.username,
+    this.tag,
     this.sex,
     this.dateOfBirth,
     this.status,
@@ -51,6 +55,8 @@ class User {
           password == other.password &&
           firstName == other.firstName &&
           lastName == other.lastName &&
+          username == other.username &&
+          tag == other.tag &&
           sex == other.sex &&
           dateOfBirth == other.dateOfBirth &&
           status == other.status &&
@@ -63,6 +69,8 @@ class User {
       password.hashCode ^
       firstName.hashCode ^
       lastName.hashCode ^
+      username.hashCode ^
+      tag.hashCode ^
       sex.hashCode ^
       dateOfBirth.hashCode ^
       status.hashCode ^
@@ -76,6 +84,8 @@ class User {
         ' password: $password,' +
         ' firstName: $firstName,' +
         ' lastName: $lastName,' +
+        ' username: $username,' +
+        ' tag: $tag,' +
         ' sex: $sex,' +
         ' dateOfBirth: $dateOfBirth,' +
         ' status: $status,' +
@@ -89,6 +99,8 @@ class User {
     String? password,
     String? firstName,
     String? lastName,
+    String? username,
+    String? tag,
     Sex? sex,
     DateTime? dateOfBirth,
     UserStatus? status,
@@ -100,6 +112,8 @@ class User {
       password: password ?? this.password,
       firstName: firstName ?? this.firstName,
       lastName: lastName ?? this.lastName,
+      username: username ?? this.username,
+      tag: tag ?? this.tag,
       sex: sex ?? this.sex,
       dateOfBirth: dateOfBirth ?? this.dateOfBirth,
       status: status ?? this.status,

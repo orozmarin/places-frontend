@@ -15,7 +15,20 @@ class PlaceReview {
 
   factory PlaceReview.fromJson(Map<String, dynamic> json) => _$PlaceReviewFromJson(json);
 
-  factory PlaceReview.fromGoogleJson(Map<String, dynamic> json) => _$PlaceReviewFromGoogleJson(json);
+  factory PlaceReview.fromGoogleJson(Map<String, dynamic> json) {
+    final textObj = json['text'] as Map<String, dynamic>?;
+    final authorAttribution = json['authorAttribution'] as Map<String, dynamic>?;
+    return PlaceReview(
+      authorName: authorAttribution?['displayName'] as String?,
+      authorUrl: authorAttribution?['uri'] as String?,
+      language: textObj?['languageCode'] as String?,
+      profilePhotoUrl: authorAttribution?['photoUri'] as String?,
+      rating: (json['rating'] as num?)?.toInt(),
+      relativeTimeDescription: json['relativePublishTimeDescription'] as String?,
+      text: textObj?['text'] as String?,
+      time: null,
+    );
+  }
   Map<String, dynamic> toJson() => _$PlaceReviewToJson(this);
 
   PlaceReview({

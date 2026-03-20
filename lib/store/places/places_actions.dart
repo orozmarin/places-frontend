@@ -9,17 +9,19 @@ import 'package:gastrorate/models/place.dart';
 import 'package:gastrorate/models/place_search_form.dart';
 import 'package:gastrorate/router.dart';
 import 'package:gastrorate/service/place_manager.dart';
+import 'package:gastrorate/store/app_action.dart';
 import 'package:gastrorate/store/app_state.dart';
 import 'package:gastrorate/store/auth/auth.actions.dart';
 import 'package:gastrorate/tools/location_helper.dart';
+import 'package:gastrorate/tools/toast_helper.dart';
 import 'package:go_router/go_router.dart';
 
-class FetchPlacesAction extends ReduxAction<AppState>{
+class FetchPlacesAction extends AppAction {
   FetchPlacesAction({this.placeSearchForm});
   PlaceSearchForm? placeSearchForm;
 
   @override
-  Future<AppState?> reduce() async{
+  Future<AppState?> reduce() async {
     placeSearchForm ??= PlaceSearchForm(sortingMethod: PlaceSorting.DATE_DESC);
     List<Place>? places = <Place>[];
     User? user = state.authState.loggedUser;
@@ -36,24 +38,24 @@ class FetchPlacesAction extends ReduxAction<AppState>{
   }
 }
 
-class InitNewPlaceAction extends ReduxAction<AppState>{
+class InitNewPlaceAction extends ReduxAction<AppState> {
   InitNewPlaceAction({required this.payload, required this.fromWhere});
   final Place payload;
   final FromWhere fromWhere;
 
   @override
-  Future<AppState?> reduce() async{
+  Future<AppState?> reduce() async {
     rootNavigatorKey.currentContext!.push('/${fromWhere.name}/details');
     return state.copyWith(placesState: state.placesState.copyWith(place: payload));
   }
 }
 
-class SaveOrUpdatePlaceAction extends ReduxAction<AppState>{
+class SaveOrUpdatePlaceAction extends AppAction {
   SaveOrUpdatePlaceAction(this.payload);
   final Place payload;
 
   @override
-  Future<AppState?> reduce() async{
+  Future<AppState?> reduce() async {
     if (payload.userId == null || payload.userId!.isEmpty) {
       payload.userId = state.authState.loggedUser!.id;
     }
@@ -66,94 +68,82 @@ class SaveOrUpdatePlaceAction extends ReduxAction<AppState>{
   }
 }
 
-class FetchPlacesSuccessAction extends ReduxAction<AppState>{
+class FetchPlacesSuccessAction extends ReduxAction<AppState> {
   FetchPlacesSuccessAction(this.payload);
   final List<Place> payload;
 
   @override
-  Future<AppState?> reduce() async{
+  Future<AppState?> reduce() async {
     return state.copyWith(placesState: state.placesState.copyWith(places: payload));
   }
 }
 
-class SavePlaceSuccessAction extends ReduxAction<AppState>{
+class SavePlaceSuccessAction extends ReduxAction<AppState> {
   SavePlaceSuccessAction(this.payload);
   final Place payload;
 
   @override
-  Future<AppState?> reduce() async{
+  Future<AppState?> reduce() async {
     return state.copyWith(placesState: state.placesState.copyWith(place: payload));
   }
 }
 
-class DeletePlaceAction extends ReduxAction<AppState>{
+class DeletePlaceAction extends AppAction {
   DeletePlaceAction(this.payload);
   final Place payload;
 
   @override
-  Future<AppState?> reduce() async{
-    await PlaceManager().deletePlace(payload.id!);
+  Future<AppState?> reduce() async {
+    final userId = state.authState.loggedUser!.id!;
+    await PlaceManager().deletePlace(payload.id!, userId);
     rootNavigatorKey.currentContext!.pop();
     rootNavigatorKey.currentContext!.pop();
     dispatch(FetchPlacesAction());
     dispatch(FetchNearbyPlacesAction());
     dispatch(FetchFavoritePlacesAction());
+    dispatch(FetchSharedPlacesAction(userId));
     return null;
   }
 }
 
-class FetchNearbyPlacesAction extends ReduxAction<AppState> {
-  FetchNearbyPlacesAction();
+class AcknowledgeOwnershipTransferAction extends AppAction {
+  final String placeId;
+  AcknowledgeOwnershipTransferAction(this.placeId);
 
   @override
-  Future<void> before() async {
-    //rootNavigatorKey.currentContext?.loaderOverlay.show();
-    print("Before action: isLoading = ${state.placesState.isLoading}");
-    dispatch(UpdatePlacesStateAction(isLoading: true));
-    super.before();
+  Future<AppState?> reduce() async {
+    await PlaceManager().acknowledgeOwnershipTransfer(placeId);
+    dispatch(FetchPlacesAction());
+    return null;
   }
+}
+
+class FetchNearbyPlacesAction extends AppAction {
+  FetchNearbyPlacesAction();
 
   @override
   Future<AppState?> reduce() async {
     NearbyPlacesSearchForm npsf = await LocationHelper().getNearbyPlacesSearchForm();
     List<Place>? places = await PlaceManager().findNearbyPlaces(npsf);
-    //await Future.delayed(Duration(seconds: 15));
     places = await Future.wait(places.map((place) async {
       if (place.coordinates != null) {
         final distance = await LocationHelper().getDistance(place.coordinates!);
-        final distanceInKm = (distance);
-        return place.copyWith(distance: distanceInKm);
+        return place.copyWith(distance: distance);
       }
       return place;
     }));
 
+    places = places
+        .where((p) => p.photos != null && p.photos!.isNotEmpty)
+        .where((p) => p.googleRating != null && p.googleRating! >= 3.5)
+        .toList();
+    places.sort((a, b) => (a.distance ?? double.maxFinite).compareTo(b.distance ?? double.maxFinite));
+    if (places.length > 10) places = places.sublist(0, 10);
+
     dispatch(FetchNearbyPlacesSuccessAction(places));
     return null;
   }
-
-  @override
-  Future<void> after() async {
-
-    //rootNavigatorKey.currentContext?.loaderOverlay.hide();
-    print("After action: isLoading = ${state.placesState.isLoading}");
-    dispatch(UpdatePlacesStateAction(isLoading: false));
-    super.after();
-  }
 }
-
-class UpdatePlacesStateAction extends ReduxAction<AppState> {
-  final bool isLoading;
-  UpdatePlacesStateAction({required this.isLoading});
-
-  @override
-  AppState reduce() {
-    final updatedPlacesState = state.placesState.copyWith(isLoading: isLoading);
-    print("UpdatePlacesStateAction: updating isLoading to $isLoading");
-    return state.copyWith(placesState: updatedPlacesState);
-  }
-}
-
-
 
 class FetchNearbyPlacesSuccessAction extends ReduxAction<AppState> {
   FetchNearbyPlacesSuccessAction(this.payload);
@@ -166,7 +156,7 @@ class FetchNearbyPlacesSuccessAction extends ReduxAction<AppState> {
   }
 }
 
-class FetchFavoritePlacesAction extends ReduxAction<AppState> {
+class FetchFavoritePlacesAction extends AppAction {
   FetchFavoritePlacesAction();
 
   @override
@@ -174,6 +164,29 @@ class FetchFavoritePlacesAction extends ReduxAction<AppState> {
     User? user = state.authState.loggedUser;
     List<Place>? places = await PlaceManager().findFavoritePlaces(user!.id!);
     dispatch(FetchFavoritePlacesSuccessAction(places));
+    return null;
+  }
+}
+
+class RemoveCoVisitorAction extends AppAction {
+  final String placeId;
+  final String coVisitorUserId;
+  RemoveCoVisitorAction(this.placeId, this.coVisitorUserId);
+
+  @override
+  Future<AppState?> reduce() async {
+    try {
+      final updatedPlace = await PlaceManager().removeCoVisitor(placeId, coVisitorUserId);
+      final userId = state.authState.loggedUser!.id!;
+      dispatch(FetchPlacesAction());
+      dispatch(FetchSharedPlacesAction(userId));
+      toastHelperMobile.showToastSuccess("Co-visitor removed");
+      return state.copyWith(
+        placesState: state.placesState.copyWith(place: updatedPlace),
+      );
+    } catch (_) {
+      toastHelperMobile.showToastError("Failed to remove co-visitor");
+    }
     return null;
   }
 }
@@ -186,5 +199,35 @@ class FetchFavoritePlacesSuccessAction extends ReduxAction<AppState> {
   @override
   Future<AppState?> reduce() async {
     return state.copyWith(placesState: state.placesState.copyWith(favoritePlaces: payload));
+  }
+}
+
+class FetchSharedPlacesAction extends AppAction {
+  final String userId;
+  FetchSharedPlacesAction(this.userId);
+
+  @override
+  Future<AppState?> reduce() async {
+    List<Place>? places = <Place>[];
+    try {
+      places = await PlaceManager().findSharedPlaces(userId);
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        dispatch(LogoutAction());
+      }
+      return null;
+    }
+    dispatch(FetchSharedPlacesSuccessAction(places));
+    return null;
+  }
+}
+
+class FetchSharedPlacesSuccessAction extends ReduxAction<AppState> {
+  FetchSharedPlacesSuccessAction(this.payload);
+  final List<Place> payload;
+
+  @override
+  Future<AppState?> reduce() async {
+    return state.copyWith(placesState: state.placesState.copyWith(sharedPlaces: payload));
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gastrorate/tools/utils_helper.dart';
 import 'package:gastrorate/models/rating.dart';
 import 'package:gastrorate/widgets/custom_text.dart';
 import 'package:gastrorate/widgets/dialog_wrapper.dart';
@@ -17,9 +18,9 @@ class _PlaceRatingDialogState extends State<PlaceRatingDialog> {
   Widget build(BuildContext context) {
     return DialogWrapperWidget(
       children: [
-        CustomText("Experience: ${widget.rating.ambientRating}"),
+        CustomText("Experience: ${UtilsHelper.formatRating(widget.rating.ambientRating)}"),
         Slider(
-          label: "${widget.rating.ambientRating}",
+          label: UtilsHelper.formatRating(widget.rating.ambientRating),
           divisions: 18,
           min: 1,
           max: 10,
@@ -30,9 +31,9 @@ class _PlaceRatingDialogState extends State<PlaceRatingDialog> {
             });
           },
         ),
-        CustomText("Food: ${widget.rating.foodRating}"),
+        CustomText("Food: ${UtilsHelper.formatRating(widget.rating.foodRating)}"),
         Slider(
-          label: "${widget.rating.foodRating}",
+          label: UtilsHelper.formatRating(widget.rating.foodRating),
           divisions: 18,
           min: 1,
           max: 10,
@@ -43,9 +44,9 @@ class _PlaceRatingDialogState extends State<PlaceRatingDialog> {
             });
           },
         ),
-        CustomText("Price: ${widget.rating.priceRating}"),
+        CustomText("Price: ${UtilsHelper.formatRating(widget.rating.priceRating)}"),
         Slider(
-          label: "${widget.rating.priceRating}",
+          label: UtilsHelper.formatRating(widget.rating.priceRating),
           divisions: 18,
           min: 1,
           max: 10,

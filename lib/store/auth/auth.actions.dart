@@ -6,11 +6,15 @@ import 'package:gastrorate/models/auth/register_request.dart';
 import 'package:gastrorate/models/auth/user.dart';
 import 'package:gastrorate/router.dart';
 import 'package:gastrorate/service/auth_manager.dart';
+import 'package:gastrorate/store/app_action.dart';
 import 'package:gastrorate/store/app_state.dart';
+import 'package:gastrorate/store/friendships/friendships_actions.dart';
+import 'package:gastrorate/store/invitations/invitations_actions.dart';
+import 'package:gastrorate/store/places/places_actions.dart';
 import 'package:gastrorate/tools/toast_helper.dart';
 import 'package:go_router/go_router.dart';
 
-class LoginAction extends ReduxAction<AppState>{
+class LoginAction extends AppAction {
   LoginAction(this.payload);
   final LoginRequest payload;
 
@@ -18,7 +22,12 @@ class LoginAction extends ReduxAction<AppState>{
   Future<AppState?> reduce() async{
     AuthResponse? authResponse = await AuthManager().login(payload);
     if (authResponse != null) {
-      dispatch(LoginSuccessAction(payload: authResponse));
+      await dispatchAndWait(LoginSuccessAction(payload: authResponse));
+      final userId = authResponse.user!.id!;
+      dispatch(FetchPendingFriendRequestsAction());
+      dispatch(FetchFriendsAction(userId));
+      dispatch(FetchPendingInvitationsAction(userId));
+      await dispatchAndWait(FetchPlacesAction());
       GoRouter.of(rootNavigatorKey.currentContext!).go('/home');
     } else {
       toastHelperMobile.showToastError("Login failed. Please check your credentials.");
@@ -40,7 +49,7 @@ class LoginSuccessAction extends ReduxAction<AppState>{
   }
 }
 
-class RegisterAction extends ReduxAction<AppState>{
+class RegisterAction extends AppAction {
   RegisterAction(this.payload);
   final RegisterRequest payload;
 
@@ -56,7 +65,7 @@ class RegisterAction extends ReduxAction<AppState>{
   }
 }
 
-class LogoutAction extends ReduxAction<AppState>{
+class LogoutAction extends AppAction {
   LogoutAction();
 
   @override

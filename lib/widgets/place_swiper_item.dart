@@ -18,6 +18,19 @@ class PlaceSwiperItem extends StatelessWidget {
     required this.onInitPlaceForm,
   }) : super(key: key);
 
+  String _photoUrl(String ref, int maxWidth) {
+    if (ref.startsWith('places/')) {
+      return "https://places.googleapis.com/v1/$ref/media?maxWidthPx=$maxWidth&key=${dotenv.env['MAPS_API']}";
+    }
+    return "https://maps.googleapis.com/maps/api/place/photo?maxwidth=$maxWidth&photo_reference=$ref&key=${dotenv.env['MAPS_API']}";
+  }
+
+  String _locationText() {
+    if (place.city != null && place.country != null) return "${place.city}, ${place.country}";
+    if (place.address != null && place.address!.isNotEmpty) return place.address!;
+    return "";
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -54,7 +67,7 @@ class PlaceSwiperItem extends StatelessWidget {
               borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
               child: place.photos?.first.photoReference != null && place.photos!.first.photoReference!.isNotEmpty
                   ? Image.network(
-                      "https://maps.googleapis.com/maps/api/place/photo?maxwidth=200&photo_reference=${place.photos?.first.photoReference}&key=${dotenv.env['MAPS_API']}",
+                      _photoUrl(place.photos!.first.photoReference!, 200),
                       height: 180,
                       width: double.infinity,
                       fit: BoxFit.cover,
@@ -95,7 +108,7 @@ class PlaceSwiperItem extends StatelessWidget {
                   ),
                   const VerticalSpacer(4),
                   CustomText(
-                    "${place.city}, ${place.country}",
+                    _locationText(),
                     style: const TextStyle(fontSize: 14, color: Colors.grey),
                   ),
                   const VerticalSpacer(8),

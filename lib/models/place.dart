@@ -1,3 +1,4 @@
+import 'package:gastrorate/models/co_visitor.dart';
 import 'package:gastrorate/models/coordinates.dart';
 import 'package:gastrorate/models/photo.dart';
 import 'package:gastrorate/models/place_opening_hours.dart';
@@ -6,7 +7,6 @@ import 'package:gastrorate/models/place_opening_hours_time.dart';
 import 'package:gastrorate/models/place_review.dart';
 import 'package:gastrorate/models/price_level.dart';
 import 'package:gastrorate/models/rating.dart';
-import 'package:google_maps_place_picker_mb/google_maps_place_picker.dart';
 import 'package:html/dom.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -30,16 +30,80 @@ class Place {
   String? url;
   String? webSiteUrl;
   Coordinates? coordinates;
-  Rating? firstRating;
-  Rating? secondRating;
-  double? placeRating;
+  Rating? rating;
+  List<CoVisitor>? coVisitors;
   DateTime? visitedAt;
   bool? isFavorite;
   double? distance;
+  @JsonKey(includeToJson: false)
+  String? visitId;
+  @JsonKey(includeToJson: false)
+  String? ownershipTransferredFromName;
+  @JsonKey(includeToJson: false)
+  DateTime? ownershipTransferredAt;
 
   factory Place.fromJson(Map<String, dynamic> json) => _$PlaceFromJson(json);
 
-  factory Place.fromGoogleJson(Map<String, dynamic> json) => _$PlaceFromGoogleJson(json);
+  factory Place.fromGoogleJson(Map<String, dynamic> json) {
+    const priceLevelMap = {
+      'FREE': PriceLevel.FREE,
+      'INEXPENSIVE': PriceLevel.INEXPENSIVE,
+      'MODERATE': PriceLevel.MODERATE,
+      'EXPENSIVE': PriceLevel.EXPENSIVE,
+      'VERY_EXPENSIVE': PriceLevel.VERY_EXPENSIVE,
+      'UNKNOWN': PriceLevel.UNKNOWN,
+      'PRICE_LEVEL_FREE': PriceLevel.PRICE_LEVEL_FREE,
+      'PRICE_LEVEL_INEXPENSIVE': PriceLevel.PRICE_LEVEL_INEXPENSIVE,
+      'PRICE_LEVEL_MODERATE': PriceLevel.PRICE_LEVEL_MODERATE,
+      'PRICE_LEVEL_EXPENSIVE': PriceLevel.PRICE_LEVEL_EXPENSIVE,
+      'PRICE_LEVEL_VERY_EXPENSIVE': PriceLevel.PRICE_LEVEL_VERY_EXPENSIVE,
+    };
+    return Place(
+      id: json['id'] ?? (json['name'] as String?)?.split('/').last,
+      name: json['displayName']?['text'] ?? json['name'],
+      address: json['formattedAddress'] as String?,
+      city: (json['addressComponents'] as List?)
+          ?.firstWhere(
+            (comp) => (comp['types'] as List?)?.contains('locality') ?? false,
+            orElse: () => null,
+          )?['longText'] as String?,
+      postalCode: int.tryParse(
+        (json['addressComponents'] as List?)
+                ?.firstWhere(
+                  (comp) => (comp['types'] as List?)?.contains('postal_code') ?? false,
+                  orElse: () => null,
+                )?['longText'] ??
+            '',
+      ),
+      country: (json['addressComponents'] as List?)
+          ?.firstWhere(
+            (comp) => (comp['types'] as List?)?.contains('country') ?? false,
+            orElse: () => null,
+          )?['longText'] as String?,
+      contactNumber: json['internationalPhoneNumber'] as String?,
+      openingHours: json['regularOpeningHours'] == null
+          ? null
+          : PlaceOpeningHours.fromJson(json['regularOpeningHours'] as Map<String, dynamic>),
+      photos: (json['photos'] as List?)
+          ?.map((e) => Photo.fromGoogleJson(e as Map<String, dynamic>))
+          .toList(),
+      priceLevel: priceLevelMap[json['priceLevel'] as String?],
+      reviews: (json['reviews'] as List<dynamic>?)
+          ?.map((e) => PlaceReview.fromGoogleJson(e as Map<String, dynamic>))
+          .toList(),
+      googleRating: (json['rating'] as num?)?.toDouble(),
+      url: json['googleMapsUri'] as String?,
+      webSiteUrl: json['websiteUri'] as String?,
+      coordinates: json['location'] == null
+          ? null
+          : Coordinates(
+              latitude: (json['location']['latitude'] as num?)?.toDouble(),
+              longitude: (json['location']['longitude'] as num?)?.toDouble(),
+            ),
+      isFavorite: false,
+      distance: null,
+    );
+  }
   Map<String, dynamic> toJson() => _$PlaceToJson(this);
 
   Place({
@@ -59,92 +123,44 @@ class Place {
     this.url,
     this.webSiteUrl,
     this.coordinates,
-    this.firstRating,
-    this.secondRating,
-    this.placeRating,
+    this.rating,
+    this.coVisitors,
     this.visitedAt,
     this.isFavorite,
     this.distance,
+    this.visitId,
+    this.ownershipTransferredFromName,
+    this.ownershipTransferredAt,
   });
-
-  factory Place.fromPickResult(PickResult result) {
-    var document = Document.html(result.adrAddress ?? "");
-
-    return Place(
-      address: document.querySelector('.street-address')?.text ?? '',
-      postalCode: int.tryParse(document.querySelector('.postal-code')?.text ?? ''),
-      city: document.querySelector('.locality')?.text ?? '',
-      country: document.querySelector('.country-name')?.text ?? '',
-      name: result.name,
-      contactNumber: result.internationalPhoneNumber,
-      googleRating: result.rating as double?,
-      url: result.url,
-      webSiteUrl: result.website,
-      photos: result.photos
-          ?.map((photo) => Photo(
-        photoReference: photo.photoReference,
-        height: photo.height as int,
-        width: photo.width as int,
-        htmlAttributions: photo.htmlAttributions,
-      ))
-          .toList(),
-      reviews: result.reviews
-          ?.map((review) => PlaceReview(
-        text: review.text,
-        authorName: review.authorName,
-        authorUrl: review.authorUrl,
-        language: review.language,
-        profilePhotoUrl: review.profilePhotoUrl,
-        rating: review.rating as int,
-        relativeTimeDescription: review.relativeTimeDescription,
-        time: review.time as int,
-      ))
-          .toList(),
-      openingHours: result.openingHours == null
-          ? null
-          : PlaceOpeningHours(
-        openNow: result.openingHours?.openNow,
-        weekdayText: result.openingHours?.weekdayText,
-        periods: result.openingHours?.periods
-            .map((e) => PlaceOpeningHoursPeriod(
-          open: PlaceOpeningHoursTime(time: e.open?.time, day: e.open?.day),
-          close: PlaceOpeningHoursTime(time: e.close?.time, day: e.close?.day),
-        ))
-            .toList(),
-      ),
-      coordinates: Coordinates(latitude: result.geometry?.location.lat, longitude: result.geometry?.location.lng),
-      priceLevel: convertPriceLevelByName(result.priceLevel?.name),
-      visitedAt: DateTime.now(),
-      isFavorite: false,
-        distance: null);
-  }
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
           (other is Place &&
               id == other.id &&
-          userId == other.userId &&
-          name == other.name &&
+              userId == other.userId &&
+              name == other.name &&
               address == other.address &&
               city == other.city &&
               postalCode == other.postalCode &&
               country == other.country &&
-          contactNumber == other.contactNumber &&
-          openingHours == other.openingHours &&
-          photos == other.photos &&
-          priceLevel == other.priceLevel &&
-          reviews == other.reviews &&
-          googleRating == other.googleRating &&
-          url == other.url &&
-          webSiteUrl == other.webSiteUrl &&
-          coordinates == other.coordinates &&
-          firstRating == other.firstRating &&
-              secondRating == other.secondRating &&
-              placeRating == other.placeRating &&
-          visitedAt == other.visitedAt &&
-          isFavorite == other.isFavorite &&
-          distance == other.distance);
+              contactNumber == other.contactNumber &&
+              openingHours == other.openingHours &&
+              photos == other.photos &&
+              priceLevel == other.priceLevel &&
+              reviews == other.reviews &&
+              googleRating == other.googleRating &&
+              url == other.url &&
+              webSiteUrl == other.webSiteUrl &&
+              coordinates == other.coordinates &&
+              rating == other.rating &&
+              coVisitors == other.coVisitors &&
+              visitedAt == other.visitedAt &&
+              isFavorite == other.isFavorite &&
+              distance == other.distance &&
+              visitId == other.visitId &&
+              ownershipTransferredFromName == other.ownershipTransferredFromName &&
+              ownershipTransferredAt == other.ownershipTransferredAt);
 
   @override
   int get hashCode =>
@@ -163,17 +179,19 @@ class Place {
       googleRating.hashCode ^
       url.hashCode ^
       webSiteUrl.hashCode ^
-      firstRating.hashCode ^
-      secondRating.hashCode ^
-      placeRating.hashCode ^
+      rating.hashCode ^
+      coVisitors.hashCode ^
       coordinates.hashCode ^
       visitedAt.hashCode ^
       isFavorite.hashCode ^
-      distance.hashCode;
+      distance.hashCode ^
+      visitId.hashCode ^
+      ownershipTransferredFromName.hashCode ^
+      ownershipTransferredAt.hashCode;
 
   @override
   String toString() {
-    return 'Place{ id: $id, userId: $userId, name: $name, address: $address, city: $city, postalCode: $postalCode, country: $country, contactNumber: $contactNumber, openingHours: $openingHours, photos: $photos, priceLevel: $priceLevel, reviews: $reviews, googleRating: $googleRating, url: $url, webSiteUrl: $webSiteUrl, coordinates: $coordinates, firstRating: $firstRating, secondRating: $secondRating, placeRating: $placeRating, visitedAt: $visitedAt, isFavorite: $isFavorite, distance: $distance }';
+    return 'Place{ id: $id, userId: $userId, name: $name, address: $address, city: $city, postalCode: $postalCode, country: $country, contactNumber: $contactNumber, openingHours: $openingHours, photos: $photos, priceLevel: $priceLevel, reviews: $reviews, googleRating: $googleRating, url: $url, webSiteUrl: $webSiteUrl, coordinates: $coordinates, rating: $rating, coVisitors: $coVisitors, visitedAt: $visitedAt, isFavorite: $isFavorite, distance: $distance, visitId: $visitId, ownershipTransferredFromName: $ownershipTransferredFromName, ownershipTransferredAt: $ownershipTransferredAt }';
   }
 
   Place copyWith({
@@ -193,12 +211,14 @@ class Place {
     String? url,
     String? webSiteUrl,
     Coordinates? coordinates,
-    Rating? firstRating,
-    Rating? secondRating,
-    double? placeRating,
+    Rating? rating,
+    List<CoVisitor>? coVisitors,
     DateTime? visitedAt,
     bool? isFavorite,
     double? distance,
+    String? visitId,
+    String? ownershipTransferredFromName,
+    DateTime? ownershipTransferredAt,
   }) {
     return Place(
       id: id ?? this.id,
@@ -217,12 +237,14 @@ class Place {
       url: url ?? this.url,
       webSiteUrl: webSiteUrl ?? this.webSiteUrl,
       coordinates: coordinates ?? this.coordinates,
-      firstRating: firstRating ?? this.firstRating,
-      secondRating: secondRating ?? this.secondRating,
-      placeRating: placeRating ?? this.placeRating,
+      rating: rating ?? this.rating,
+      coVisitors: coVisitors ?? this.coVisitors,
       visitedAt: visitedAt ?? this.visitedAt,
       isFavorite: isFavorite ?? this.isFavorite,
       distance: distance ?? this.distance,
+      visitId: visitId ?? this.visitId,
+      ownershipTransferredFromName: ownershipTransferredFromName ?? this.ownershipTransferredFromName,
+      ownershipTransferredAt: ownershipTransferredAt ?? this.ownershipTransferredAt,
     );
   }
 
@@ -244,12 +266,14 @@ class Place {
       'url': url,
       'webSiteUrl': webSiteUrl,
       'coordinates': coordinates,
-      'firstRating': firstRating?.toMap(),
-      'secondRating': secondRating?.toMap(),
-      'placeRating': placeRating,
+      'rating': rating?.toMap(),
+      'coVisitors': coVisitors?.map((v) => v.toMap()).toList(),
       'visitedAt': visitedAt?.toIso8601String(),
       'isFavorite': isFavorite,
       'distance': distance,
+      'visitId': visitId,
+      'ownershipTransferredFromName': ownershipTransferredFromName,
+      'ownershipTransferredAt': ownershipTransferredAt?.toIso8601String(),
     };
   }
 
@@ -273,12 +297,18 @@ class Place {
       url: map['url'] as String?,
       webSiteUrl: map['webSiteUrl'] as String?,
       coordinates: map['coordinates'] != null ? Coordinates.fromMap(map['coordinates']) : null,
-      firstRating: map['firstRating'] != null ? Rating.fromMap(map['firstRating']) : null,
-      secondRating: map['secondRating'] != null ? Rating.fromMap(map['secondRating']) : null,
-      placeRating: map['placeRating'] as double?,
+      rating: map['rating'] != null ? Rating.fromMap(map['rating']) : null,
+      coVisitors: map['coVisitors'] != null
+          ? List<CoVisitor>.from(map['coVisitors'].map((x) => CoVisitor.fromMap(x)))
+          : null,
       visitedAt: map['visitedAt'] != null ? DateTime.parse(map['visitedAt']) : null,
       isFavorite: map['isFavorite'] as bool?,
       distance: map['distance'] as double?,
+      visitId: map['visitId'] as String?,
+      ownershipTransferredFromName: map['ownershipTransferredFromName'] as String?,
+      ownershipTransferredAt: map['ownershipTransferredAt'] != null
+          ? DateTime.parse(map['ownershipTransferredAt'])
+          : null,
     );
   }
 }

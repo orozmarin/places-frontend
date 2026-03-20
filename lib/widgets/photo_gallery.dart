@@ -16,6 +16,14 @@ class PhotoGallery extends StatefulWidget {
 class _PhotoGalleryState extends State<PhotoGallery> {
   bool showAllPhotos = false;
 
+  String _photoUrl(String? ref, int maxWidth) {
+    if (ref == null) return '';
+    if (ref.startsWith('places/')) {
+      return "https://places.googleapis.com/v1/$ref/media?maxWidthPx=$maxWidth&key=${dotenv.env['MAPS_API']}";
+    }
+    return "https://maps.googleapis.com/maps/api/place/photo?maxwidth=$maxWidth&photo_reference=$ref&key=${dotenv.env['MAPS_API']}";
+  }
+
   @override
   Widget build(BuildContext context) {
     final photosToShow = showAllPhotos ? widget.photos : widget.photos.take(3).toList();
@@ -25,6 +33,7 @@ class _PhotoGalleryState extends State<PhotoGallery> {
       children: [
         GridView.builder(
           shrinkWrap: true,
+          padding: EdgeInsets.zero,
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 3,
@@ -52,9 +61,7 @@ class _PhotoGalleryState extends State<PhotoGallery> {
                     height: 100,
                     decoration: BoxDecoration(
                       image: DecorationImage(
-                        image: NetworkImage(
-                          "https://maps.googleapis.com/maps/api/place/photo?maxwidth=200&photo_reference=${photo.photoReference}&key=${dotenv.env['MAPS_API']}",
-                        ),
+                        image: NetworkImage(_photoUrl(photo.photoReference, 200)),
                         fit: BoxFit.cover,
                       ),
                       borderRadius: BorderRadius.circular(2),

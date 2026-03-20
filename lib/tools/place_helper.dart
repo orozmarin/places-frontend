@@ -13,10 +13,10 @@ class PlaceHelper {
         sorted.sort((a, b) => (b.name ?? '').compareTo(a.name ?? ''));
         break;
       case PlaceSorting.RATING_ASC:
-        sorted.sort((a, b) => (a.placeRating ?? 0).compareTo(b.placeRating ?? 0));
+        sorted.sort((a, b) => (a.rating?.placeRating ?? 0).compareTo(b.rating?.placeRating ?? 0));
         break;
       case PlaceSorting.RATING_DESC:
-        sorted.sort((a, b) => (b.placeRating ?? 0).compareTo(a.placeRating ?? 0));
+        sorted.sort((a, b) => (b.rating?.placeRating ?? 0).compareTo(a.rating?.placeRating ?? 0));
         break;
       case PlaceSorting.DATE_ASC:
         sorted.sort((a, b) => (a.visitedAt ?? DateTime(0)).compareTo(b.visitedAt ?? DateTime(0)));

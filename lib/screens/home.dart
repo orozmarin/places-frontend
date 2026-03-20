@@ -1,20 +1,13 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:gastrorate/models/place.dart';
+import 'package:gastrorate/screens/place_search_screen.dart';
 import 'package:gastrorate/theme/my_colors.dart';
-import 'package:gastrorate/theme/theme_helper.dart';
-import 'package:gastrorate/tools/location_helper.dart';
 import 'package:gastrorate/widgets/custom_app_bar.dart';
 import 'package:gastrorate/widgets/custom_text.dart';
 import 'package:gastrorate/widgets/horizontal_line.dart';
 import 'package:gastrorate/widgets/place_card.dart';
 import 'package:gastrorate/widgets/place_card_swiper.dart';
 import 'package:gastrorate/widgets/vertical_spacer.dart';
-import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
-import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
-import 'package:google_maps_place_picker_mb/google_maps_place_picker.dart';
 import 'package:lottie/lottie.dart';
 
 class Home extends StatefulWidget {
@@ -35,18 +28,11 @@ class Home extends StatefulWidget {
   final Function(Place place) onInitPlaceForm;
   final bool isLoading;
 
-  final GoogleMapsFlutterPlatform mapsImplementation = GoogleMapsFlutterPlatform.instance;
-
   @override
   State<StatefulWidget> createState() => _HomeState();
 }
 
 class _HomeState extends State<Home> {
-  LatLng initialPosition = kInitialPosition;
-  Place? selectedPlace;
-
-  bool _mapsInitialized = false;
-
   final ScrollController _scrollController = ScrollController();
   bool _isVisible = true;
   double _previousScrollOffset = 0;
@@ -69,18 +55,6 @@ class _HomeState extends State<Home> {
       });
     }
     _previousScrollOffset = _scrollController.offset;
-  }
-
-  void initRenderer() {
-    if (_mapsInitialized) return;
-    if (widget.mapsImplementation is GoogleMapsFlutterAndroid) {
-      (widget.mapsImplementation as GoogleMapsFlutterAndroid).initializeWithRenderer(AndroidMapRenderer.latest);
-    }
-    LocationHelper().getCurrentLocation().then((value) => initialPosition = LatLng(value.latitude, value.longitude));
-    setState(() {
-      _mapsInitialized = true;
-      (widget.mapsImplementation as GoogleMapsFlutterAndroid).useAndroidViewSurface = true;
-    });
   }
 
   @override
@@ -113,11 +87,17 @@ class _HomeState extends State<Home> {
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
           ),
-            /*widget.isLoading ? const CircularProgressIndicator() : */PlaceCardSwiper(
-                ratedPlaces: widget.places,
-                places: widget.nearbyPlaces!,
-                onDeletePlace: widget.onDeletePlace,
-                onInitPlaceForm: widget.onInitPlaceForm),
+            widget.isLoading
+                ? const SizedBox(
+                    height: 220,
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                : PlaceCardSwiper(
+                    ratedPlaces: widget.places,
+                    places: widget.nearbyPlaces!,
+                    onDeletePlace: widget.onDeletePlace,
+                    onInitPlaceForm: widget.onInitPlaceForm,
+                  ),
           const VerticalSpacer(10),
           const Padding(padding: EdgeInsets.symmetric(horizontal: 22), child: HorizontalLine()),
           if (widget.places != null && widget.places!.isNotEmpty) ...[
@@ -171,6 +151,7 @@ class _HomeState extends State<Home> {
 
   FloatingActionButton buildAddPlaceButton(BuildContext context) {
     return FloatingActionButton.extended(
+      heroTag: 'home_fab',
       icon: const Icon(Icons.add, color: MyColors.navbarItemColor),
       label: const CustomText(
         "Add Place",
@@ -185,36 +166,13 @@ class _HomeState extends State<Home> {
         ),
       ),
       onPressed: () {
-        initRenderer();
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) {
-              return PlacePicker(
-                resizeToAvoidBottomInset: false,
-                apiKey: Platform.isAndroid ? dotenv.env['MAPS_API'].toString() : dotenv.env['MAPS_API'].toString(),
-                hintText: "Find a place ...",
-                searchingText: "Please wait ...",
-                selectText: "Select place",
-                initialPosition: initialPosition,
-                useCurrentLocation: true,
-                selectInitialPosition: true,
-                usePlaceDetailSearch: true,
-                zoomControlsEnabled: true,
-                onPlacePicked: (PickResult result) {
-                  setState(() {
-                    selectedPlace = Place.fromPickResult(result);
-                    // check if place is rated already
-                    selectedPlace = widget.places?.firstWhere(
-                      (place) => place.url == selectedPlace?.url,
-                      orElse: () => selectedPlace ?? Place(),
-                    );
-                    widget.onInitPlaceForm(selectedPlace ?? Place());
-                    Navigator.of(context).pop();
-                  });
-                },
-              );
-            },
+            builder: (_) => PlaceSearchScreen(
+              existingPlaces: widget.places,
+              onPlaceSelected: widget.onInitPlaceForm,
+            ),
           ),
         );
       },
@@ -224,4 +182,5 @@ class _HomeState extends State<Home> {
       splashColor: Colors.white.withOpacity(0.3),
     );
   }
+
 }

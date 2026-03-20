@@ -1,30 +1,49 @@
+import 'dart:math';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:gastrorate/models/auth/user.dart';
+import 'package:gastrorate/models/co_visitor.dart';
 import 'package:gastrorate/models/place.dart';
 import 'package:gastrorate/models/place_review.dart';
+import 'package:gastrorate/models/price_level.dart';
 import 'package:gastrorate/models/rating.dart';
 import 'package:gastrorate/screens/dialogs/place_review_dialog.dart';
 import 'package:gastrorate/theme/my_colors.dart';
-import 'package:gastrorate/widgets/custom_app_bar.dart';
+import 'package:gastrorate/widgets/add_visitors_sheet.dart';
 import 'package:gastrorate/widgets/custom_text.dart';
-import 'package:gastrorate/widgets/date_input_with_date_picker.dart';
 import 'package:gastrorate/widgets/default_button.dart';
-import 'package:gastrorate/widgets/horizontal_line.dart';
-import 'package:gastrorate/widgets/horizontal_spacer.dart';
-import 'package:gastrorate/widgets/page_body_card.dart';
 import 'package:gastrorate/widgets/photo_gallery.dart';
 import 'package:gastrorate/widgets/place_rating_dialog.dart';
 import 'package:gastrorate/widgets/rating_summary_card.dart';
 import 'package:gastrorate/widgets/review_swiper.dart';
 import 'package:gastrorate/widgets/vertical_spacer.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
+import 'package:gastrorate/tools/utils_helper.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class NewPlace extends StatefulWidget {
-  const NewPlace({super.key, required this.place, required this.onSavePlace, required this.onDeletePlace});
+  const NewPlace({
+    super.key,
+    required this.place,
+    required this.onSavePlace,
+    required this.onDeletePlace,
+    required this.onInviteVisitor,
+    required this.friends,
+    required this.loggedInUserId,
+    required this.onRemoveCoVisitor,
+  });
 
   final Place? place;
   final Function(Place place) onSavePlace;
   final Function(Place place) onDeletePlace;
+  final Function(String placeId, String friendId) onInviteVisitor;
+  final List<User>? friends;
+  final String? loggedInUserId;
+  final Function(String placeId, String coVisitorUserId) onRemoveCoVisitor;
 
   @override
   State<StatefulWidget> createState() => _NewPlaceState();
@@ -35,314 +54,743 @@ class _NewPlaceState extends State<NewPlace> {
   final DateTime _earliestDate = DateTime.now().subtract(const Duration(days: 36500));
   DateTime? _latestDate;
   DateTime? _visitedAt;
+  bool _isSaving = false;
+  bool _isNewPlace = false;
 
   @override
   void initState() {
     super.initState();
-    currentPlace = widget.place!;
+    final source = widget.place!;
+    // Copy the place so local mutations don't bleed into Redux state
+    currentPlace = source.copyWith(rating: source.rating?.copyWith());
+    _isNewPlace = source.userId == null;
     _visitedAt = currentPlace.visitedAt ?? DateTime.now();
     currentPlace.visitedAt = _visitedAt;
     final now = DateTime.now();
-    _latestDate = DateTime(
-      now.year,
-      now.month,
-      now.day,
-      23,
-      59,
-      59,
-    );
+    _latestDate = DateTime(now.year, now.month, now.day, 23, 59, 59);
     currentPlace.isFavorite ??= false;
   }
 
   @override
+  void didUpdateWidget(NewPlace oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_isSaving && widget.place != oldWidget.place && widget.place?.id != null) {
+      setState(() => _isSaving = false);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        if (_isNewPlace) {
+          _showPostSaveSheet();
+        } else {
+          Navigator.of(context).pop();
+        }
+      });
+    }
+  }
+
+  // ─── Build ────────────────────────────────────────────────────────────────
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(
-        title: CustomText(
-          currentPlace.name ?? "N/A",
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(currentPlace.isFavorite ?? false ? CupertinoIcons.heart_fill : CupertinoIcons.heart),
-            onPressed: () {
-              setState(() {
-                currentPlace.isFavorite = !currentPlace.isFavorite!;
-              });
-            },
-          ),
-          if (currentPlace.url != null)
-            IconButton(
-              icon: const Icon(Icons.location_on),
-              onPressed: () async {
-                final Uri mapsUri = Uri.parse(currentPlace.url!);
-                if (await canLaunchUrl(mapsUri)) {
-                  await launchUrl(mapsUri);
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Could not open Google Maps.')),
-                  );
-                }
-              },
-            ),
-        ],
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: PageBodyCard(
+      backgroundColor: const Color(0xFFF5F5F5),
+      body: CustomScrollView(
+        slivers: [
+          _buildSliverHero(),
+          SliverToBoxAdapter(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                buildAddress(context),
-                buildPlaceInformation(context),
-                //if (currentPlace.openingHours != null) buildOpeningHours(context),
-                const VerticalSpacer(16),
-                if (currentPlace.reviews != null && currentPlace.reviews!.isNotEmpty)
+                const SizedBox(height: 12),
+                _buildInfoStrip(),
+                const SizedBox(height: 16),
+                _buildRatingSection(),
+                const SizedBox(height: 16),
+                if (currentPlace.userId != null) ...[
+                  _buildCoVisitorsSection(),
+                  const SizedBox(height: 16),
+                ],
+                _buildVisitDateChip(),
+                const SizedBox(height: 16),
+                if (currentPlace.reviews != null && currentPlace.reviews!.isNotEmpty) ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      'Google Reviews',
+                      style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
                   ReviewSwiper(
-                    reviews: currentPlace.reviews ?? <PlaceReview>[],
+                    reviews: currentPlace.reviews ?? [],
                     onTap: (PlaceReview review) => showReviewDialog(review),
                   ),
-                const VerticalSpacer(12),
-                const HorizontalLine(),
-                if (currentPlace.photos != null && currentPlace.photos!.isNotEmpty)
-                  PhotoGallery(photos: currentPlace.photos ?? []),
-                const VerticalSpacer(8),
-                Align(
-                  alignment: Alignment.center,
-                  child: CustomText("Ratings", style: Theme.of(context).textTheme.headlineSmall),
-                ),
-                const VerticalSpacer(8),
-                buildRatings(),
-                const VerticalSpacer(12),
-                Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 38),
-                    child: Row(
-                      children: [
-                        CustomText("Visited at:", style: Theme.of(context).textTheme.bodyLarge),
-                        const HorizontalSpacer(8),
-                        DateInputWithDatePicker(
-                          title: 'Select date',
-                          maximumDate: _latestDate,
-                          width: 150,
-                          minimumDate: _earliestDate,
-                          date: _visitedAt,
-                          onDateChanged: (DateTime newDate) => _onDateChanged(newDate),
-                        ),
-                      ],
+                  const SizedBox(height: 16),
+                ],
+                if (currentPlace.photos != null && currentPlace.photos!.isNotEmpty) ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      'Photos',
+                      style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600),
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: PhotoGallery(photos: currentPlace.photos ?? []),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                const SizedBox(height: 80),
               ],
             ),
           ),
-        ),
+        ],
       ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(12),
-        child: currentPlace.placeRating == null
-            ? ButtonComponent(
-                text: "Save",
-                isDisabled: currentPlace.firstRating == null || currentPlace.secondRating == null,
-                onPressed: () {
-                  widget.onSavePlace(currentPlace);
+      bottomNavigationBar: SafeArea(child: _buildBottomBar()),
+    );
+  }
 
-                  //TODO - remove these pop() methods and add routing to correct page
-                  Navigator.pop(context);
-                },
-              )
-            : Row(
-                children: [
-                  Expanded(
-                    flex: 4, // 80%
-                    child: ButtonComponent(
-                      text: "Save",
-                      isDisabled: currentPlace.firstRating == null || currentPlace.secondRating == null,
-                      onPressed: () {
-                        widget.onSavePlace(currentPlace);
-                        Navigator.pop(context);
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    flex: 1, // 20%
-                    child: ButtonComponent(
-                      iconData: CupertinoIcons.delete_simple,
-                      onPressed: () {
-                        _showDeleteConfirmationDialog(context);
-                      },
-                    ),
-                  ),
-                ],
-              ),
+  // ─── Hero ────────────────────────────────────────────────────────────────
+
+  SliverAppBar _buildSliverHero() {
+    return SliverAppBar(
+      expandedHeight: 300,
+      pinned: true,
+      backgroundColor: Colors.black,
+      foregroundColor: Colors.white,
+      automaticallyImplyLeading: false,
+      systemOverlayStyle: SystemUiOverlayStyle.light,
+      leading: _buildAppBarIconButton(
+        Icons.arrow_back_ios_new,
+        () => Navigator.of(context).pop(),
+      ),
+      actions: [
+        _buildAppBarIconButton(
+          currentPlace.isFavorite ?? false
+              ? CupertinoIcons.heart_fill
+              : CupertinoIcons.heart,
+          () => setState(() {
+            currentPlace.isFavorite = !(currentPlace.isFavorite ?? false);
+          }),
+        ),
+        if (currentPlace.url != null)
+          _buildAppBarIconButton(Icons.location_on, _launchMaps),
+        const SizedBox(width: 4),
+      ],
+      flexibleSpace: FlexibleSpaceBar(
+        background: _buildHeroBackground(),
       ),
     );
   }
 
-  Row buildRatings() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+  Widget _buildHeroBackground() {
+    final firstRef = currentPlace.photos?.isNotEmpty == true
+        ? currentPlace.photos!.first.photoReference
+        : null;
+
+    return Stack(
+      fit: StackFit.expand,
       children: [
-        _buildRatingCard(currentPlace.firstRating, () {
-          setState(() {
-            currentPlace.firstRating ??= Rating(ambientRating: 1, foodRating: 1, priceRating: 1);
-            showRatingDialog(currentPlace.firstRating!);
-          });
-        }),
-        const HorizontalSpacer(16),
-        _buildRatingCard(currentPlace.secondRating, () {
-          setState(() {
-            currentPlace.secondRating ??= Rating(ambientRating: 1, foodRating: 1, priceRating: 1);
-            showRatingDialog(currentPlace.secondRating!);
-          });
-        }),
+        if (firstRef != null)
+          Image.network(
+            _photoUrl(firstRef, 800),
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stack) => _heroPlaceholder(),
+          )
+        else
+          _heroPlaceholder(),
+        // Bottom gradient scrim
+        Positioned(
+          bottom: 0,
+          left: 0,
+          right: 0,
+          child: Container(
+            height: 160,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Colors.transparent, Colors.black87],
+              ),
+            ),
+          ),
+        ),
+        // Place name + status pills
+        Positioned(
+          bottom: 24,
+          left: 16,
+          right: 16,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  if (_priceLevelText(currentPlace.priceLevel) != null) ...[
+                    _buildHeroPill(_priceLevelText(currentPlace.priceLevel)!),
+                    const SizedBox(width: 6),
+                  ],
+                  if (currentPlace.openingHours != null)
+                    _buildHeroPill(
+                      currentPlace.openingHours!.openNow == true ? 'Open' : 'Closed',
+                      color: currentPlace.openingHours!.openNow == true
+                          ? const Color(0xFF4CAF50)
+                          : Colors.red,
+                    ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                currentPlace.name ?? 'N/A',
+                style: GoogleFonts.outfit(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
 
-  ExpansionTile buildOpeningHours(BuildContext context) {
-    return ExpansionTile(
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(12), bottom: Radius.circular(12)),
+  Widget _heroPlaceholder() {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFF1A1A2E), Color(0xFF16213E)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
       ),
-      title: CustomText(
-        "Opening Hours",
-        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: MyColors.primaryColor,
-            ),
-      ),
-      children: currentPlace.openingHours!.weekdayText?.map((day) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 16),
-              child: CustomText(
-                day,
-                style: Theme.of(context).textTheme.bodyMedium,
-                textAlign: TextAlign.start,
-              ),
-            );
-          }).toList() ??
-          [],
     );
   }
 
-  Padding buildPlaceInformation(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 16),
-      child: Row(
-        children: [
-          if (currentPlace.contactNumber != null)
-            Row(
-              children: [
-                const Icon(Icons.phone, size: 18, color: Colors.grey),
-                const HorizontalSpacer(8),
-                GestureDetector(
-                  onTap: () async {
-                    final String phoneNumber = currentPlace.contactNumber!.replaceAll(" ", "");
-                    final Uri phoneUri = Uri(path: phoneNumber, scheme: "tel");
+  Widget _buildHeroPill(String text, {Color color = Colors.white54}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.85),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        text,
+        style: GoogleFonts.outfit(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
 
-                    if (await canLaunchUrl(phoneUri)) {
-                      await launchUrl(phoneUri);
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Could not launch the dialer.')),
-                      );
-                    }
-                  },
-                  child: CustomText(
-                    currentPlace.contactNumber!,
-                    style: Theme.of(context).textTheme.bodyMedium,
+  Widget _buildAppBarIconButton(IconData icon, VoidCallback? onPressed) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          width: 36,
+          height: 36,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.45),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: Colors.white, size: 20),
+        ),
+      ),
+    );
+  }
+
+  String _photoUrl(String? ref, int maxWidth) {
+    if (ref == null) return '';
+    if (ref.startsWith('places/')) {
+      return 'https://places.googleapis.com/v1/$ref/media?maxWidthPx=$maxWidth&key=${dotenv.env['MAPS_API']}';
+    }
+    return 'https://maps.googleapis.com/maps/api/place/photo?maxwidth=$maxWidth&photo_reference=$ref&key=${dotenv.env['MAPS_API']}';
+  }
+
+  String? _priceLevelText(PriceLevel? level) {
+    switch (level) {
+      case PriceLevel.FREE:
+      case PriceLevel.PRICE_LEVEL_FREE:
+        return 'Free';
+      case PriceLevel.INEXPENSIVE:
+      case PriceLevel.PRICE_LEVEL_INEXPENSIVE:
+        return '€';
+      case PriceLevel.MODERATE:
+      case PriceLevel.PRICE_LEVEL_MODERATE:
+        return '€€';
+      case PriceLevel.EXPENSIVE:
+      case PriceLevel.PRICE_LEVEL_EXPENSIVE:
+        return '€€€';
+      case PriceLevel.VERY_EXPENSIVE:
+      case PriceLevel.PRICE_LEVEL_VERY_EXPENSIVE:
+        return '€€€€';
+      default:
+        return null;
+    }
+  }
+
+  // ─── Info Strip ───────────────────────────────────────────────────────────
+
+  Widget _buildInfoStrip() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: const [
+            BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 2)),
+          ],
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.location_on_outlined, size: 14, color: Colors.grey[600]),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          [
+                            if (currentPlace.city != null) currentPlace.city!,
+                            if (currentPlace.address != null) currentPlace.address!,
+                          ].join(', '),
+                          style: GoogleFonts.outfit(fontSize: 13, color: Colors.grey[700]),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
-          const HorizontalSpacer(16),
-          Row(
-            children: [
-              CustomText(
-                currentPlace.openingHours!.openNow == true ? "Open now" : "Closed",
-                style: Theme.of(context).textTheme.bodyMedium,
+                  if (currentPlace.googleRating != null || currentPlace.distance != null) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        if (currentPlace.googleRating != null) ...[
+                          const Icon(Icons.star_rounded, size: 14, color: Color(0xFFFFC107)),
+                          const SizedBox(width: 2),
+                          Text(
+                            '${currentPlace.googleRating}',
+                            style: GoogleFonts.outfit(fontSize: 12, color: Colors.grey[700]),
+                          ),
+                        ],
+                        if (currentPlace.googleRating != null && currentPlace.distance != null)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 6),
+                            child: Text('·', style: TextStyle(color: Colors.grey[400])),
+                          ),
+                        if (currentPlace.distance != null)
+                          Text(
+                            '${(currentPlace.distance! / 1000).toStringAsFixed(1)} km',
+                            style: GoogleFonts.outfit(fontSize: 12, color: Colors.grey[700]),
+                          ),
+                      ],
+                    ),
+                  ],
+                ],
               ),
-              const HorizontalSpacer(8),
-              Icon(
-                Icons.circle,
-                color: currentPlace.openingHours!.openNow == true ? Colors.green : Colors.red,
-                size: 12,
+            ),
+            if (currentPlace.contactNumber != null)
+              GestureDetector(
+                onTap: _launchPhone,
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.phone, size: 20, color: Colors.black87),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─── Rating Section ───────────────────────────────────────────────────────
+
+  Widget _buildRatingSection() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'My Rating',
+            style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 12),
+          currentPlace.rating == null
+              ? _buildAddRatingCard()
+              : RatingSummaryCard(
+                  rating: currentPlace.rating!,
+                  onEditRating: () => showRatingDialog(currentPlace.rating),
+                  onDeleteRating: () {
+                    setState(() {
+                      currentPlace.rating = null;
+                    });
+                  },
+                ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAddRatingCard() {
+    return InkWell(
+      onTap: () => showRatingDialog(null),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey.shade300),
+          boxShadow: const [
+            BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 2)),
+          ],
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 28),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.star_border_rounded, size: 32, color: Colors.black54),
+              const SizedBox(height: 8),
+              Text(
+                '+ Rate this place',
+                style: GoogleFonts.outfit(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
               ),
             ],
           ),
-          const HorizontalSpacer(22),
-          CustomText(
-            "⭐ ${currentPlace.googleRating}",
-            style: Theme.of(context).textTheme.bodyMedium,
+        ),
+      ),
+    );
+  }
+
+  // ─── Co-visitors ──────────────────────────────────────────────────────────
+
+  Widget _buildCoVisitorsSection() {
+    final allCoVisitors = currentPlace.coVisitors ?? [];
+    final filtered =
+        allCoVisitors.where((cv) => cv.userId != widget.loggedInUserId).toList();
+    final isOwner = currentPlace.userId == widget.loggedInUserId;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Co-visitors${filtered.isNotEmpty ? ' (${filtered.length})' : ''}',
+                style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
+              TextButton.icon(
+                onPressed: _showAddVisitorsSheet,
+                icon: const Icon(Icons.add, size: 16),
+                label: Text('Invite', style: GoogleFonts.outfit(fontSize: 14)),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.black,
+                  padding: EdgeInsets.zero,
+                  minimumSize: const Size(0, 0),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+              ),
+            ],
+          ),
+          if (filtered.isNotEmpty || isOwner) ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 88,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: [
+                  if (filtered.isEmpty) _buildDashedInviteCircle(),
+                  ...filtered.map(_buildCoVisitorAvatar),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCoVisitorAvatar(CoVisitor cv) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 12),
+      child: GestureDetector(
+        onTap: () => _showCoVisitorSheet(context, cv),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircleAvatar(
+              radius: 32,
+              backgroundImage: cv.profileImageUrl != null
+                  ? NetworkImage(cv.profileImageUrl!)
+                  : null,
+              backgroundColor: MyColors.avatarBackgroundColor,
+              child: cv.profileImageUrl == null
+                  ? Text(
+                      _getCoVisitorInitials(cv),
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                    )
+                  : null,
+            ),
+            const SizedBox(height: 4),
+            SizedBox(
+              width: 64,
+              child: Text(
+                cv.firstName ?? '',
+                style: GoogleFonts.outfit(fontSize: 12),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDashedInviteCircle() {
+    return Padding(
+      padding: const EdgeInsets.only(right: 12),
+      child: GestureDetector(
+        onTap: _showAddVisitorsSheet,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CustomPaint(
+              size: const Size(64, 64),
+              painter: _DashedCirclePainter(),
+              child: const SizedBox(
+                width: 64,
+                height: 64,
+                child: Center(child: Icon(Icons.add, size: 24, color: Colors.grey)),
+              ),
+            ),
+            const SizedBox(height: 4),
+            SizedBox(
+              width: 64,
+              child: Text(
+                'Invite',
+                style: GoogleFonts.outfit(fontSize: 12, color: Colors.grey),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─── Visit Date ───────────────────────────────────────────────────────────
+
+  Widget _buildVisitDateChip() {
+    final dateLabel = _visitedAt != null
+        ? DateFormat('d MMM yyyy').format(_visitedAt!)
+        : 'Set visit date';
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: GestureDetector(
+        onTap: _openDatePicker,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+          decoration: BoxDecoration(
+            border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.calendar_today_outlined, size: 16, color: Colors.grey[600]),
+              const SizedBox(width: 8),
+              Text(
+                'Visited: $dateLabel',
+                style: GoogleFonts.outfit(
+                  fontSize: 14,
+                  color: _visitedAt != null ? Colors.black87 : Colors.grey[500],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openDatePicker() async {
+    DateTime temp = _visitedAt ?? DateTime.now();
+    await showCupertinoModalPopup<void>(
+      context: context,
+      builder: (BuildContext popupContext) => Material(
+        type: MaterialType.transparency,
+        child: Center(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              width: MediaQuery.of(popupContext).size.width * 0.8,
+              color: CupertinoColors.systemBackground.resolveFrom(popupContext),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    color: MyColors.mainBackgroundColor,
+                    child: const Text(
+                      'Select date',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 180,
+                    child: CupertinoDatePicker(
+                      minimumDate: _earliestDate,
+                      maximumDate: _latestDate,
+                      initialDateTime: _visitedAt ?? DateTime.now(),
+                      mode: CupertinoDatePickerMode.date,
+                      onDateTimeChanged: (DateTime newDate) => temp = newDate,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: MyColors.primaryColor),
+                      onPressed: () {
+                        Navigator.of(popupContext).pop();
+                        _onDateChanged(temp);
+                      },
+                      child: const Text('Select',
+                          style: TextStyle(color: Colors.white)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ─── Bottom Bar ───────────────────────────────────────────────────────────
+
+  Widget _buildBottomBar() {
+    final isOwner = widget.loggedInUserId != null && currentPlace.userId == widget.loggedInUserId;
+    final isCoVisitor = widget.loggedInUserId != null &&
+        currentPlace.userId != null &&
+        currentPlace.userId != widget.loggedInUserId;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      child: Row(
+        children: [
+          if (currentPlace.rating != null && isOwner) ...[
+            OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.red,
+                side: const BorderSide(color: Colors.red),
+                minimumSize: const Size(56, 52),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+              ),
+              onPressed: () => _showDeleteConfirmationDialog(context),
+              child: const Icon(CupertinoIcons.delete_simple),
+            ),
+            const SizedBox(width: 12),
+          ],
+          if (currentPlace.rating != null && isCoVisitor) ...[
+            OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.amber.shade700,
+                side: BorderSide(color: Colors.amber.shade700),
+                minimumSize: const Size(56, 52),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+              ),
+              onPressed: () => _showLeaveConfirmationSheet(context),
+              child: const Icon(Icons.exit_to_app),
+            ),
+            const SizedBox(width: 12),
+          ],
+          Expanded(
+            child: SizedBox(
+              height: 52,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                  foregroundColor: Colors.white,
+                  disabledBackgroundColor: Colors.grey.shade300,
+                  disabledForegroundColor: Colors.grey.shade600,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: _isSaving || currentPlace.rating == null
+                    ? null
+                    : () {
+                        // Co-visitors (visitId != null) pop immediately after save.
+                        // Owners stay on screen until post-save sheet is handled.
+                        if (currentPlace.visitId != null) {
+                          widget.onSavePlace(currentPlace);
+                          Navigator.pop(context);
+                        } else {
+                          setState(() => _isSaving = true);
+                          widget.onSavePlace(currentPlace);
+                        }
+                      },
+                child: _isSaving
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : Text(
+                        'Save',
+                        style: GoogleFonts.outfit(
+                            fontSize: 16, fontWeight: FontWeight.w600),
+                      ),
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget buildAddress(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4.0, left: 16),
-      child: CustomText(
-        "${currentPlace.address}, ${currentPlace.city}",
-        style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontSize: 20),
-        softWrap: true, // Ensures text wraps if needed
-      ),
-    );
-  }
+  // ─── Dialogs ──────────────────────────────────────────────────────────────
 
-  Widget _buildRatingCard(Rating? rating, VoidCallback onAdd) {
-    return rating == null
-        ? InkWell(
-            onTap: onAdd,
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              width: 120,
-              height: 80,
-              decoration: BoxDecoration(
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 6,
-                    spreadRadius: 1,
-                    offset: Offset(0, 1),
-                  ),
-                ],
-                color: MyColors.mainBackgroundColor,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: MyColors.primaryColor, width: 1),
-              ),
-              child: const Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.add, size: 25, color: MyColors.primaryColor),
-                  VerticalSpacer(4),
-                  CustomText("Add Rating", style: TextStyle(color: MyColors.primaryColor))
-                ],
-              ),
-            ),
-          )
-        : RatingSummaryCard(
-            rating: rating,
-            onEditRating: () => showRatingDialog(rating),
-            onDeleteRating: () {
-              setState(() {
-                if (rating == currentPlace.firstRating) {
-                  currentPlace.firstRating = null;
-                } else {
-                  currentPlace.secondRating = null;
-                }
-              });
-            },
-          );
-  }
-
-  void showRatingDialog(Rating rating) {
+  void showRatingDialog(Rating? existingRating) {
+    // Work with a draft so dismissing without saving discards changes
+    final draft = existingRating?.copyWith() ??
+        Rating(ambientRating: 1, foodRating: 1, priceRating: 1);
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (BuildContext context) {
+      builder: (BuildContext ctx) {
         return Container(
           decoration: const BoxDecoration(
             color: Colors.white,
@@ -352,16 +800,16 @@ class _NewPlaceState extends State<NewPlace> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const VerticalSpacer(18),
-              PlaceRatingDialog(rating: rating),
+              PlaceRatingDialog(rating: draft),
               const VerticalSpacer(9),
               ButtonComponent(
                 onPressed: () {
-                  Navigator.pop(context);
-                  setState(() {});
+                  Navigator.pop(ctx);
+                  setState(() => currentPlace.rating = draft);
                 },
                 text: "Save",
               ),
-              const VerticalSpacer(8),
+              SizedBox(height: 8 + MediaQuery.of(ctx).padding.bottom),
             ],
           ),
         );
@@ -390,10 +838,8 @@ class _NewPlaceState extends State<NewPlace> {
             children: [
               TextSpan(
                 text: widget.place!.name,
-                style: Theme.of(context)
-                    .textTheme
-                    .headlineSmall
-                    ?.copyWith(fontWeight: FontWeight.bold, fontStyle: FontStyle.italic),
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold, fontStyle: FontStyle.italic),
               ),
               const TextSpan(text: " ?"),
             ],
@@ -431,9 +877,322 @@ class _NewPlaceState extends State<NewPlace> {
     );
   }
 
-  void _onDateChanged(DateTime newDate) {
-    _visitedAt = newDate;
-    currentPlace.visitedAt = _visitedAt;
-    setState(() {});
+  void _showLeaveConfirmationSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        padding: EdgeInsets.fromLTRB(20, 20, 20, 32 + MediaQuery.of(sheetContext).padding.bottom),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            Text(
+              "Leave ${currentPlace.name ?? 'this place'}?",
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              "Your rating and visit will be removed. The place stays saved for the host and other visitors.",
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    onPressed: () => Navigator.of(sheetContext).pop(),
+                    child: const Text("Cancel"),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.amber.shade700,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    icon: const Icon(Icons.exit_to_app, size: 18),
+                    label: const Text("Leave", style: TextStyle(fontWeight: FontWeight.w600)),
+                    onPressed: () {
+                      Navigator.of(sheetContext).pop();
+                      Navigator.of(context).pop();
+                      widget.onRemoveCoVisitor(currentPlace.id!, widget.loggedInUserId!);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
+
+  void _showAddVisitorsSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => AddVisitorsSheet(
+        place: currentPlace,
+        friends: widget.friends ?? [],
+        onInvite: widget.onInviteVisitor,
+      ),
+    );
+  }
+
+  void _showPostSaveSheet() {
+    // Use the freshly saved place (from Redux) so we have the backend ID
+    final savedPlace = widget.place ?? currentPlace;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        padding: EdgeInsets.fromLTRB(24, 20, 24, 24 + MediaQuery.of(ctx).padding.bottom),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            Container(
+              width: 56,
+              height: 56,
+              decoration: const BoxDecoration(
+                color: Color(0xFFE8F5E9),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.check_rounded, color: Color(0xFF4CAF50), size: 32),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Place saved!',
+              style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Would you like to invite co-visitors?',
+              style: GoogleFonts.outfit(fontSize: 14, color: Colors.grey[600]),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                    ),
+                    onPressed: () => Navigator.of(ctx).pop(),
+                    child: Text('Done', style: GoogleFonts.outfit()),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                    ),
+                    icon: const Icon(Icons.person_add_outlined, size: 18),
+                    label: Text('Invite',
+                        style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
+                    onPressed: () => Navigator.of(ctx).pop('invite'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    ).then((result) {
+      if (!mounted) return;
+      if (result == 'invite') {
+        showModalBottomSheet(
+          context: context,
+          backgroundColor: Colors.transparent,
+          isScrollControlled: true,
+          builder: (ctx2) => AddVisitorsSheet(
+            place: savedPlace,
+            friends: widget.friends ?? [],
+            onInvite: widget.onInviteVisitor,
+          ),
+        ).then((_) {
+          if (mounted) Navigator.of(context).pop();
+        });
+      } else {
+        Navigator.of(context).pop();
+      }
+    });
+  }
+
+  void _showCoVisitorSheet(BuildContext context, CoVisitor coVisitor) {
+    final isOwner = currentPlace.userId == widget.loggedInUserId;
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.fromLTRB(24, 24, 24, 24 + MediaQuery.of(ctx).padding.bottom),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircleAvatar(
+              radius: 40,
+              backgroundImage: coVisitor.profileImageUrl != null
+                  ? NetworkImage(coVisitor.profileImageUrl!)
+                  : null,
+              child: coVisitor.profileImageUrl == null
+                  ? Text(
+                      _getCoVisitorInitials(coVisitor),
+                      style: const TextStyle(fontSize: 22),
+                    )
+                  : null,
+            ),
+            const VerticalSpacer(12),
+            CustomText(
+              '${coVisitor.firstName ?? ''} ${coVisitor.lastName ?? ''}'.trim(),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            if (coVisitor.rating != null) ...[
+              const VerticalSpacer(8),
+              Text(
+                '${UtilsHelper.formatRating(coVisitor.rating!.placeRating)}/30',
+                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              ),
+              Text(
+                'Experience: ${UtilsHelper.formatRating(coVisitor.rating!.ambientRating)}/10 · Food: ${UtilsHelper.formatRating(coVisitor.rating!.foodRating)}/10 · Price: ${UtilsHelper.formatRating(coVisitor.rating!.priceRating)}/10',
+                style: GoogleFonts.outfit(fontSize: 13, color: Colors.grey[600]),
+              ),
+            ],
+            const VerticalSpacer(24),
+            if (isOwner)
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red,
+                    side: const BorderSide(color: Colors.red),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    widget.onRemoveCoVisitor(currentPlace.id!, coVisitor.userId!);
+                  },
+                  child: const Text("Remove co-visitor"),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─── Helpers ──────────────────────────────────────────────────────────────
+
+  String _getCoVisitorInitials(CoVisitor cv) {
+    final first = (cv.firstName?.isNotEmpty == true) ? cv.firstName![0] : '';
+    final last = (cv.lastName?.isNotEmpty == true) ? cv.lastName![0] : '';
+    return '$first$last'.toUpperCase();
+  }
+
+  void _onDateChanged(DateTime newDate) {
+    setState(() {
+      _visitedAt = newDate;
+      currentPlace.visitedAt = newDate;
+    });
+  }
+
+  Future<void> _launchPhone() async {
+    final phoneNumber = currentPlace.contactNumber;
+    if (phoneNumber == null) return;
+    final Uri phoneUri = Uri(scheme: 'tel', path: phoneNumber.replaceAll(' ', ''));
+    if (await canLaunchUrl(phoneUri)) {
+      await launchUrl(phoneUri);
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not launch the dialer.')),
+      );
+    }
+  }
+
+  Future<void> _launchMaps() async {
+    if (currentPlace.url == null) return;
+    final Uri mapsUri = Uri.parse(currentPlace.url!);
+    if (await canLaunchUrl(mapsUri)) {
+      await launchUrl(mapsUri);
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not open Google Maps.')),
+      );
+    }
+  }
+}
+
+// ─── Painters ─────────────────────────────────────────────────────────────────
+
+class _DashedCirclePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.grey.shade400
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2 - 4;
+    const dashCount = 12;
+    const sweepPerDash = (2 * pi) / dashCount;
+    const dashSweep = sweepPerDash * 0.6;
+    for (int i = 0; i < dashCount; i++) {
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius),
+        i * sweepPerDash,
+        dashSweep,
+        false,
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DashedCirclePainter old) => false;
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:gastrorate/models/auth/user.dart';
 import 'package:gastrorate/models/place.dart';
 import 'package:gastrorate/theme/my_colors.dart';
 import 'package:gastrorate/widgets/custom_text.dart';
@@ -8,15 +9,80 @@ import 'package:gastrorate/widgets/default_button.dart';
 
 class PlaceCard extends StatelessWidget {
   final Place place;
-  final Function(Place) onDeletePlace;
+  final Function(Place)? onDeletePlace;
   final Function(Place) onInitPlaceForm;
+  final List<User>? friends;
+  final Function(String placeId, String friendId)? onInviteCoVisitor;
+  final Function(Place)? onLeavePlace;
 
   const PlaceCard({
     Key? key,
     required this.place,
-    required this.onDeletePlace,
+    this.onDeletePlace,
     required this.onInitPlaceForm,
+    this.friends,
+    this.onInviteCoVisitor,
+    this.onLeavePlace,
   }) : super(key: key);
+
+  String _photoUrl(String ref, int maxWidth) {
+    if (ref.startsWith('places/')) {
+      return "https://places.googleapis.com/v1/$ref/media?maxWidthPx=$maxWidth&key=${dotenv.env['MAPS_API']}";
+    }
+    return "https://maps.googleapis.com/maps/api/place/photo?maxwidth=$maxWidth&photo_reference=$ref&key=${dotenv.env['MAPS_API']}";
+  }
+
+  String _locationText() {
+    if (place.city != null && place.country != null) return "${place.city}, ${place.country}";
+    if (place.address != null && place.address!.isNotEmpty) return place.address!;
+    return "";
+  }
+
+  void _showInviteFriendSheet(BuildContext context) {
+    final friendList = friends ?? [];
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(top: 16, bottom: 16 + MediaQuery.of(ctx).padding.bottom),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: CustomText(
+                "Invite a friend to ${place.name ?? 'this place'}",
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+            ),
+            if (friendList.isEmpty)
+              const Padding(
+                padding: EdgeInsets.all(24),
+                child: CustomText("No friends to invite yet."),
+              )
+            else
+              ...friendList.map((friend) => ListTile(
+                    leading: CircleAvatar(
+                      backgroundImage: friend.profileImageUrl != null
+                          ? NetworkImage(friend.profileImageUrl!)
+                          : null,
+                      child: friend.profileImageUrl == null
+                          ? Text(friend.getUserInitials())
+                          : null,
+                    ),
+                    title: CustomText(friend.getFullName()),
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      onInviteCoVisitor!(place.id!, friend.id!);
+                    },
+                  )),
+          ],
+        ),
+      ),
+    );
+  }
 
   void _showDeleteConfirmationDialog(BuildContext context) {
     showDialog(
@@ -57,7 +123,7 @@ class PlaceCard extends StatelessWidget {
                   Expanded(
                     child: ButtonComponent.smallButton(
                       onPressed: () {
-                        onDeletePlace(place);
+                        onDeletePlace?.call(place);
                       },
                       text: "Delete",
                     ),
@@ -67,6 +133,74 @@ class PlaceCard extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  void _showLeaveConfirmationSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        padding: EdgeInsets.fromLTRB(20, 20, 20, 32 + MediaQuery.of(sheetContext).padding.bottom),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            Text(
+              "Leave ${place.name ?? 'this place'}?",
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              "Your rating and visit will be removed. The place stays saved for the host and other visitors.",
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: ButtonComponent.outlinedButtonSmall(
+                    onPressed: () => Navigator.of(sheetContext).pop(),
+                    text: "Cancel",
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.amber.shade700,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    icon: const Icon(Icons.exit_to_app, size: 18),
+                    label: const Text("Leave", style: TextStyle(fontWeight: FontWeight.w600)),
+                    onPressed: () {
+                      Navigator.of(sheetContext).pop();
+                      onLeavePlace?.call(place);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -96,7 +230,7 @@ class PlaceCard extends StatelessWidget {
               borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
               child: place.photos?.first.photoReference != null && place.photos!.first.photoReference!.isNotEmpty
                   ? Image.network(
-                      "https://maps.googleapis.com/maps/api/place/photo?maxwidth=200&photo_reference=${place.photos?.first.photoReference}&key=${dotenv.env['MAPS_API']}",
+                      _photoUrl(place.photos!.first.photoReference!, 200),
                       height: 150,
                       width: double.infinity,
                       fit: BoxFit.cover,
@@ -138,9 +272,9 @@ class PlaceCard extends StatelessWidget {
                           fontSize: 18,
                         ),
                       ),
-                      if (place.placeRating != null)
+                      if (place.rating != null)
                         CustomText(
-                          "${place.placeRating! % 1 == 0 ? place.placeRating?.toInt() : place.placeRating?.toStringAsFixed(1)}/60",
+                          "${place.rating!.placeRating != null && place.rating!.placeRating! % 1 == 0 ? place.rating!.placeRating?.toInt() : place.rating!.placeRating?.toStringAsFixed(1)}/30",
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 20,
@@ -150,7 +284,7 @@ class PlaceCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   CustomText(
-                    "${place.city}, ${place.country}",
+                    _locationText(),
                     style: const TextStyle(fontSize: 14, color: Colors.grey),
                   ),
                   const SizedBox(height: 8),
@@ -161,9 +295,27 @@ class PlaceCard extends StatelessWidget {
                         "⭐ ${place.googleRating}",
                         style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                       ),
-                      IconButton(
-                        onPressed: () => _showDeleteConfirmationDialog(context),
-                        icon: const Icon(CupertinoIcons.delete_simple, color: Colors.red),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (onInviteCoVisitor != null)
+                            IconButton(
+                              onPressed: () => _showInviteFriendSheet(context),
+                              icon: const Icon(Icons.person_add_outlined, color: MyColors.primaryDarkColor),
+                              tooltip: "Invite friend",
+                            ),
+                          if (onLeavePlace != null)
+                            IconButton(
+                              onPressed: () => _showLeaveConfirmationSheet(context),
+                              icon: Icon(Icons.exit_to_app, color: Colors.amber.shade700),
+                              tooltip: "Leave place",
+                            )
+                          else if (onDeletePlace != null)
+                            IconButton(
+                              onPressed: () => _showDeleteConfirmationDialog(context),
+                              icon: const Icon(CupertinoIcons.delete_simple, color: Colors.red),
+                            ),
+                        ],
                       ),
                     ],
                   ),

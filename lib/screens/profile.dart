@@ -1,6 +1,6 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:gastrorate/models/auth/user.dart';
 import 'package:gastrorate/theme/my_colors.dart';
 import 'package:gastrorate/tools/user_helper.dart';
@@ -29,7 +29,9 @@ class _ProfileState extends State<Profile> {
         title: const CustomText("My Profile", style: TextStyle(color: MyColors.navbarItemColor)),
         backgroundColor: MyColors.appbarColor,
       ),
-      body: SingleChildScrollView(
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 60, 20, 20),
         child: Column(
           children: [
@@ -42,7 +44,7 @@ class _ProfileState extends State<Profile> {
                     final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
                     if (pickedFile != null) {
-                      File imageFile = File(pickedFile.path);
+                      // TODO: upload profile image
                     }
                   }),
             ),
@@ -56,12 +58,38 @@ class _ProfileState extends State<Profile> {
               widget.user.email ?? "",
               style: TextStyle(color: Colors.grey[600], fontSize: 14),
             ),
+            if (widget.user.tag != null)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    '#${widget.user.tag}',
+                    style: const TextStyle(color: Colors.grey, fontSize: 14),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.copy, size: 16),
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(
+                        text: '${widget.user.username ?? ''}#${widget.user.tag}',
+                      ));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Tag copied!')),
+                      );
+                    },
+                  ),
+                ],
+              ),
             const VerticalSpacer(30),
             Card(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               elevation: 2,
               child: Column(
                 children: [
+                  _buildProfileOption(
+                    icon: Icons.people,
+                    title: "Friends",
+                    onTap: () => context.push('/friends'),
+                  ),
                   _buildProfileOption(
                     icon: Icons.person,
                     title: "Edit Profile",
@@ -95,6 +123,7 @@ class _ProfileState extends State<Profile> {
             ),
           ],
         ),
+      ),
       ),
     );
   }

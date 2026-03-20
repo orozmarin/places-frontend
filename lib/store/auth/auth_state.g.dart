@@ -7,10 +7,9 @@ part of 'auth_state.dart';
 // **************************************************************************
 
 AuthState _$AuthStateFromJson(Map<String, dynamic> json) => AuthState(
-  loggedUser:
-      json['loggedUser'] == null
-          ? null
-          : User.fromJson(json['loggedUser'] as Map<String, dynamic>),
+  loggedUser: json['loggedUser'] == null
+      ? null
+      : User.fromJson(json['loggedUser'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$AuthStateToJson(AuthState instance) => <String, dynamic>{
