@@ -151,6 +151,7 @@ class _HomeState extends State<Home> {
 
   FloatingActionButton buildAddPlaceButton(BuildContext context) {
     return FloatingActionButton.extended(
+      heroTag: 'home_fab',
       icon: const Icon(Icons.add, color: MyColors.navbarItemColor),
       label: const CustomText(
         "Add Place",
