@@ -50,8 +50,9 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
   double? _currentLng;
   int _searchGeneration = 0;
   bool _hasSearched = false;
-  String? _nextPageToken;
-  String? _lastQuery;
+  String? _lastInput;
+  String? _nextPageTokenEn;
+  String? _nextPageTokenCro;
   bool _isLoadingMore = false;
   final ScrollController _listScrollController = ScrollController();
   List<_Suggestion> _recommendations = [];
@@ -98,8 +99,9 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
       setState(() {
         _suggestions = [];
         _hasSearched = false;
-        _nextPageToken = null;
-        _lastQuery = null;
+        _lastInput = null;
+        _nextPageTokenEn = null;
+        _nextPageTokenCro = null;
       });
       return;
     }
@@ -123,44 +125,81 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
     // Two parallel queries for better name coverage:
     // "restaurant X" (English) + "restoran X" (Croatian) — Text Search ranks
     // differently depending on whether place names use local vs English prefix.
-    final ((resultsEn, tokenEn), (resultsCro, _)) = await (
+    final ((resultsEn, tokenEn), (resultsCro, tokenCro)) = await (
       _doSearch('restaurant $input'),
       _doSearch('restoran $input'),
     ).wait;
 
     if (!mounted || generation != _searchGeneration) return;
 
-    // Merge and deduplicate, then sort by distance (closest first)
-    final seen = <String>{};
-    final merged = <_Suggestion>[];
-    for (final s in [...resultsEn, ...resultsCro]) {
-      if (seen.add(s.placeId)) merged.add(s);
+    // Merge, deduplicate, sort by distance (closest first)
+    final merged = _mergeAndSort([...resultsEn, ...resultsCro]);
+
+    setState(() {
+      _suggestions = merged;
+      _hasSearched = true;
+      _lastInput = input;
+      _nextPageTokenEn = tokenEn;
+      _nextPageTokenCro = tokenCro;
+    });
+  }
+
+  Future<void> _loadMore() async {
+    final hasMore = _nextPageTokenEn != null || _nextPageTokenCro != null;
+    if (!hasMore || _lastInput == null || _isLoadingMore) return;
+    setState(() => _isLoadingMore = true);
+
+    // Paginate whichever queries still have pages, in parallel
+    final enFuture = _nextPageTokenEn != null
+        ? _doSearch('restaurant $_lastInput', pageToken: _nextPageTokenEn)
+        : null;
+    final croFuture = _nextPageTokenCro != null
+        ? _doSearch('restoran $_lastInput', pageToken: _nextPageTokenCro)
+        : null;
+
+    List<_Suggestion> newResults = [];
+    String? newTokenEn;
+    String? newTokenCro;
+
+    if (enFuture != null && croFuture != null) {
+      final ((en, tokEn), (cro, tokCro)) = await (enFuture, croFuture).wait;
+      newResults = [...en, ...cro];
+      newTokenEn = tokEn;
+      newTokenCro = tokCro;
+    } else if (enFuture != null) {
+      final (en, tokEn) = await enFuture;
+      newResults = en;
+      newTokenEn = tokEn;
+    } else if (croFuture != null) {
+      final (cro, tokCro) = await croFuture;
+      newResults = cro;
+      newTokenCro = tokCro;
     }
-    merged.sort((a, b) {
+
+    if (!mounted) return;
+
+    final existingIds = _suggestions.map((s) => s.placeId).toSet();
+    final deduped = newResults.where((s) => existingIds.add(s.placeId)).toList();
+    final all = _mergeAndSort([..._suggestions, ...deduped]);
+
+    setState(() {
+      _suggestions = all;
+      _nextPageTokenEn = newTokenEn;
+      _nextPageTokenCro = newTokenCro;
+      _isLoadingMore = false;
+    });
+  }
+
+  List<_Suggestion> _mergeAndSort(List<_Suggestion> items) {
+    final seen = <String>{};
+    final deduped = items.where((s) => seen.add(s.placeId)).toList();
+    deduped.sort((a, b) {
       if (a.distance == null && b.distance == null) return 0;
       if (a.distance == null) return 1;
       if (b.distance == null) return -1;
       return a.distance!.compareTo(b.distance!);
     });
-
-    setState(() {
-      _suggestions = merged;
-      _hasSearched = true;
-      _nextPageToken = tokenEn;
-      _lastQuery = 'restaurant $input';
-    });
-  }
-
-  Future<void> _loadMore() async {
-    if (_nextPageToken == null || _lastQuery == null || _isLoadingMore) return;
-    setState(() => _isLoadingMore = true);
-    final (results, token) = await _doSearch(_lastQuery!, pageToken: _nextPageToken);
-    if (!mounted) return;
-    setState(() {
-      _suggestions = [..._suggestions, ...results];
-      _nextPageToken = token;
-      _isLoadingMore = false;
-    });
+    return deduped;
   }
 
   Future<(List<_Suggestion>, String?)> _doSearch(String query, {String? pageToken}) async {
