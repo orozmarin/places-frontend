@@ -54,16 +54,37 @@ class _NewPlaceState extends State<NewPlace> {
   final DateTime _earliestDate = DateTime.now().subtract(const Duration(days: 36500));
   DateTime? _latestDate;
   DateTime? _visitedAt;
+  bool _isSaving = false;
+  bool _isNewPlace = false;
 
   @override
   void initState() {
     super.initState();
-    currentPlace = widget.place!;
+    final source = widget.place!;
+    // Copy the place so local mutations don't bleed into Redux state
+    currentPlace = source.copyWith(rating: source.rating?.copyWith());
+    _isNewPlace = source.userId == null;
     _visitedAt = currentPlace.visitedAt ?? DateTime.now();
     currentPlace.visitedAt = _visitedAt;
     final now = DateTime.now();
     _latestDate = DateTime(now.year, now.month, now.day, 23, 59, 59);
     currentPlace.isFavorite ??= false;
+  }
+
+  @override
+  void didUpdateWidget(NewPlace oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_isSaving && widget.place != oldWidget.place && widget.place?.id != null) {
+      setState(() => _isSaving = false);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        if (_isNewPlace) {
+          _showPostSaveSheet();
+        } else {
+          Navigator.of(context).pop();
+        }
+      });
+    }
   }
 
   // ─── Build ────────────────────────────────────────────────────────────────
@@ -415,7 +436,7 @@ class _NewPlaceState extends State<NewPlace> {
               ? _buildAddRatingCard()
               : RatingSummaryCard(
                   rating: currentPlace.rating!,
-                  onEditRating: () => showRatingDialog(currentPlace.rating!),
+                  onEditRating: () => showRatingDialog(currentPlace.rating),
                   onDeleteRating: () {
                     setState(() {
                       currentPlace.rating = null;
@@ -429,12 +450,7 @@ class _NewPlaceState extends State<NewPlace> {
 
   Widget _buildAddRatingCard() {
     return InkWell(
-      onTap: () {
-        setState(() {
-          currentPlace.rating ??= Rating(ambientRating: 1, foodRating: 1, priceRating: 1);
-          showRatingDialog(currentPlace.rating!);
-        });
-      },
+      onTap: () => showRatingDialog(null),
       borderRadius: BorderRadius.circular(16),
       child: Container(
         decoration: BoxDecoration(
@@ -598,7 +614,7 @@ class _NewPlaceState extends State<NewPlace> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: GestureDetector(
-        onTap: () => _openDatePicker(),
+        onTap: _openDatePicker,
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
           decoration: BoxDecoration(
@@ -682,7 +698,9 @@ class _NewPlaceState extends State<NewPlace> {
 
   Widget _buildBottomBar() {
     final isOwner = widget.loggedInUserId != null && currentPlace.userId == widget.loggedInUserId;
-    final isCoVisitor = widget.loggedInUserId != null && currentPlace.userId != widget.loggedInUserId;
+    final isCoVisitor = widget.loggedInUserId != null &&
+        currentPlace.userId != null &&
+        currentPlace.userId != widget.loggedInUserId;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
       child: Row(
@@ -727,17 +745,33 @@ class _NewPlaceState extends State<NewPlace> {
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12)),
                 ),
-                onPressed: currentPlace.rating == null
+                onPressed: _isSaving || currentPlace.rating == null
                     ? null
                     : () {
-                        widget.onSavePlace(currentPlace);
-                        Navigator.pop(context);
+                        // Co-visitors (visitId != null) pop immediately after save.
+                        // Owners stay on screen until post-save sheet is handled.
+                        if (currentPlace.visitId != null) {
+                          widget.onSavePlace(currentPlace);
+                          Navigator.pop(context);
+                        } else {
+                          setState(() => _isSaving = true);
+                          widget.onSavePlace(currentPlace);
+                        }
                       },
-                child: Text(
-                  'Save',
-                  style: GoogleFonts.outfit(
-                      fontSize: 16, fontWeight: FontWeight.w600),
-                ),
+                child: _isSaving
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : Text(
+                        'Save',
+                        style: GoogleFonts.outfit(
+                            fontSize: 16, fontWeight: FontWeight.w600),
+                      ),
               ),
             ),
           ),
@@ -746,9 +780,12 @@ class _NewPlaceState extends State<NewPlace> {
     );
   }
 
-  // ─── Dialogs (unchanged logic) ────────────────────────────────────────────
+  // ─── Dialogs ──────────────────────────────────────────────────────────────
 
-  void showRatingDialog(Rating rating) {
+  void showRatingDialog(Rating? existingRating) {
+    // Work with a draft so dismissing without saving discards changes
+    final draft = existingRating?.copyWith() ??
+        Rating(ambientRating: 1, foodRating: 1, priceRating: 1);
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -763,12 +800,12 @@ class _NewPlaceState extends State<NewPlace> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const VerticalSpacer(18),
-              PlaceRatingDialog(rating: rating),
+              PlaceRatingDialog(rating: draft),
               const VerticalSpacer(9),
               ButtonComponent(
                 onPressed: () {
                   Navigator.pop(ctx);
-                  setState(() {});
+                  setState(() => currentPlace.rating = draft);
                 },
                 text: "Save",
               ),
@@ -918,14 +955,114 @@ class _NewPlaceState extends State<NewPlace> {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (BuildContext context) {
-        return AddVisitorsSheet(
-          place: currentPlace,
-          friends: widget.friends ?? [],
-          onInvite: widget.onInviteVisitor,
-        );
-      },
+      builder: (_) => AddVisitorsSheet(
+        place: currentPlace,
+        friends: widget.friends ?? [],
+        onInvite: widget.onInviteVisitor,
+      ),
     );
+  }
+
+  void _showPostSaveSheet() {
+    // Use the freshly saved place (from Redux) so we have the backend ID
+    final savedPlace = widget.place ?? currentPlace;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        padding: EdgeInsets.fromLTRB(24, 20, 24, 24 + MediaQuery.of(ctx).padding.bottom),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            Container(
+              width: 56,
+              height: 56,
+              decoration: const BoxDecoration(
+                color: Color(0xFFE8F5E9),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.check_rounded, color: Color(0xFF4CAF50), size: 32),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Place saved!',
+              style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Would you like to invite co-visitors?',
+              style: GoogleFonts.outfit(fontSize: 14, color: Colors.grey[600]),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                    ),
+                    onPressed: () => Navigator.of(ctx).pop(),
+                    child: Text('Done', style: GoogleFonts.outfit()),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                    ),
+                    icon: const Icon(Icons.person_add_outlined, size: 18),
+                    label: Text('Invite',
+                        style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
+                    onPressed: () => Navigator.of(ctx).pop('invite'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    ).then((result) {
+      if (!mounted) return;
+      if (result == 'invite') {
+        showModalBottomSheet(
+          context: context,
+          backgroundColor: Colors.transparent,
+          isScrollControlled: true,
+          builder: (ctx2) => AddVisitorsSheet(
+            place: savedPlace,
+            friends: widget.friends ?? [],
+            onInvite: widget.onInviteVisitor,
+          ),
+        ).then((_) {
+          if (mounted) Navigator.of(context).pop();
+        });
+      } else {
+        Navigator.of(context).pop();
+      }
+    });
   }
 
   void _showCoVisitorSheet(BuildContext context, CoVisitor coVisitor) {
@@ -999,9 +1136,10 @@ class _NewPlaceState extends State<NewPlace> {
   }
 
   void _onDateChanged(DateTime newDate) {
-    _visitedAt = newDate;
-    currentPlace.visitedAt = _visitedAt;
-    setState(() {});
+    setState(() {
+      _visitedAt = newDate;
+      currentPlace.visitedAt = newDate;
+    });
   }
 
   Future<void> _launchPhone() async {
