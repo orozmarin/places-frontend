@@ -120,23 +120,34 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
   Future<void> _getSuggestions(String input) async {
     final generation = ++_searchGeneration;
 
-    // Primary: raw input + locationBias (local results first, no global blocking)
-    var effectiveQuery = input;
-    var (results, token) = await _doSearch(effectiveQuery);
+    // Two parallel queries for better name coverage:
+    // "restaurant X" (English) + "restoran X" (Croatian) — Text Search ranks
+    // differently depending on whether place names use local vs English prefix.
+    final ((resultsEn, tokenEn), (resultsCro, _)) = await (
+      _doSearch('restaurant $input'),
+      _doSearch('restoran $input'),
+    ).wait;
+
     if (!mounted || generation != _searchGeneration) return;
 
-    // Fallback: city/address queries like "zagreb" return 0 without context
-    if (results.isEmpty) {
-      effectiveQuery = 'restaurant $input';
-      (results, token) = await _doSearch(effectiveQuery);
-      if (!mounted || generation != _searchGeneration) return;
+    // Merge and deduplicate, then sort by distance (closest first)
+    final seen = <String>{};
+    final merged = <_Suggestion>[];
+    for (final s in [...resultsEn, ...resultsCro]) {
+      if (seen.add(s.placeId)) merged.add(s);
     }
+    merged.sort((a, b) {
+      if (a.distance == null && b.distance == null) return 0;
+      if (a.distance == null) return 1;
+      if (b.distance == null) return -1;
+      return a.distance!.compareTo(b.distance!);
+    });
 
     setState(() {
-      _suggestions = results;
+      _suggestions = merged;
       _hasSearched = true;
-      _nextPageToken = token;
-      _lastQuery = effectiveQuery; // store the query that actually returned results
+      _nextPageToken = tokenEn;
+      _lastQuery = 'restaurant $input';
     });
   }
 
@@ -256,6 +267,7 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: CustomAppBar(
         title: const CustomText('Find a place', style: TextStyle(color: MyColors.navbarItemColor)),
         backgroundColor: MyColors.appbarColor,
