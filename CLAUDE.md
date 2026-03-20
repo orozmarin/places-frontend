@@ -66,6 +66,24 @@ Check these files when working on related tasks:
 
 - `.claude/docs/architectural_patterns.md` — Redux action lifecycle, Page/Screen split, ViewModel factory, Manager pattern, router guards
 
+## Git Permissions
+
+Claude may perform the following git operations without asking for confirmation:
+
+- `git status`, `git log`, `git diff`, `git show` — read-only inspection
+- `git add`, `git commit` — staging and committing changes
+- `git push` — pushing to remote (including `-u` for new branches)
+- `git checkout`, `git switch`, `git branch` — branch creation and switching
+- `git pull`, `git fetch` — syncing with remote
+- `git rebase` (non-interactive) — rebasing branches
+- `gh pr create` — opening pull requests
+
+**Requires user confirmation:**
+- Merging pull requests (`gh pr merge`) — user must review and merge PRs themselves
+- Force push (`git push --force`) — always confirm first
+- Deleting branches (`git branch -D`, `git push origin --delete`)
+- `git reset --hard` or any destructive rewrite of committed history
+
 ## Memory System
 
 Project memory lives in `~/.claude/projects/-Users-marinoroz-Documents-OrozDigital-places-frontend/memory/`.
