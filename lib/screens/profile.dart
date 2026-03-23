@@ -93,9 +93,7 @@ class _ProfileState extends State<Profile> {
                   _buildProfileOption(
                     icon: Icons.person,
                     title: "Edit Profile",
-                    onTap: () {
-                      // TODO: otvori edit profile screen
-                    },
+                    onTap: () => widget.onEditUser(widget.user),
                   ),
                   _buildProfileOption(
                     icon: Icons.lock,
