@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:gastrorate/models/auth/login_request.dart';
 import 'package:gastrorate/models/auth/register_request.dart';
@@ -9,9 +11,18 @@ import 'package:gastrorate/widgets/input_field.dart';
 import 'package:gastrorate/widgets/vertical_spacer.dart';
 
 class Login extends StatefulWidget {
-  const Login({Key? key, required this.registerUser, required this.loginUser, required this.isLoading}) : super(key: key);
+  const Login({
+    Key? key,
+    required this.registerUser,
+    required this.loginUser,
+    required this.googleLogin,
+    required this.appleLogin,
+    required this.isLoading,
+  }) : super(key: key);
   final Function(RegisterRequest registerRequest) registerUser;
   final Function(LoginRequest loginRequest) loginUser;
+  final VoidCallback googleLogin;
+  final VoidCallback appleLogin;
   final bool isLoading;
 
   @override
@@ -219,6 +230,41 @@ class _LoginState extends State<Login> {
                         ? 'Already have an account? Login here'
                         : 'Don\'t have an account? Register here'),
                   ),
+                  if (!_isRegistering) ...[
+                    const VerticalSpacer(16),
+                    Row(
+                      children: [
+                        const Expanded(child: Divider()),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: Text(
+                            'or',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
+                        const Expanded(child: Divider()),
+                      ],
+                    ),
+                    const VerticalSpacer(16),
+                    _SocialLoginButton(
+                      onPressed: widget.isLoading ? null : widget.googleLogin,
+                      icon: Image.asset(
+                        'assets/google_logo.png',
+                        height: 20,
+                        width: 20,
+                        errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata, size: 20),
+                      ),
+                      label: 'Continue with Google',
+                    ),
+                    if (Platform.isIOS || Platform.isMacOS) ...[
+                      const VerticalSpacer(12),
+                      _SocialLoginButton(
+                        onPressed: widget.isLoading ? null : widget.appleLogin,
+                        icon: const Icon(Icons.apple, size: 20),
+                        label: 'Sign in with Apple',
+                      ),
+                    ],
+                  ],
                 ],
               ),
             ),
@@ -304,5 +350,34 @@ class _LoginState extends State<Login> {
       return 'Only letters, numbers and underscores allowed';
     }
     return null;
+  }
+}
+
+class _SocialLoginButton extends StatelessWidget {
+  const _SocialLoginButton({
+    required this.onPressed,
+    required this.icon,
+    required this.label,
+  });
+
+  final VoidCallback? onPressed;
+  final Widget icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: onPressed,
+        icon: icon,
+        label: Text(label),
+        style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          side: const BorderSide(color: Colors.grey),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+      ),
+    );
   }
 }

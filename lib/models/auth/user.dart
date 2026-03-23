@@ -16,6 +16,7 @@ class User {
   DateTime? dateOfBirth;
   UserStatus? status;
   String? profileImageUrl;
+  AuthProvider? authProvider;
 
   String getFullName() {
     return "$firstName $lastName";
@@ -43,6 +44,7 @@ class User {
     this.dateOfBirth,
     this.status,
     this.profileImageUrl,
+    this.authProvider,
   });
 
   @override
@@ -60,7 +62,8 @@ class User {
           sex == other.sex &&
           dateOfBirth == other.dateOfBirth &&
           status == other.status &&
-          profileImageUrl == other.profileImageUrl);
+          profileImageUrl == other.profileImageUrl &&
+          authProvider == other.authProvider);
 
   @override
   int get hashCode =>
@@ -74,7 +77,8 @@ class User {
       sex.hashCode ^
       dateOfBirth.hashCode ^
       status.hashCode ^
-      profileImageUrl.hashCode;
+      profileImageUrl.hashCode ^
+      authProvider.hashCode;
 
   @override
   String toString() {
@@ -90,6 +94,7 @@ class User {
         ' dateOfBirth: $dateOfBirth,' +
         ' status: $status,' +
         ' profileImageUrl: $profileImageUrl,' +
+        ' authProvider: $authProvider,' +
         '}';
   }
 
@@ -105,6 +110,7 @@ class User {
     DateTime? dateOfBirth,
     UserStatus? status,
     String? profileImageUrl,
+    AuthProvider? authProvider,
   }) {
     return User(
       id: id ?? this.id,
@@ -118,6 +124,7 @@ class User {
       dateOfBirth: dateOfBirth ?? this.dateOfBirth,
       status: status ?? this.status,
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,
+      authProvider: authProvider ?? this.authProvider,
     );
   }
 
@@ -172,4 +179,10 @@ enum Sex {
   MALE,
   FEMALE,
   UNDEFINED,
+}
+
+enum AuthProvider {
+  EMAIL,
+  GOOGLE,
+  APPLE,
 }
