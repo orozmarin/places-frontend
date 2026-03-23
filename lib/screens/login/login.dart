@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:gastrorate/models/auth/login_request.dart';
 import 'package:gastrorate/models/auth/register_request.dart';
@@ -9,9 +11,18 @@ import 'package:gastrorate/widgets/input_field.dart';
 import 'package:gastrorate/widgets/vertical_spacer.dart';
 
 class Login extends StatefulWidget {
-  const Login({Key? key, required this.registerUser, required this.loginUser, required this.isLoading}) : super(key: key);
+  const Login({
+    Key? key,
+    required this.registerUser,
+    required this.loginUser,
+    required this.isLoading,
+    required this.googleLogin,
+    required this.appleLogin,
+  }) : super(key: key);
   final Function(RegisterRequest registerRequest) registerUser;
   final Function(LoginRequest loginRequest) loginUser;
+  final VoidCallback googleLogin;
+  final VoidCallback appleLogin;
   final bool isLoading;
 
   @override
@@ -219,6 +230,50 @@ class _LoginState extends State<Login> {
                         ? 'Already have an account? Login here'
                         : 'Don\'t have an account? Register here'),
                   ),
+                  if (!_isRegistering) ...[
+                    const VerticalSpacer(16),
+                    Row(
+                      children: [
+                        const Expanded(child: Divider()),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: Text(
+                            'or',
+                            style: TextStyle(color: Colors.grey[600]),
+                          ),
+                        ),
+                        const Expanded(child: Divider()),
+                      ],
+                    ),
+                    const VerticalSpacer(16),
+                    OutlinedButton.icon(
+                      onPressed: widget.isLoading ? null : widget.googleLogin,
+                      icon: Image.network(
+                        'https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg',
+                        height: 20,
+                        width: 20,
+                        errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata, size: 20),
+                      ),
+                      label: const Text('Continue with Google'),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 48),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                    ),
+                    if (Platform.isIOS || Platform.isMacOS) ...[
+                      const VerticalSpacer(12),
+                      OutlinedButton.icon(
+                        onPressed: widget.isLoading ? null : widget.appleLogin,
+                        icon: const Icon(Icons.apple, size: 20),
+                        label: const Text('Sign in with Apple'),
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 48),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          foregroundColor: Colors.black,
+                        ),
+                      ),
+                    ],
+                  ],
                 ],
               ),
             ),

@@ -8,6 +8,8 @@ class AuthManager {
   static const String LOGIN = "/auth/login";
   static const String REGISTER = "/auth/register";
   static const String LOGOUT = "/auth/logout";
+  static const String GOOGLE_LOGIN = "/auth/google";
+  static const String APPLE_LOGIN = "/auth/apple";
 
   static final AuthManager _singleton = AuthManager._internal();
 
@@ -30,6 +32,28 @@ class AuthManager {
     }
   }
 
+
+  Future<AuthResponse?> googleLogin(String idToken) async {
+    try {
+      String url = dotenv.env['API_BASE_URI'].toString() + GOOGLE_LOGIN;
+      final Response<dynamic> response = await client.post(url, data: {'idToken': idToken});
+      return AuthResponse.fromJson(response.data);
+    } catch (e) {
+      print("Google login failed: $e");
+      return null;
+    }
+  }
+
+  Future<AuthResponse?> appleLogin(String idToken) async {
+    try {
+      String url = dotenv.env['API_BASE_URI'].toString() + APPLE_LOGIN;
+      final Response<dynamic> response = await client.post(url, data: {'idToken': idToken});
+      return AuthResponse.fromJson(response.data);
+    } catch (e) {
+      print("Apple login failed: $e");
+      return null;
+    }
+  }
 
   Future<bool> register(RegisterRequest registerRequest) async {
     try {

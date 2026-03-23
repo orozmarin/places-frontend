@@ -17,6 +17,8 @@ class LoginPage extends StatelessWidget {
         loginUser: vm.loginUser,
         registerUser: vm.registerUser,
         isLoading: vm.isLoading,
+        googleLogin: vm.googleLogin,
+        appleLogin: vm.appleLogin,
       ),
     );
   }
@@ -29,7 +31,9 @@ class Factory extends VmFactory<AppState, LoginPage, ViewModel> {
   ViewModel? fromStore() => ViewModel(
         registerUser: (RegisterRequest registerRequest) => dispatch(RegisterAction(registerRequest)),
         loginUser: (LoginRequest loginRequest) => dispatch(LoginAction(loginRequest)),
-        isLoading: isWaiting(LoginAction),
+        googleLogin: () => dispatch(GoogleLoginAction()),
+        appleLogin: () => dispatch(AppleLoginAction()),
+        isLoading: isWaiting(LoginAction) || isWaiting(GoogleLoginAction) || isWaiting(AppleLoginAction),
       );
 }
 
@@ -37,11 +41,15 @@ class ViewModel extends Vm {
   ViewModel({
     required this.registerUser,
     required this.loginUser,
+    required this.googleLogin,
+    required this.appleLogin,
     required this.isLoading,
   });
 
   final Function(RegisterRequest registerRequest) registerUser;
   final Function(LoginRequest loginRequest) loginUser;
+  final VoidCallback googleLogin;
+  final VoidCallback appleLogin;
   final bool isLoading;
 
   @override
@@ -52,8 +60,16 @@ class ViewModel extends Vm {
           runtimeType == other.runtimeType &&
           registerUser == other.registerUser &&
           loginUser == other.loginUser &&
+          googleLogin == other.googleLogin &&
+          appleLogin == other.appleLogin &&
           isLoading == other.isLoading;
 
   @override
-  int get hashCode => super.hashCode ^ registerUser.hashCode ^ loginUser.hashCode ^ isLoading.hashCode;
+  int get hashCode =>
+      super.hashCode ^
+      registerUser.hashCode ^
+      loginUser.hashCode ^
+      googleLogin.hashCode ^
+      appleLogin.hashCode ^
+      isLoading.hashCode;
 }
