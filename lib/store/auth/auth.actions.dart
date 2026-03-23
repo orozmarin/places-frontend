@@ -13,6 +13,8 @@ import 'package:gastrorate/store/invitations/invitations_actions.dart';
 import 'package:gastrorate/store/places/places_actions.dart';
 import 'package:gastrorate/tools/toast_helper.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 class LoginAction extends AppAction {
   LoginAction(this.payload);
@@ -60,6 +62,80 @@ class RegisterAction extends AppAction {
       toastHelperMobile.showToastSuccess("Registration successful!");
     } else {
       toastHelperMobile.showToastError("Registration unsuccessful... Please try again!");
+    }
+    return null;
+  }
+}
+
+class GoogleLoginAction extends AppAction {
+  GoogleLoginAction();
+
+  @override
+  Future<AppState?> reduce() async {
+    try {
+      final GoogleSignIn googleSignIn = GoogleSignIn();
+      final GoogleSignInAccount? account = await googleSignIn.signIn();
+      if (account == null) return null;
+
+      final GoogleSignInAuthentication auth = await account.authentication;
+      final String? idToken = auth.idToken;
+      if (idToken == null) {
+        toastHelperMobile.showToastError("Google sign-in failed. Please try again.");
+        return null;
+      }
+
+      AuthResponse? authResponse = await AuthManager().googleLogin(idToken);
+      if (authResponse != null) {
+        await dispatchAndWait(LoginSuccessAction(payload: authResponse));
+        final userId = authResponse.user!.id!;
+        dispatch(FetchPendingFriendRequestsAction());
+        dispatch(FetchFriendsAction(userId));
+        dispatch(FetchPendingInvitationsAction(userId));
+        await dispatchAndWait(FetchPlacesAction());
+        GoRouter.of(rootNavigatorKey.currentContext!).go('/home');
+      } else {
+        toastHelperMobile.showToastError("Google login failed. Please try again.");
+      }
+    } catch (e) {
+      toastHelperMobile.showToastError("Google login failed: $e");
+    }
+    return null;
+  }
+}
+
+class AppleLoginAction extends AppAction {
+  AppleLoginAction();
+
+  @override
+  Future<AppState?> reduce() async {
+    try {
+      final credential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+      );
+
+      final String? idToken = credential.identityToken;
+      if (idToken == null) {
+        toastHelperMobile.showToastError("Apple sign-in failed. Please try again.");
+        return null;
+      }
+
+      AuthResponse? authResponse = await AuthManager().appleLogin(idToken);
+      if (authResponse != null) {
+        await dispatchAndWait(LoginSuccessAction(payload: authResponse));
+        final userId = authResponse.user!.id!;
+        dispatch(FetchPendingFriendRequestsAction());
+        dispatch(FetchFriendsAction(userId));
+        dispatch(FetchPendingInvitationsAction(userId));
+        await dispatchAndWait(FetchPlacesAction());
+        GoRouter.of(rootNavigatorKey.currentContext!).go('/home');
+      } else {
+        toastHelperMobile.showToastError("Apple login failed. Please try again.");
+      }
+    } catch (e) {
+      toastHelperMobile.showToastError("Apple login failed: $e");
     }
     return null;
   }
