@@ -49,13 +49,11 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ secrets.GH_TOKEN }}
-          show_full_output: true
-
           # This is an optional setting that allows Claude to read CI results on PRs
           additional_permissions: |
             actions: read
 
-          claude_args: '--dangerously-skip-permissions'
+          claude_args: '--dangerously-skip-permissions --max-turns 30'
           prompt: |
             Implement the following GitHub Issue:
 
