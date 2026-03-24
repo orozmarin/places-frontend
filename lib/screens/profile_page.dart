@@ -4,6 +4,7 @@ import 'package:gastrorate/models/auth/user.dart';
 import 'package:gastrorate/screens/profile.dart';
 import 'package:gastrorate/store/app_state.dart';
 import 'package:gastrorate/store/auth/auth.actions.dart';
+import 'package:go_router/go_router.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -12,8 +13,11 @@ class ProfilePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return StoreConnector<AppState, ViewModel>(
       vm: () => Factory(this),
-      builder: (BuildContext context, ViewModel vm) =>
-          Profile(logOut: vm.logOut, user: vm.user, onEditUser: vm.onEditUser),
+      builder: (BuildContext context, ViewModel vm) => Profile(
+        logOut: vm.logOut,
+        user: vm.user,
+        onEditUser: (_) => context.push('/profile/edit'),
+      ),
     );
   }
 }
