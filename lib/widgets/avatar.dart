@@ -61,20 +61,30 @@ class AvatarWidget extends StatelessWidget {
   }
 
   Widget _renderAvatar() {
-    if (imageUrl == null) {
+    if (imageUrl != null) {
       return Container(
         width: _avatarSize,
         height: _avatarSize,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           border: Border.all(color: borderColor ?? Colors.grey.shade300, width: 2),
-          image: const DecorationImage(
+        ),
+        child: ClipOval(
+          child: Image.network(
+            imageUrl!,
             fit: BoxFit.cover,
-            image: AssetImage("assets/mock_profile_pic.png"),
+            width: _avatarSize,
+            height: _avatarSize,
+            errorBuilder: (_, __, ___) => _renderFallback(),
           ),
         ),
       );
-    } else if (initials != null) {
+    }
+    return _renderFallback();
+  }
+
+  Widget _renderFallback() {
+    if (initials != null && initials!.isNotEmpty) {
       return Container(
         width: _avatarSize,
         height: _avatarSize,
@@ -86,21 +96,22 @@ class AvatarWidget extends StatelessWidget {
         child: Center(
           child: Text(
             initials!,
-            style: textStyle ??
-                const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: textStyle ?? const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
         ),
       );
-    } else {
-      return Container(
-        width: _avatarSize,
-        height: _avatarSize,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(color: borderColor ?? Colors.grey.shade300, width: 2),
-        ),
-        child: const Icon(Icons.person, size: 40, color: Colors.grey),
-      );
     }
+    return Container(
+      width: _avatarSize,
+      height: _avatarSize,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: borderColor ?? Colors.grey.shade300, width: 2),
+        image: const DecorationImage(
+          fit: BoxFit.cover,
+          image: AssetImage("assets/mock_profile_pic.png"),
+        ),
+      ),
+    );
   }
 }
