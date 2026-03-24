@@ -1,9 +1,11 @@
+import 'dart:io';
 import 'package:async_redux/async_redux.dart';
 import 'package:gastrorate/http/auth_helper.dart';
 import 'package:gastrorate/models/auth/auth_response.dart';
 import 'package:gastrorate/models/auth/login_request.dart';
 import 'package:gastrorate/models/auth/register_request.dart';
 import 'package:gastrorate/models/auth/social_login_request.dart';
+import 'package:gastrorate/models/auth/update_user_request.dart';
 import 'package:gastrorate/models/auth/user.dart';
 import 'package:gastrorate/router.dart';
 import 'package:gastrorate/service/auth_manager.dart';
@@ -47,8 +49,9 @@ class LoginSuccessAction extends ReduxAction<AppState>{
   @override
   Future<AppState?> reduce() async{
     await AuthHelper.storeToken(payload.token!);
-    await AuthHelper.storeUser(payload.user!);
-    return state.copyWith(authState: state.authState.copyWith(loggedUser: payload.user));
+    final user = AuthManager.normalizeUser(payload.user!);
+    await AuthHelper.storeUser(user);
+    return state.copyWith(authState: state.authState.copyWith(loggedUser: user));
   }
 }
 
@@ -159,5 +162,45 @@ class LogoutSuccessAction extends ReduxAction<AppState> {
     await AuthHelper.removeToken();
     await AuthHelper.removeUser();
     return state.copyWith(authState: state.authState.copyWith(loggedUser: User()));
+  }
+}
+
+class UpdateUserAction extends AppAction {
+  UpdateUserAction(this.request);
+  final UpdateUserRequest request;
+
+  @override
+  Future<AppState?> reduce() async {
+    final userId = state.authState.loggedUser!.id!;
+    User? updatedUser = await AuthManager().updateUser(userId, request);
+    if (updatedUser != null) {
+      await AuthHelper.storeUser(updatedUser);
+      GoRouter.of(rootNavigatorKey.currentContext!).pop();
+      toastHelperMobile.showToastSuccess("Profile updated!");
+      return state.copyWith(authState: state.authState.copyWith(loggedUser: updatedUser));
+    } else {
+      toastHelperMobile.showToastError("Failed to update profile. Please try again.");
+    }
+    return null;
+  }
+}
+
+class UploadProfileImageAction extends AppAction {
+  UploadProfileImageAction(this.imageFile);
+  final File imageFile;
+
+  @override
+  Future<AppState?> reduce() async {
+    final userId = state.authState.loggedUser!.id!;
+    String? imageUrl = await AuthManager().uploadProfileImage(userId, imageFile);
+    if (imageUrl != null) {
+      final updatedUser = state.authState.loggedUser!.copyWith(profileImageUrl: imageUrl);
+      await AuthHelper.storeUser(updatedUser);
+      toastHelperMobile.showToastSuccess("Profile photo updated!");
+      return state.copyWith(authState: state.authState.copyWith(loggedUser: updatedUser));
+    } else {
+      toastHelperMobile.showToastError("Failed to update photo. Please try again.");
+    }
+    return null;
   }
 }
