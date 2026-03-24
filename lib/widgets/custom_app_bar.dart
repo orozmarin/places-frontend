@@ -13,6 +13,7 @@ class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
   final bool automaticallyImplyLeading;
   final Widget? title;
   final List<Widget>? actions;
+  final bool showDefaultActions;
   final Widget? flexibleSpace;
   final PreferredSizeWidget? bottom;
   final double? elevation;
@@ -42,6 +43,7 @@ class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
     this.automaticallyImplyLeading = true,
     this.title,
     this.actions,
+    this.showDefaultActions = true,
     this.flexibleSpace,
     this.bottom,
     this.elevation,
@@ -90,29 +92,31 @@ class _CustomAppBarState extends State<CustomAppBar> {
           title: widget.title,
           actions: [
             ...(widget.actions ?? []),
-            Stack(
-              alignment: Alignment.center,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.notifications_outlined),
-                  onPressed: () => context.push('/notifications'),
-                ),
-                if (vm.pendingCount > 0)
-                  Positioned(
-                    right: 8,
-                    top: 8,
-                    child: CircleAvatar(
-                      radius: 7,
-                      backgroundColor: Colors.red,
-                      child: Text(
-                        '${vm.pendingCount}',
-                        style: const TextStyle(fontSize: 10, color: Colors.white),
+            if (widget.showDefaultActions) ...[
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.notifications_outlined),
+                    onPressed: () => context.push('/notifications'),
+                  ),
+                  if (vm.pendingCount > 0)
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: CircleAvatar(
+                        radius: 7,
+                        backgroundColor: Colors.red,
+                        child: Text(
+                          '${vm.pendingCount}',
+                          style: const TextStyle(fontSize: 10, color: Colors.white),
+                        ),
                       ),
                     ),
-                  ),
-              ],
-            ),
-            UserHelper.buildUserAvatar(user: vm.user!),
+                ],
+              ),
+              UserHelper.buildUserAvatar(user: vm.user!),
+            ],
           ],
           actionsPadding: const EdgeInsets.only(right: 8),
           flexibleSpace: widget.flexibleSpace,
