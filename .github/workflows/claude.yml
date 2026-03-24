@@ -1,0 +1,76 @@
+name: Claude Code
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+  issues:
+    types: [labeled]
+  pull_request_review:
+    types: [submitted]
+
+jobs:
+  claude:
+    if: |
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
+      (github.event_name == 'issues' && github.event.label.name == 'claude')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: read
+      id-token: write
+      actions: read # Required for Claude to read CI results on PRs
+    steps:
+      - name: Checkout frontend repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+          fetch-depth: 1
+
+      - name: Checkout backend repository
+        uses: actions/checkout@v4
+        with:
+          repository: orozmarin/places-backend
+          path: places-backend
+          token: ${{ secrets.GH_TOKEN }}
+          fetch-depth: 1
+
+      - name: Configure git to use PAT for push
+        run: |
+          git config --global url."https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/".insteadOf "https://github.com/"
+
+      - name: Run Claude Code
+        id: claude
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.GH_TOKEN }}
+          show_full_output: true
+
+          # This is an optional setting that allows Claude to read CI results on PRs
+          additional_permissions: |
+            actions: read
+
+          claude_args: '--dangerously-skip-permissions'
+          prompt: |
+            Implement the following GitHub Issue:
+
+            Title: ${{ github.event.issue.title }}
+
+            Description:
+            ${{ github.event.issue.body }}
+
+            ---
+            Project context:
+            - Flutter frontend app (async_redux, go_router, json_serializable)
+            - Always use `fvm flutter` for Flutter commands
+            - After model changes run: fvm flutter pub run build_runner build --delete-conflicting-outputs
+            - Follow patterns in CLAUDE.md and .claude/docs/architectural_patterns.md
+            - Spring Boot backend repo is checked out at ./places-backend/ (Java 17, Spring Boot 3.2.3, MongoDB)
+            - If the issue requires backend changes, make them in ./places-backend/ and open a separate PR using: gh pr create -R orozmarin/places-backend
+            - After implementing, open a PR for each repo that was changed, referencing issue #${{ github.event.issue.number }}
+
