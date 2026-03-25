@@ -8,6 +8,8 @@ part of 'update_user_request.dart';
 
 UpdateUserRequest _$UpdateUserRequestFromJson(Map<String, dynamic> json) =>
     UpdateUserRequest(
+      firstName: json['firstName'] as String?,
+      lastName: json['lastName'] as String?,
       username: json['username'] as String?,
       sex: $enumDecodeNullable(_$SexEnumMap, json['sex']),
       dateOfBirth: json['dateOfBirth'] == null
@@ -17,6 +19,8 @@ UpdateUserRequest _$UpdateUserRequestFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$UpdateUserRequestToJson(UpdateUserRequest instance) =>
     <String, dynamic>{
+      'firstName': instance.firstName,
+      'lastName': instance.lastName,
       'username': instance.username,
       'sex': _$SexEnumMap[instance.sex],
       'dateOfBirth': instance.dateOfBirth?.toIso8601String(),

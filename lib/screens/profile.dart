@@ -7,7 +7,6 @@ import 'package:gastrorate/tools/user_helper.dart';
 import 'package:gastrorate/widgets/custom_app_bar.dart';
 import 'package:gastrorate/widgets/custom_text.dart';
 import 'package:gastrorate/widgets/vertical_spacer.dart';
-import 'package:image_picker/image_picker.dart';
 
 class Profile extends StatefulWidget {
   const Profile({super.key, required this.logOut, required this.user, required this.onEditUser});
@@ -36,17 +35,7 @@ class _ProfileState extends State<Profile> {
         child: Column(
           children: [
             Center(
-              child: UserHelper.buildUserAvatar(
-                  user: widget.user,
-                  size: 200,
-                  onEdit: () async {
-                    final ImagePicker picker = ImagePicker();
-                    final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
-                    if (pickedFile != null) {
-                      // TODO: upload profile image
-                    }
-                  }),
+              child: UserHelper.buildUserAvatar(user: widget.user, size: 200),
             ),
             const VerticalSpacer(16),
             CustomText(
@@ -93,9 +82,7 @@ class _ProfileState extends State<Profile> {
                   _buildProfileOption(
                     icon: Icons.person,
                     title: "Edit Profile",
-                    onTap: () {
-                      // TODO: otvori edit profile screen
-                    },
+                    onTap: () => widget.onEditUser(widget.user),
                   ),
                   _buildProfileOption(
                     icon: Icons.lock,

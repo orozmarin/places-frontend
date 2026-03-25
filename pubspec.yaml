@@ -60,6 +60,9 @@ dependencies:
   shared_preferences: ^2.5.4
   fluttertoast: ^9.0.0
   image_picker: ^1.2.1
+  flutter_svg: ^2.0.0
+  google_sign_in: ^6.2.2
+  firebase_core: ^3.13.0
 
 dev_dependencies:
   flutter_test:
@@ -94,6 +97,7 @@ flutter:
     - assets/empty_state_home.json
     - assets/logo_16_9.png
     - assets/mock_profile_pic.png
+    - assets/google_logo.svg
 
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
