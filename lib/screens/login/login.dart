@@ -1,6 +1,5 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gastrorate/models/auth/login_request.dart';
 import 'package:gastrorate/models/auth/register_request.dart';
 import 'package:gastrorate/models/auth/user.dart';
@@ -16,13 +15,11 @@ class Login extends StatefulWidget {
     required this.registerUser,
     required this.loginUser,
     required this.googleLogin,
-    required this.appleLogin,
     required this.isLoading,
   }) : super(key: key);
   final Function(RegisterRequest registerRequest) registerUser;
   final Function(LoginRequest loginRequest) loginUser;
   final VoidCallback googleLogin;
-  final VoidCallback appleLogin;
   final bool isLoading;
 
   @override
@@ -248,22 +245,13 @@ class _LoginState extends State<Login> {
                     const VerticalSpacer(16),
                     _SocialLoginButton(
                       onPressed: widget.isLoading ? null : widget.googleLogin,
-                      icon: Image.asset(
-                        'assets/google_logo.png',
+                      icon: SvgPicture.asset(
+                        'assets/google_logo.svg',
                         height: 20,
                         width: 20,
-                        errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata, size: 20),
                       ),
-                      label: 'Continue with Google',
+                      label: 'Sign in with Google',
                     ),
-                    if (Platform.isIOS || Platform.isMacOS) ...[
-                      const VerticalSpacer(12),
-                      _SocialLoginButton(
-                        onPressed: widget.isLoading ? null : widget.appleLogin,
-                        icon: const Icon(Icons.apple, size: 20),
-                        label: 'Sign in with Apple',
-                      ),
-                    ],
                   ],
                 ],
               ),
@@ -371,11 +359,19 @@ class _SocialLoginButton extends StatelessWidget {
       child: OutlinedButton.icon(
         onPressed: onPressed,
         icon: icon,
-        label: Text(label),
+        label: Text(
+          label,
+          style: const TextStyle(
+            color: Color(0xFF1F1F1F),
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
         style: OutlinedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          side: const BorderSide(color: Colors.grey),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          backgroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          side: const BorderSide(color: Color(0xFFDADADA)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         ),
       ),
     );
