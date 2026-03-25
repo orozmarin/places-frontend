@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "973804445867",
+    "project_id": "places-52b67",
+    "storage_bucket": "places-52b67.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:973804445867:android:186e74795039dba023d7ee",
+        "android_client_info": {
+          "package_name": "oroz.digital.gastrorate"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "973804445867-brlk58t493f0clrnq2g1b4tr44dvf30u.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "oroz.digital.gastrorate",
+            "certificate_hash": "24a9fdaa348a8ffeeec3603eab41a322b9754a2b"
+          }
+        },
+        {
+          "client_id": "973804445867-i0acr1ohtf5kmpuiif8sf4eu53740b01.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDmTsOREfusExzvKsv6XD-8fzV4o0ChXnA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "973804445867-i0acr1ohtf5kmpuiif8sf4eu53740b01.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "973804445867-h6t8r68o9ibodukvlc55lp2a3g77fel6.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "oroz.digital.gastrorate"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
