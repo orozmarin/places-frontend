@@ -6,10 +6,10 @@ import 'package:gastrorate/models/auth/login_request.dart';
 import 'package:gastrorate/models/auth/register_request.dart';
 import 'package:gastrorate/models/auth/social_login_request.dart';
 import 'package:gastrorate/models/auth/update_user_request.dart';
-
 import 'package:gastrorate/models/auth/user.dart';
 import 'package:gastrorate/router.dart';
 import 'package:gastrorate/service/auth_manager.dart';
+import 'package:gastrorate/service/user_manager.dart';
 import 'package:gastrorate/store/app_action.dart';
 import 'package:gastrorate/store/app_state.dart';
 import 'package:gastrorate/store/friendships/friendships_actions.dart';
@@ -140,11 +140,16 @@ class UpdateUserAction extends AppAction {
   @override
   Future<AppState?> reduce() async {
     final userId = state.authState.loggedUser!.id!;
+    final previousStatus = state.authState.loggedUser!.status;
     User? updatedUser = await AuthManager().updateUser(userId, request);
     if (updatedUser != null) {
       await AuthHelper.storeUser(updatedUser);
-      GoRouter.of(rootNavigatorKey.currentContext!).pop();
-      toastHelperMobile.showToastSuccess("Profile updated!");
+      if (previousStatus == UserStatus.WAITING_FIRST_LOGIN) {
+        GoRouter.of(rootNavigatorKey.currentContext!).go('/home');
+      } else {
+        GoRouter.of(rootNavigatorKey.currentContext!).pop();
+        toastHelperMobile.showToastSuccess("Profile updated!");
+      }
       return state.copyWith(authState: state.authState.copyWith(loggedUser: updatedUser));
     } else {
       toastHelperMobile.showToastError("Failed to update profile. Please try again.");

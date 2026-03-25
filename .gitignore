@@ -27,6 +27,7 @@ ios/Flutter/Flutter.podspec
 ios/Flutter/Debug.xcconfig
 ios/Flutter/Release.xcconfig
 ios/Flutter/Generated.xcconfig
+ios/Flutter/Local.xcconfig
 
 # macOS specific files
 macos/Pods/
@@ -46,6 +47,10 @@ macos/Podfile.lock
 
 # Firebase related files
 firebase.json
+google-services.json
+GoogleService-Info.plist
+ios/Runner/GoogleService-Info.plist
+lib/firebase_options.dart
 
 # Logs and temp files
 *.log
