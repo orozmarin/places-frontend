@@ -12,6 +12,7 @@ import 'package:gastrorate/screens/new_place_page.dart';
 import 'package:gastrorate/screens/notifications_page.dart';
 import 'package:gastrorate/screens/pending_invitations_page.dart';
 import 'package:gastrorate/screens/places_page.dart';
+import 'package:gastrorate/screens/edit_profile/edit_profile_page.dart';
 import 'package:gastrorate/screens/profile_page.dart';
 import 'package:gastrorate/screens/rate_shared_place_page.dart';
 import 'package:gastrorate/widgets/scaffold_nested_navigation.dart';
@@ -166,7 +167,10 @@ final goRouter = GoRouter(
                 child: ProfilePage(),
               ),
               routes: [
-                // child route
+                GoRoute(
+                  path: 'edit',
+                  builder: (context, state) => const EditProfilePage(),
+                ),
               ],
             ),
           ],

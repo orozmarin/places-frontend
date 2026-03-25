@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gastrorate/models/auth/login_request.dart';
 import 'package:gastrorate/models/auth/register_request.dart';
 import 'package:gastrorate/models/auth/user.dart';
@@ -9,9 +10,16 @@ import 'package:gastrorate/widgets/input_field.dart';
 import 'package:gastrorate/widgets/vertical_spacer.dart';
 
 class Login extends StatefulWidget {
-  const Login({Key? key, required this.registerUser, required this.loginUser, required this.isLoading}) : super(key: key);
+  const Login({
+    Key? key,
+    required this.registerUser,
+    required this.loginUser,
+    required this.googleLogin,
+    required this.isLoading,
+  }) : super(key: key);
   final Function(RegisterRequest registerRequest) registerUser;
   final Function(LoginRequest loginRequest) loginUser;
+  final VoidCallback googleLogin;
   final bool isLoading;
 
   @override
@@ -219,6 +227,32 @@ class _LoginState extends State<Login> {
                         ? 'Already have an account? Login here'
                         : 'Don\'t have an account? Register here'),
                   ),
+                  if (!_isRegistering) ...[
+                    const VerticalSpacer(16),
+                    Row(
+                      children: [
+                        const Expanded(child: Divider()),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: Text(
+                            'or',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
+                        const Expanded(child: Divider()),
+                      ],
+                    ),
+                    const VerticalSpacer(16),
+                    _SocialLoginButton(
+                      onPressed: widget.isLoading ? null : widget.googleLogin,
+                      icon: SvgPicture.asset(
+                        'assets/google_logo.svg',
+                        height: 20,
+                        width: 20,
+                      ),
+                      label: 'Sign in with Google',
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -304,5 +338,42 @@ class _LoginState extends State<Login> {
       return 'Only letters, numbers and underscores allowed';
     }
     return null;
+  }
+}
+
+class _SocialLoginButton extends StatelessWidget {
+  const _SocialLoginButton({
+    required this.onPressed,
+    required this.icon,
+    required this.label,
+  });
+
+  final VoidCallback? onPressed;
+  final Widget icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: onPressed,
+        icon: icon,
+        label: Text(
+          label,
+          style: const TextStyle(
+            color: Color(0xFF1F1F1F),
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        style: OutlinedButton.styleFrom(
+          backgroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          side: const BorderSide(color: Color(0xFFDADADA)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        ),
+      ),
+    );
   }
 }
