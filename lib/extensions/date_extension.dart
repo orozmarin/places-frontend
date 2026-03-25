@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gastrorate/tools/app_logger.dart';
 import 'package:intl/intl.dart';
 
 extension FormatDateToString on DateTime? {
@@ -14,7 +15,7 @@ extension FormatDateToString on DateTime? {
 
       return DateFormat(format).format(this!);
     } catch (e) {
-      debugPrint('Error formatting dateTime: $e');
+      AppLogger.e('Error formatting dateTime', error: e);
       return '';
     }
   }
@@ -25,7 +26,7 @@ extension FormatDateToString on DateTime? {
     try {
       return DateFormat('dd MMM').format(this!);
     } catch (e) {
-      debugPrint('Error formatting dateTime: $e');
+      AppLogger.e('Error formatting dateTime', error: e);
       return '';
     }
   }
@@ -36,7 +37,7 @@ extension FormatDateToString on DateTime? {
     try {
       return DateFormat('dd MMM. HH:mm').format(this!);
     } catch (e) {
-      debugPrint('Error formatting dateTime: $e');
+      AppLogger.e('Error formatting dateTime', error: e);
       return '';
     }
   }
@@ -60,7 +61,7 @@ extension FormatDateToString on DateTime? {
       final format = shortYears ? 'dd.MM.yy. HH:mm' : 'dd.MM.yyyy. HH:mm';
       return DateFormat(format).format(this!);
     } catch (e) {
-      debugPrint('Error formatting dateTime: $e');
+      AppLogger.e('Error formatting dateTime', error: e);
       return '';
     }
   }
@@ -71,7 +72,7 @@ extension FormatDateToString on DateTime? {
     try {
       return DateFormat.Hm().format(this!);
     } catch (e) {
-      debugPrint('Error formatting dateTime: $e');
+      AppLogger.e('Error formatting dateTime', error: e);
       return '';
     }
   }
@@ -82,7 +83,7 @@ extension FormatDateToString on DateTime? {
     try {
       return DateFormat('dd').format(this!);
     } catch (e) {
-      debugPrint('Error formatting dateTime to day: $e');
+      AppLogger.e('Error formatting dateTime to day', error: e);
       return '';
     }
   }
@@ -93,7 +94,7 @@ extension FormatDateToString on DateTime? {
     try {
       return DateFormat('MMM').format(this!);
     } catch (e) {
-      debugPrint('Error formatting dateTime to month: $e');
+      AppLogger.e('Error formatting dateTime to month', error: e);
       return '';
     }
   }

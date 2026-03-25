@@ -3,6 +3,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:gastrorate/models/auth/auth_response.dart';
 import 'package:gastrorate/models/auth/login_request.dart';
 import 'package:gastrorate/models/auth/register_request.dart';
+import 'package:gastrorate/tools/app_logger.dart';
 
 class AuthManager {
   static const String LOGIN = "/auth/login";
@@ -24,8 +25,8 @@ class AuthManager {
       String url = dotenv.env['API_BASE_URI'].toString() + LOGIN;
       final Response<dynamic> response = await client.post(url, data: loginRequest.toJson());
       return AuthResponse.fromJson(response.data);
-    } catch (e) {
-      print("Login failed: $e");
+    } catch (e, st) {
+      AppLogger.e("Login failed", error: e, stackTrace: st);
       return null;
     }
   }
@@ -40,8 +41,8 @@ class AuthManager {
       } else {
         return false;
       }
-    } on DioException catch (e) {
-      print('Registration failed: ${e.response?.data}');
+    } on DioException catch (e, st) {
+      AppLogger.e("Registration failed: ${e.response?.data}", error: e, stackTrace: st);
       return false;
     }
   }
