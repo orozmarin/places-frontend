@@ -6,6 +6,7 @@ import 'package:gastrorate/models/auth/login_request.dart';
 import 'package:gastrorate/models/auth/register_request.dart';
 import 'package:gastrorate/models/auth/social_login_request.dart';
 import 'package:gastrorate/models/auth/update_user_request.dart';
+
 import 'package:gastrorate/models/auth/user.dart';
 import 'package:gastrorate/router.dart';
 import 'package:gastrorate/service/auth_manager.dart';
@@ -17,7 +18,6 @@ import 'package:gastrorate/store/places/places_actions.dart';
 import 'package:gastrorate/tools/toast_helper.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 class LoginAction extends AppAction {
   LoginAction(this.payload);
@@ -58,7 +58,10 @@ class LoginSuccessAction extends ReduxAction<AppState>{
 class GoogleLoginAction extends AppAction {
   @override
   Future<AppState?> reduce() async {
-    final GoogleSignIn googleSignIn = GoogleSignIn();
+    final GoogleSignIn googleSignIn = GoogleSignIn(
+      serverClientId: '973804445867-i0acr1ohtf5kmpuiif8sf4eu53740b01.apps.googleusercontent.com',
+    );
+    await googleSignIn.signOut();
     final GoogleSignInAccount? account = await googleSignIn.signIn();
     if (account == null) return null;
 
@@ -89,41 +92,6 @@ class GoogleLoginAction extends AppAction {
   }
 }
 
-class AppleLoginAction extends AppAction {
-  @override
-  Future<AppState?> reduce() async {
-    final credential = await SignInWithApple.getAppleIDCredential(
-      scopes: [
-        AppleIDAuthorizationScopes.email,
-        AppleIDAuthorizationScopes.fullName,
-      ],
-    );
-
-    final String? idToken = credential.identityToken;
-    if (idToken == null) {
-      toastHelperMobile.showToastError("Apple sign-in failed. Please try again.");
-      return null;
-    }
-
-    AuthResponse? authResponse = await AuthManager().socialLogin(
-      SocialLoginRequest(idToken: idToken, provider: AuthProvider.APPLE),
-    );
-
-    if (authResponse != null) {
-      await dispatchAndWait(LoginSuccessAction(payload: authResponse));
-      final userId = authResponse.user!.id!;
-      dispatch(FetchPendingFriendRequestsAction());
-      dispatch(FetchFriendsAction(userId));
-      dispatch(FetchPendingInvitationsAction(userId));
-      await dispatchAndWait(FetchPlacesAction());
-      GoRouter.of(rootNavigatorKey.currentContext!).go('/home');
-    } else {
-      toastHelperMobile.showToastError("Apple sign-in failed. Please try again.");
-    }
-
-    return null;
-  }
-}
 
 class RegisterAction extends AppAction {
   RegisterAction(this.payload);

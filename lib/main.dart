@@ -1,6 +1,8 @@
 import 'package:async_redux/async_redux.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:gastrorate/firebase_options.dart';
 import 'package:gastrorate/store/app_state.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -11,6 +13,7 @@ late final Store<AppState> store;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   AppState? initialState = await AppState.init();
   store = Store<AppState>(initialState: initialState);
 
