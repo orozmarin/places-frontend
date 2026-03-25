@@ -49,6 +49,7 @@ class _CompleteProfileState extends State<CompleteProfile> {
           style: TextStyle(color: MyColors.navbarItemColor),
         ),
         backgroundColor: MyColors.appbarColor,
+        showDefaultActions: false,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
