@@ -29,10 +29,7 @@ class Factory extends VmFactory<AppState, CompleteProfilePage, ViewModel> {
   ViewModel? fromStore() => ViewModel(
         user: state.authState.loggedUser ?? User(),
         onComplete: (UpdateUserRequest request) {
-          final userId = state.authState.loggedUser?.id;
-          if (userId != null) {
-            dispatch(UpdateUserAction(userId, request));
-          }
+          dispatch(UpdateUserAction(request));
         },
         isLoading: isWaiting(UpdateUserAction),
       );
