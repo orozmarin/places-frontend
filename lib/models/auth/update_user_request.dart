@@ -5,48 +5,22 @@ part 'update_user_request.g.dart';
 
 @JsonSerializable(explicitToJson: true)
 class UpdateUserRequest {
-  String? username;
-  Sex? sex;
-  DateTime? dateOfBirth;
+  final String? firstName;
+  final String? lastName;
+  final String? username;
+  final Sex? sex;
+  final DateTime? dateOfBirth;
 
-  factory UpdateUserRequest.fromJson(Map<String, dynamic> json) => _$UpdateUserRequestFromJson(json);
-  Map<String, dynamic> toJson() => _$UpdateUserRequestToJson(this);
-
-//<editor-fold desc="Data Methods">
-  UpdateUserRequest({
+  const UpdateUserRequest({
+    this.firstName,
+    this.lastName,
     this.username,
     this.sex,
     this.dateOfBirth,
   });
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is UpdateUserRequest &&
-          runtimeType == other.runtimeType &&
-          username == other.username &&
-          sex == other.sex &&
-          dateOfBirth == other.dateOfBirth);
+  factory UpdateUserRequest.fromJson(Map<String, dynamic> json) =>
+      _$UpdateUserRequestFromJson(json);
 
-  @override
-  int get hashCode => username.hashCode ^ sex.hashCode ^ dateOfBirth.hashCode;
-
-  @override
-  String toString() {
-    return 'UpdateUserRequest{username: $username, sex: $sex, dateOfBirth: $dateOfBirth}';
-  }
-
-  UpdateUserRequest copyWith({
-    String? username,
-    Sex? sex,
-    DateTime? dateOfBirth,
-  }) {
-    return UpdateUserRequest(
-      username: username ?? this.username,
-      sex: sex ?? this.sex,
-      dateOfBirth: dateOfBirth ?? this.dateOfBirth,
-    );
-  }
-
-//</editor-fold>
+  Map<String, dynamic> toJson() => _$UpdateUserRequestToJson(this);
 }

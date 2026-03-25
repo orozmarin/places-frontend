@@ -1,8 +1,10 @@
+import 'dart:io';
 import 'package:async_redux/async_redux.dart';
 import 'package:gastrorate/http/auth_helper.dart';
 import 'package:gastrorate/models/auth/auth_response.dart';
 import 'package:gastrorate/models/auth/login_request.dart';
 import 'package:gastrorate/models/auth/register_request.dart';
+import 'package:gastrorate/models/auth/social_login_request.dart';
 import 'package:gastrorate/models/auth/update_user_request.dart';
 import 'package:gastrorate/models/auth/user.dart';
 import 'package:gastrorate/router.dart';
@@ -15,6 +17,7 @@ import 'package:gastrorate/store/invitations/invitations_actions.dart';
 import 'package:gastrorate/store/places/places_actions.dart';
 import 'package:gastrorate/tools/toast_helper.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class LoginAction extends AppAction {
   LoginAction(this.payload);
@@ -46,10 +49,49 @@ class LoginSuccessAction extends ReduxAction<AppState>{
   @override
   Future<AppState?> reduce() async{
     await AuthHelper.storeToken(payload.token!);
-    await AuthHelper.storeUser(payload.user!);
-    return state.copyWith(authState: state.authState.copyWith(loggedUser: payload.user));
+    final user = AuthManager.normalizeUser(payload.user!);
+    await AuthHelper.storeUser(user);
+    return state.copyWith(authState: state.authState.copyWith(loggedUser: user));
   }
 }
+
+class GoogleLoginAction extends AppAction {
+  @override
+  Future<AppState?> reduce() async {
+    final GoogleSignIn googleSignIn = GoogleSignIn(
+      serverClientId: '973804445867-i0acr1ohtf5kmpuiif8sf4eu53740b01.apps.googleusercontent.com',
+    );
+    await googleSignIn.signOut();
+    final GoogleSignInAccount? account = await googleSignIn.signIn();
+    if (account == null) return null;
+
+    final GoogleSignInAuthentication auth = await account.authentication;
+    final String? idToken = auth.idToken;
+    if (idToken == null) {
+      toastHelperMobile.showToastError("Google sign-in failed. Please try again.");
+      return null;
+    }
+
+    AuthResponse? authResponse = await AuthManager().socialLogin(
+      SocialLoginRequest(idToken: idToken, provider: AuthProvider.GOOGLE),
+    );
+
+    if (authResponse != null) {
+      await dispatchAndWait(LoginSuccessAction(payload: authResponse));
+      final userId = authResponse.user!.id!;
+      dispatch(FetchPendingFriendRequestsAction());
+      dispatch(FetchFriendsAction(userId));
+      dispatch(FetchPendingInvitationsAction(userId));
+      await dispatchAndWait(FetchPlacesAction());
+      GoRouter.of(rootNavigatorKey.currentContext!).go('/home');
+    } else {
+      toastHelperMobile.showToastError("Google sign-in failed. Please try again.");
+    }
+
+    return null;
+  }
+}
+
 
 class RegisterAction extends AppAction {
   RegisterAction(this.payload);
@@ -92,21 +134,45 @@ class LogoutSuccessAction extends ReduxAction<AppState> {
 }
 
 class UpdateUserAction extends AppAction {
-  UpdateUserAction(this.userId, this.payload);
-  final String userId;
-  final UpdateUserRequest payload;
+  UpdateUserAction(this.request);
+  final UpdateUserRequest request;
 
   @override
   Future<AppState?> reduce() async {
-    final User? updatedUser = await UserManager().updateUser(userId, payload);
+    final userId = state.authState.loggedUser!.id!;
+    final previousStatus = state.authState.loggedUser!.status;
+    User? updatedUser = await AuthManager().updateUser(userId, request);
     if (updatedUser != null) {
       await AuthHelper.storeUser(updatedUser);
-      if (updatedUser.status == UserStatus.ACTIVE) {
+      if (previousStatus == UserStatus.WAITING_FIRST_LOGIN) {
         GoRouter.of(rootNavigatorKey.currentContext!).go('/home');
+      } else {
+        GoRouter.of(rootNavigatorKey.currentContext!).pop();
+        toastHelperMobile.showToastSuccess("Profile updated!");
       }
       return state.copyWith(authState: state.authState.copyWith(loggedUser: updatedUser));
     } else {
       toastHelperMobile.showToastError("Failed to update profile. Please try again.");
+    }
+    return null;
+  }
+}
+
+class UploadProfileImageAction extends AppAction {
+  UploadProfileImageAction(this.imageFile);
+  final File imageFile;
+
+  @override
+  Future<AppState?> reduce() async {
+    final userId = state.authState.loggedUser!.id!;
+    String? imageUrl = await AuthManager().uploadProfileImage(userId, imageFile);
+    if (imageUrl != null) {
+      final updatedUser = state.authState.loggedUser!.copyWith(profileImageUrl: imageUrl);
+      await AuthHelper.storeUser(updatedUser);
+      toastHelperMobile.showToastSuccess("Profile photo updated!");
+      return state.copyWith(authState: state.authState.copyWith(loggedUser: updatedUser));
+    } else {
+      toastHelperMobile.showToastError("Failed to update photo. Please try again.");
     }
     return null;
   }

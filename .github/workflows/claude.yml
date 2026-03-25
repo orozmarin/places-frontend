@@ -29,6 +29,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GH_TOKEN }}
+          ref: develop
           fetch-depth: 1
 
       - name: Checkout backend repository
@@ -37,6 +38,7 @@ jobs:
           repository: orozmarin/places-backend
           path: places-backend
           token: ${{ secrets.GH_TOKEN }}
+          ref: develop
           fetch-depth: 1
 
       - name: Configure git to use PAT for push
@@ -71,6 +73,7 @@ jobs:
             - After model changes run: fvm flutter pub run build_runner build --delete-conflicting-outputs
             - Follow patterns in CLAUDE.md and .claude/docs/architectural_patterns.md
             - Spring Boot backend repo is checked out at ./places-backend/ (Java 17, Spring Boot 3.2.3, MongoDB)
-            - If the issue requires backend changes, make them in ./places-backend/ and open a separate PR using: gh pr create -R orozmarin/places-backend
-            - After implementing, open a PR for each repo that was changed, referencing issue #${{ github.event.issue.number }}
+            - If the issue requires backend changes, make them in ./places-backend/ and open a separate PR using: gh pr create -R orozmarin/places-backend --base develop
+            - After implementing, open a PR for each repo that was changed targeting the `develop` branch, referencing issue #${{ github.event.issue.number }}
+            - Always create new branches from `develop` (already checked out), never from `main`
 
