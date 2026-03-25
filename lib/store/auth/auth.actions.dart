@@ -3,9 +3,11 @@ import 'package:gastrorate/http/auth_helper.dart';
 import 'package:gastrorate/models/auth/auth_response.dart';
 import 'package:gastrorate/models/auth/login_request.dart';
 import 'package:gastrorate/models/auth/register_request.dart';
+import 'package:gastrorate/models/auth/update_user_request.dart';
 import 'package:gastrorate/models/auth/user.dart';
 import 'package:gastrorate/router.dart';
 import 'package:gastrorate/service/auth_manager.dart';
+import 'package:gastrorate/service/user_manager.dart';
 import 'package:gastrorate/store/app_action.dart';
 import 'package:gastrorate/store/app_state.dart';
 import 'package:gastrorate/store/friendships/friendships_actions.dart';
@@ -86,5 +88,26 @@ class LogoutSuccessAction extends ReduxAction<AppState> {
     await AuthHelper.removeToken();
     await AuthHelper.removeUser();
     return state.copyWith(authState: state.authState.copyWith(loggedUser: User()));
+  }
+}
+
+class UpdateUserAction extends AppAction {
+  UpdateUserAction(this.userId, this.payload);
+  final String userId;
+  final UpdateUserRequest payload;
+
+  @override
+  Future<AppState?> reduce() async {
+    final User? updatedUser = await UserManager().updateUser(userId, payload);
+    if (updatedUser != null) {
+      await AuthHelper.storeUser(updatedUser);
+      if (updatedUser.status == UserStatus.ACTIVE) {
+        GoRouter.of(rootNavigatorKey.currentContext!).go('/home');
+      }
+      return state.copyWith(authState: state.authState.copyWith(loggedUser: updatedUser));
+    } else {
+      toastHelperMobile.showToastError("Failed to update profile. Please try again.");
+    }
+    return null;
   }
 }

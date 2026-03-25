@@ -1,6 +1,8 @@
 // private navigators
 import 'package:flutter/material.dart';
 import 'package:gastrorate/http/auth_helper.dart';
+import 'package:gastrorate/models/auth/user.dart';
+import 'package:gastrorate/screens/complete_profile_page.dart';
 import 'package:gastrorate/screens/favorites_page.dart';
 import 'package:gastrorate/screens/friend_requests_page.dart';
 import 'package:gastrorate/screens/friends_page.dart';
@@ -34,9 +36,18 @@ final goRouter = GoRouter(
   redirect: (context, state) async {
     final loggedIn = await isLoggedIn();
     final loggingIn = state.fullPath == '/login';
+    final completingProfile = state.fullPath == '/complete-profile';
 
     if (!loggedIn && !loggingIn) return '/login';
-    if (loggedIn && loggingIn) return '/home';
+
+    if (loggedIn) {
+      final user = await AuthHelper.getUser();
+      final isWaitingFirstLogin = user?.status == UserStatus.WAITING_FIRST_LOGIN;
+
+      if (loggingIn) return isWaitingFirstLogin ? '/complete-profile' : '/home';
+      if (isWaitingFirstLogin && !completingProfile) return '/complete-profile';
+      if (!isWaitingFirstLogin && completingProfile) return '/home';
+    }
 
     return null;
   },
@@ -44,6 +55,11 @@ final goRouter = GoRouter(
     GoRoute(
       path: '/login',
       builder: (context, state) => const LoginPage(),
+    ),
+    GoRoute(
+      path: '/complete-profile',
+      parentNavigatorKey: rootNavigatorKey,
+      builder: (context, state) => const CompleteProfilePage(),
     ),
     GoRoute(
       path: '/friends',
