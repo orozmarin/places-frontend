@@ -46,6 +46,9 @@ macos/Podfile.lock
 
 # Firebase related files
 firebase.json
+google-services.json
+GoogleService-Info.plist
+ios/Runner/GoogleService-Info.plist
 
 # Logs and temp files
 *.log
