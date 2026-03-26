@@ -60,6 +60,20 @@ flutter analyze
 
 When a task involves both frontend and backend changes (e.g., new API endpoint + consuming it in Flutter), read and edit files in both projects freely.
 
+## Sub-agents
+
+Project sub-agents live in `.claude/agents/`. For multi-file feature work, delegate to the appropriate agent:
+
+| Agent | When to use |
+|-------|-------------|
+| `auth-agent` | JWT, Dio interceptors, Firebase/Google sign-in, token storage, login screens |
+| `places-agent` | Place CRUD, ratings, visits, Google Places API, geolocation |
+| `social-agent` | Friendships, friend requests, visit invitations, co-visitors |
+| `state-agent` | Redux actions, AppState, ViewModel factories (`*_page.dart`) |
+| `ui-agent` | Screens UI, widgets, theme, GoRouter, extensions |
+
+**When to delegate:** Use sub-agents for features that touch 3+ files within one domain. For single-file edits or quick questions, handle directly.
+
 ## Additional Documentation
 
 Check these files when working on related tasks:
