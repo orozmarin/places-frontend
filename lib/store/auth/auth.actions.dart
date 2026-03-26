@@ -6,7 +6,6 @@ import 'package:gastrorate/models/auth/login_request.dart';
 import 'package:gastrorate/models/auth/register_request.dart';
 import 'package:gastrorate/models/auth/social_login_request.dart';
 import 'package:gastrorate/models/auth/update_user_request.dart';
-
 import 'package:gastrorate/models/auth/user.dart';
 import 'package:gastrorate/router.dart';
 import 'package:gastrorate/service/auth_manager.dart';
@@ -33,7 +32,9 @@ class LoginAction extends AppAction {
       dispatch(FetchFriendsAction(userId));
       dispatch(FetchPendingInvitationsAction(userId));
       await dispatchAndWait(FetchPlacesAction());
-      GoRouter.of(rootNavigatorKey.currentContext!).go('/home');
+      final seenOnboarding = await AuthHelper.hasSeenOnboarding(userId);
+      final destination = seenOnboarding ? '/home' : '/onboarding';
+      GoRouter.of(rootNavigatorKey.currentContext!).go(destination);
     } else {
       toastHelperMobile.showToastError("Login failed. Please check your credentials.");
     }
@@ -83,7 +84,10 @@ class GoogleLoginAction extends AppAction {
       dispatch(FetchFriendsAction(userId));
       dispatch(FetchPendingInvitationsAction(userId));
       await dispatchAndWait(FetchPlacesAction());
-      GoRouter.of(rootNavigatorKey.currentContext!).go('/home');
+      final seenOnboarding = await AuthHelper.hasSeenOnboarding(userId);
+      final isWaitingFirstLogin = authResponse.user!.status == UserStatus.WAITING_FIRST_LOGIN;
+      final destination = (!seenOnboarding || isWaitingFirstLogin) ? '/onboarding' : '/home';
+      GoRouter.of(rootNavigatorKey.currentContext!).go(destination);
     } else {
       toastHelperMobile.showToastError("Google sign-in failed. Please try again.");
     }
@@ -140,11 +144,17 @@ class UpdateUserAction extends AppAction {
   @override
   Future<AppState?> reduce() async {
     final userId = state.authState.loggedUser!.id!;
+    final previousStatus = state.authState.loggedUser!.status;
     User? updatedUser = await AuthManager().updateUser(userId, request);
     if (updatedUser != null) {
       await AuthHelper.storeUser(updatedUser);
-      GoRouter.of(rootNavigatorKey.currentContext!).pop();
-      toastHelperMobile.showToastSuccess("Profile updated!");
+      if (previousStatus == UserStatus.WAITING_FIRST_LOGIN) {
+        await AuthHelper.markOnboardingSeen(userId);
+        GoRouter.of(rootNavigatorKey.currentContext!).go('/home');
+      } else {
+        GoRouter.of(rootNavigatorKey.currentContext!).pop();
+        toastHelperMobile.showToastSuccess("Profile updated!");
+      }
       return state.copyWith(authState: state.authState.copyWith(loggedUser: updatedUser));
     } else {
       toastHelperMobile.showToastError("Failed to update profile. Please try again.");

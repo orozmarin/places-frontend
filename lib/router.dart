@@ -1,6 +1,8 @@
 // private navigators
 import 'package:flutter/material.dart';
 import 'package:gastrorate/http/auth_helper.dart';
+import 'package:gastrorate/models/auth/user.dart';
+import 'package:gastrorate/screens/onboarding/onboarding_page.dart';
 import 'package:gastrorate/screens/favorites_page.dart';
 import 'package:gastrorate/screens/friend_requests_page.dart';
 import 'package:gastrorate/screens/friends_page.dart';
@@ -35,9 +37,20 @@ final goRouter = GoRouter(
   redirect: (context, state) async {
     final loggedIn = await isLoggedIn();
     final loggingIn = state.fullPath == '/login';
+    final onboarding = state.fullPath == '/onboarding';
 
     if (!loggedIn && !loggingIn) return '/login';
-    if (loggedIn && loggingIn) return '/home';
+
+    if (loggedIn) {
+      final user = await AuthHelper.getUser();
+      final seenOnboarding = await AuthHelper.hasSeenOnboarding(user?.id ?? '');
+      final isWaitingFirstLogin = user?.status == UserStatus.WAITING_FIRST_LOGIN;
+      final needsOnboarding = !seenOnboarding || isWaitingFirstLogin;
+
+      if (loggingIn) return needsOnboarding ? '/onboarding' : '/home';
+      if (needsOnboarding && !onboarding) return '/onboarding';
+      if (!needsOnboarding && onboarding) return '/home';
+    }
 
     return null;
   },
@@ -45,6 +58,11 @@ final goRouter = GoRouter(
     GoRoute(
       path: '/login',
       builder: (context, state) => const LoginPage(),
+    ),
+    GoRoute(
+      path: '/onboarding',
+      parentNavigatorKey: rootNavigatorKey,
+      builder: (context, state) => const OnboardingPage(),
     ),
     GoRoute(
       path: '/friends',
