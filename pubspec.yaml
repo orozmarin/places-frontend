@@ -95,6 +95,10 @@ flutter:
     - assets/empty_state_wishlist.json
     - assets/empty_state_places.json
     - assets/empty_state_home.json
+    - assets/onboarding_welcome.json
+    - assets/onboarding_discover.json
+    - assets/onboarding_rate.json
+    - assets/onboarding_friends.json
     - assets/logo_16_9.png
     - assets/mock_profile_pic.png
     - assets/google_logo.svg

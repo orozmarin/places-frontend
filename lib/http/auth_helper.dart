@@ -37,4 +37,14 @@ class AuthHelper{
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.remove('logged_user');  // Remove the logged in user
   }
+
+  static Future<bool> hasSeenOnboarding(String userId) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('has_seen_onboarding_$userId') ?? false;
+  }
+
+  static Future<void> markOnboardingSeen(String userId) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('has_seen_onboarding_$userId', true);
+  }
 }
