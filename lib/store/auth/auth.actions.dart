@@ -9,7 +9,6 @@ import 'package:gastrorate/models/auth/update_user_request.dart';
 import 'package:gastrorate/models/auth/user.dart';
 import 'package:gastrorate/router.dart';
 import 'package:gastrorate/service/auth_manager.dart';
-import 'package:gastrorate/service/user_manager.dart';
 import 'package:gastrorate/store/app_action.dart';
 import 'package:gastrorate/store/app_state.dart';
 import 'package:gastrorate/store/friendships/friendships_actions.dart';
@@ -33,7 +32,9 @@ class LoginAction extends AppAction {
       dispatch(FetchFriendsAction(userId));
       dispatch(FetchPendingInvitationsAction(userId));
       await dispatchAndWait(FetchPlacesAction());
-      GoRouter.of(rootNavigatorKey.currentContext!).go('/home');
+      final seenOnboarding = await AuthHelper.hasSeenOnboarding(userId);
+      final destination = seenOnboarding ? '/home' : '/onboarding';
+      GoRouter.of(rootNavigatorKey.currentContext!).go(destination);
     } else {
       toastHelperMobile.showToastError("Login failed. Please check your credentials.");
     }
@@ -83,7 +84,10 @@ class GoogleLoginAction extends AppAction {
       dispatch(FetchFriendsAction(userId));
       dispatch(FetchPendingInvitationsAction(userId));
       await dispatchAndWait(FetchPlacesAction());
-      GoRouter.of(rootNavigatorKey.currentContext!).go('/home');
+      final seenOnboarding = await AuthHelper.hasSeenOnboarding(userId);
+      final isWaitingFirstLogin = authResponse.user!.status == UserStatus.WAITING_FIRST_LOGIN;
+      final destination = (!seenOnboarding || isWaitingFirstLogin) ? '/onboarding' : '/home';
+      GoRouter.of(rootNavigatorKey.currentContext!).go(destination);
     } else {
       toastHelperMobile.showToastError("Google sign-in failed. Please try again.");
     }
@@ -145,6 +149,7 @@ class UpdateUserAction extends AppAction {
     if (updatedUser != null) {
       await AuthHelper.storeUser(updatedUser);
       if (previousStatus == UserStatus.WAITING_FIRST_LOGIN) {
+        await AuthHelper.markOnboardingSeen(userId);
         GoRouter.of(rootNavigatorKey.currentContext!).go('/home');
       } else {
         GoRouter.of(rootNavigatorKey.currentContext!).pop();
