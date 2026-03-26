@@ -62,7 +62,7 @@ class _DateInputWithDatePickerState extends State<DateInputWithDatePicker> {
                     child: CupertinoDatePicker(
                       minimumDate: widget.minimumDate,
                       maximumDate: widget.maximumDate,
-                      initialDateTime: widget.date,
+                      initialDateTime: widget.date ?? widget.maximumDate ?? DateTime.now(),
                       mode: CupertinoDatePickerMode.date,
                       onDateTimeChanged: (DateTime newDate) => setState(() => _selectedDate = newDate),
                     ),
