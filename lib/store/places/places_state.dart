@@ -23,12 +23,15 @@ class PlacesState {
   Map<String, dynamic> toJson() => _$PlacesStateToJson(this);
 
 //<editor-fold desc="Data Methods">
+  List<Place>? searchRecommendations;
+
   PlacesState({
     this.places,
     this.nearbyPlaces,
     this.favoritePlaces,
     this.sharedPlaces,
     this.place,
+    this.searchRecommendations,
   });
 
   @override
@@ -40,7 +43,8 @@ class PlacesState {
           nearbyPlaces == other.nearbyPlaces &&
           favoritePlaces == other.favoritePlaces &&
           sharedPlaces == other.sharedPlaces &&
-          place == other.place);
+          place == other.place &&
+          searchRecommendations == other.searchRecommendations);
 
   @override
   int get hashCode =>
@@ -48,7 +52,8 @@ class PlacesState {
       nearbyPlaces.hashCode ^
       favoritePlaces.hashCode ^
       sharedPlaces.hashCode ^
-      place.hashCode;
+      place.hashCode ^
+      searchRecommendations.hashCode;
 
   @override
   String toString() {
@@ -58,6 +63,7 @@ class PlacesState {
         ' favoritePlaces: $favoritePlaces,' +
         ' sharedPlaces: $sharedPlaces,' +
         ' place: $place,' +
+        ' searchRecommendations: $searchRecommendations,' +
         '}';
   }
 
@@ -67,6 +73,7 @@ class PlacesState {
     List<Place>? favoritePlaces,
     List<Place>? sharedPlaces,
     Place? place,
+    List<Place>? searchRecommendations,
   }) {
     return PlacesState(
       places: places ?? this.places,
@@ -74,6 +81,7 @@ class PlacesState {
       favoritePlaces: favoritePlaces ?? this.favoritePlaces,
       sharedPlaces: sharedPlaces ?? this.sharedPlaces,
       place: place ?? this.place,
+      searchRecommendations: searchRecommendations ?? this.searchRecommendations,
     );
   }
 
@@ -88,6 +96,7 @@ class PlacesState {
       keyMapper('favoritePlaces'): this.favoritePlaces,
       keyMapper('sharedPlaces'): this.sharedPlaces,
       keyMapper('place'): this.place,
+      keyMapper('searchRecommendations'): this.searchRecommendations,
     };
   }
 
@@ -103,6 +112,7 @@ class PlacesState {
       favoritePlaces: map[keyMapper('favoritePlaces')] as List<Place>,
       sharedPlaces: map[keyMapper('sharedPlaces')] as List<Place>?,
       place: map[keyMapper('place')] as Place,
+      searchRecommendations: map[keyMapper('searchRecommendations')] as List<Place>?,
     );
   }
 

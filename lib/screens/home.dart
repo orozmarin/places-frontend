@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gastrorate/models/place.dart';
-import 'package:gastrorate/screens/place_search_screen.dart';
+import 'package:gastrorate/screens/place_search_page.dart';
 import 'package:gastrorate/theme/my_colors.dart';
 import 'package:gastrorate/widgets/custom_app_bar.dart';
 import 'package:gastrorate/widgets/custom_text.dart';
@@ -169,7 +169,7 @@ class _HomeState extends State<Home> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => PlaceSearchScreen(
+            builder: (_) => PlaceSearchPage(
               existingPlaces: widget.places,
               onPlaceSelected: widget.onInitPlaceForm,
             ),

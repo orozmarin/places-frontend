@@ -15,10 +15,14 @@ class PlaceSearchScreen extends StatefulWidget {
     super.key,
     required this.existingPlaces,
     required this.onPlaceSelected,
+    required this.searchRecommendations,
+    required this.isLoadingRecs,
   });
 
   final List<Place>? existingPlaces;
   final Function(Place place) onPlaceSelected;
+  final List<Place>? searchRecommendations;
+  final bool isLoadingRecs;
 
   @override
   State<PlaceSearchScreen> createState() => _PlaceSearchScreenState();
@@ -54,8 +58,6 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
   String? _lastQuery;
   bool _isLoadingMore = false;
   final ScrollController _listScrollController = ScrollController();
-  List<_Suggestion> _recommendations = [];
-  bool _isLoadingRecs = false;
 
   @override
   void initState() {
@@ -68,9 +70,8 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
           _currentLat = position.latitude;
           _currentLng = position.longitude;
         });
-        _fetchRecommendations();
       }
-    }).catchError((_) { _fetchRecommendations(); });
+    }).catchError((_) {});
   }
 
   void _onControllerChanged() => setState(() {});
@@ -106,15 +107,20 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
     _debounce = Timer(const Duration(milliseconds: 400), () => _getSuggestions(value));
   }
 
-  Future<void> _fetchRecommendations() async {
-    if (!mounted) return;
-    setState(() => _isLoadingRecs = true);
-    final (results, _) = await _doSearch('highly rated restaurant');
-    if (!mounted) return;
-    setState(() {
-      _recommendations = results;
-      _isLoadingRecs = false;
-    });
+  _Suggestion _placeToSuggestion(Place place) {
+    final apiKey = dotenv.env['MAPS_API']!;
+    String? photoUrl;
+    final ref = place.photos?.isNotEmpty == true ? place.photos!.first.photoReference : null;
+    if (ref != null) {
+      photoUrl = 'https://places.googleapis.com/v1/$ref/media?maxWidthPx=800&key=$apiKey';
+    }
+    return _Suggestion(
+      placeId: place.id ?? '',
+      name: place.name ?? '',
+      secondary: place.address,
+      photoUrl: photoUrl,
+      distance: place.distance,
+    );
   }
 
   Future<void> _getSuggestions(String input) async {
@@ -356,10 +362,10 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
     final isSearching = _controller.text.isNotEmpty;
 
     if (!isSearching) {
-      if (_isLoadingRecs) {
+      if (widget.isLoadingRecs) {
         return const Center(child: CircularProgressIndicator());
       }
-      if (_recommendations.isNotEmpty) {
+      if (widget.searchRecommendations?.isNotEmpty == true) {
         return _buildRecommendations();
       }
       return const SizedBox.shrink();
@@ -390,9 +396,10 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
   }
 
   Widget _buildRecommendations() {
+    final recommendations = widget.searchRecommendations?.map(_placeToSuggestion).toList() ?? [];
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
-      itemCount: _recommendations.length + 1,
+      itemCount: recommendations.length + 1,
       itemBuilder: (context, index) {
         if (index == 0) {
           return Padding(
@@ -409,7 +416,7 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
             ),
           );
         }
-        final s = _recommendations[index - 1];
+        final s = recommendations[index - 1];
         return Padding(
           padding: const EdgeInsets.only(bottom: 8),
           child: _buildSuggestionTile(s),
