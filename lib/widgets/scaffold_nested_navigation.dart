@@ -1,4 +1,10 @@
+import 'package:async_redux/async_redux.dart';
 import 'package:flutter/material.dart';
+import 'package:gastrorate/models/from_where.dart';
+import 'package:gastrorate/models/place.dart';
+import 'package:gastrorate/screens/place_search_page.dart';
+import 'package:gastrorate/store/app_state.dart';
+import 'package:gastrorate/store/places/places_actions.dart';
 import 'package:gastrorate/widgets/scaffold_navbar.dart';
 import 'package:gastrorate/widgets/scaffold_navrail.dart';
 import 'package:go_router/go_router.dart';
@@ -30,7 +36,7 @@ class _ScaffoldWithNestedNavigationState
     if (index != _lastSelectedIndex) {
       setState(() {
         _lastSelectedIndex = index;
-        _bodyKey = UniqueKey(); // Force rebuild
+        _bodyKey = UniqueKey();
       });
     }
   }
@@ -42,20 +48,60 @@ class _ScaffoldWithNestedNavigationState
       child: widget.navigationShell,
     );
 
-    return LayoutBuilder(builder: (context, constraints) {
-      if (constraints.maxWidth < 450) {
-        return ScaffoldWithNavigationBar(
-          body: body,
-          selectedIndex: widget.navigationShell.currentIndex,
-          onDestinationSelected: _goBranch,
-        );
-      } else {
-        return ScaffoldWithNavigationRail(
-          body: body,
-          selectedIndex: widget.navigationShell.currentIndex,
-          onDestinationSelected: _goBranch,
-        );
-      }
-    });
+    return StoreConnector<AppState, _NavViewModel>(
+      vm: () => _NavFactory(widget),
+      builder: (context, vm) {
+        void onAddPlace() {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => PlaceSearchPage(
+                existingPlaces: vm.places,
+                onPlaceSelected: vm.onInitPlaceForm,
+              ),
+            ),
+          );
+        }
+
+        return LayoutBuilder(builder: (context, constraints) {
+          if (constraints.maxWidth < 450) {
+            return ScaffoldWithNavigationBar(
+              body: body,
+              selectedIndex: widget.navigationShell.currentIndex,
+              onDestinationSelected: _goBranch,
+              onAddPlace: onAddPlace,
+            );
+          } else {
+            return ScaffoldWithNavigationRail(
+              body: body,
+              selectedIndex: widget.navigationShell.currentIndex,
+              onDestinationSelected: _goBranch,
+              onAddPlace: onAddPlace,
+            );
+          }
+        });
+      },
+    );
   }
+}
+
+class _NavFactory extends VmFactory<AppState, ScaffoldWithNestedNavigation, _NavViewModel> {
+  _NavFactory(ScaffoldWithNestedNavigation widget) : super(widget);
+
+  @override
+  _NavViewModel fromStore() => _NavViewModel(
+        places: state.placesState.places,
+        onInitPlaceForm: (place) =>
+            dispatch(InitNewPlaceAction(payload: place, fromWhere: FromWhere.places)),
+      );
+}
+
+class _NavViewModel extends Vm {
+  final List<Place>? places;
+  final Function(Place) onInitPlaceForm;
+
+  _NavViewModel({
+    required this.places,
+    required this.onInitPlaceForm,
+  }) : super(equals: [places]);
 }

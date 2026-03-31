@@ -9,10 +9,12 @@ class ScaffoldWithNavigationRail extends StatelessWidget {
     required this.body,
     required this.selectedIndex,
     required this.onDestinationSelected,
+    required this.onAddPlace,
   });
   final Widget body;
   final int selectedIndex;
   final ValueChanged<int> onDestinationSelected;
+  final VoidCallback onAddPlace;
 
   @override
   Widget build(BuildContext context) {
@@ -23,6 +25,18 @@ class ScaffoldWithNavigationRail extends StatelessWidget {
             selectedIndex: selectedIndex,
             onDestinationSelected: onDestinationSelected,
             labelType: NavigationRailLabelType.all,
+            leading: Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: FloatingActionButton.small(
+                heroTag: 'nav_rail_add',
+                backgroundColor: MyColors.primaryDarkColor,
+                foregroundColor: MyColors.navbarItemColor,
+                elevation: 0,
+                shape: const CircleBorder(side: BorderSide(color: MyColors.navbarItemColor, width: 2)),
+                onPressed: onAddPlace,
+                child: const Icon(Icons.add),
+              ),
+            ),
             indicatorColor: MyColors.activeItemColor,
             backgroundColor: MyColors.backgroundNavBarColor,
             destinations: const <NavigationRailDestination>[
