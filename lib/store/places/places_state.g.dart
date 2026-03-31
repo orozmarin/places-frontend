@@ -22,6 +22,9 @@ PlacesState _$PlacesStateFromJson(Map<String, dynamic> json) => PlacesState(
   place: json['place'] == null
       ? null
       : Place.fromJson(json['place'] as Map<String, dynamic>),
+  searchRecommendations: (json['searchRecommendations'] as List<dynamic>?)
+      ?.map((e) => Place.fromJson(e as Map<String, dynamic>))
+      .toList(),
 );
 
 Map<String, dynamic> _$PlacesStateToJson(
@@ -32,4 +35,7 @@ Map<String, dynamic> _$PlacesStateToJson(
   'favoritePlaces': instance.favoritePlaces?.map((e) => e.toJson()).toList(),
   'sharedPlaces': instance.sharedPlaces?.map((e) => e.toJson()).toList(),
   'place': instance.place?.toJson(),
+  'searchRecommendations': instance.searchRecommendations
+      ?.map((e) => e.toJson())
+      .toList(),
 };

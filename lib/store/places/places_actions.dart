@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:async_redux/async_redux.dart';
 import 'package:dio/dio.dart';
 import 'package:gastrorate/models/auth/user.dart';
+import 'package:gastrorate/models/coordinates.dart';
 import 'package:gastrorate/models/from_where.dart';
 import 'package:gastrorate/models/nearby_places_search_form.dart';
 import 'package:gastrorate/models/place.dart';
@@ -229,5 +230,45 @@ class FetchSharedPlacesSuccessAction extends ReduxAction<AppState> {
   @override
   Future<AppState?> reduce() async {
     return state.copyWith(placesState: state.placesState.copyWith(sharedPlaces: payload));
+  }
+}
+
+class FetchSearchRecommendationsAction extends AppAction {
+  @override
+  Future<AppState?> reduce() async {
+    final position = await LocationHelper().getCurrentLocation();
+    final npsf = NearbyPlacesSearchForm(
+      includedPrimaryTypes: ['restaurant'],
+      maxResultCount: 20,
+      rankPreference: 'POPULARITY',
+      locationRestriction: LocationRestriction(
+        circle: Circle(
+          center: Coordinates(latitude: position.latitude, longitude: position.longitude),
+          radius: 5000.0,
+        ),
+      ),
+    );
+    List<Place> places = await PlaceManager().findNearbyPlaces(npsf);
+    places = await Future.wait(places.map((place) async {
+      if (place.coordinates != null) {
+        final distance = await LocationHelper().getDistance(place.coordinates!);
+        return place.copyWith(distance: distance);
+      }
+      return place;
+    }));
+    dispatch(FetchSearchRecommendationsSuccessAction(places));
+    return null;
+  }
+}
+
+class FetchSearchRecommendationsSuccessAction extends ReduxAction<AppState> {
+  FetchSearchRecommendationsSuccessAction(this.payload);
+  final List<Place> payload;
+
+  @override
+  Future<AppState?> reduce() async {
+    return state.copyWith(
+      placesState: state.placesState.copyWith(searchRecommendations: payload),
+    );
   }
 }
