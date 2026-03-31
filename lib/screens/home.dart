@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:gastrorate/models/place.dart';
-import 'package:gastrorate/screens/place_search_page.dart';
 import 'package:gastrorate/theme/my_colors.dart';
 import 'package:gastrorate/widgets/custom_app_bar.dart';
 import 'package:gastrorate/widgets/custom_text.dart';
@@ -34,38 +33,9 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   final ScrollController _scrollController = ScrollController();
-  bool _isVisible = true;
-  double _previousScrollOffset = 0;
-
-  // Detect scroll direction and show or hide the button
-  void _onScroll() {
-    if (widget.places == null || widget.places!.isEmpty) {
-      setState(() {
-        _isVisible = true;
-      });
-    } else if (_scrollController.offset > _previousScrollOffset && _isVisible) {
-      // Scrolling down, hide the button
-      setState(() {
-        _isVisible = false;
-      });
-    } else if (_scrollController.offset < _previousScrollOffset && !_isVisible) {
-      // Scrolling up, show the button
-      setState(() {
-        _isVisible = true;
-      });
-    }
-    _previousScrollOffset = _scrollController.offset;
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _scrollController.addListener(_onScroll);
-  }
 
   @override
   void dispose() {
-    _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     super.dispose();
   }
@@ -136,51 +106,6 @@ class _HomeState extends State<Home> {
           ],
         ]),
       ),
-      floatingActionButton: showAddPlaceButton()
-          ? AnimatedOpacity(
-              opacity: 1.0, duration: const Duration(milliseconds: 300), child: buildAddPlaceButton(context))
-          : const AnimatedOpacity(
-              opacity: 0.0,
-              duration: Duration(milliseconds: 200),
-              child: SizedBox.shrink(),
-            ),
     );
   }
-
-  bool showAddPlaceButton() => _isVisible || (widget.places == null || widget.places!.length < 2);
-
-  FloatingActionButton buildAddPlaceButton(BuildContext context) {
-    return FloatingActionButton.extended(
-      heroTag: 'home_fab',
-      icon: const Icon(Icons.add, color: MyColors.navbarItemColor),
-      label: const CustomText(
-        "Add Place",
-        style: TextStyle(color: MyColors.navbarItemColor),
-      ),
-      backgroundColor: MyColors.primaryDarkColor,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8.0),
-        side: const BorderSide(
-          color: Colors.black12,
-          width: 1,
-        ),
-      ),
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => PlaceSearchPage(
-              existingPlaces: widget.places,
-              onPlaceSelected: widget.onInitPlaceForm,
-            ),
-          ),
-        );
-      },
-      elevation: 6.0,
-      focusElevation: 10.0,
-      highlightElevation: 8.0,
-      splashColor: Colors.white.withOpacity(0.3),
-    );
-  }
-
 }
