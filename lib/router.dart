@@ -14,6 +14,7 @@ import 'package:gastrorate/screens/pending_invitations_page.dart';
 import 'package:gastrorate/screens/places_page.dart';
 import 'package:gastrorate/screens/edit_profile/edit_profile_page.dart';
 import 'package:gastrorate/screens/profile_page.dart';
+import 'package:gastrorate/screens/place_search_page.dart';
 import 'package:gastrorate/screens/rate_shared_place_page.dart';
 import 'package:gastrorate/widgets/scaffold_nested_navigation.dart';
 import 'package:go_router/go_router.dart';
@@ -21,6 +22,7 @@ import 'package:go_router/go_router.dart';
 final rootNavigatorKey = GlobalKey<NavigatorState>();
 final shellNavigatorHomeKey = GlobalKey<NavigatorState>(debugLabel: 'homeShellKey');
 final shellNavigatorPlacesKey = GlobalKey<NavigatorState>(debugLabel: 'placesShellKey');
+final shellNavigatorAddPlaceKey = GlobalKey<NavigatorState>(debugLabel: 'addPlaceShellKey');
 final shellNavigatorFavoritesKey = GlobalKey<NavigatorState>(debugLabel: 'favoritesShellKey');
 final shellNavigatorProfileKey = GlobalKey<NavigatorState>(debugLabel: 'profileShellKey');
 
@@ -137,6 +139,17 @@ final goRouter = GoRouter(
                   const NewPlacePage(),
                 ),
               ],
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          navigatorKey: shellNavigatorAddPlaceKey,
+          routes: [
+            GoRoute(
+              path: '/add-place',
+              pageBuilder: (context, state) => const NoTransitionPage(
+                child: PlaceSearchPage(),
+              ),
             ),
           ],
         ),

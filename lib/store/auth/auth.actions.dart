@@ -121,7 +121,7 @@ class LogoutAction extends AppAction {
     dispatch(LogoutSuccessAction());
     GoRouter.of(rootNavigatorKey.currentContext!).go('/login');
 
-    toastHelperMobile.showToastInfo("Looks like you’ve been away for a while. Please sign in again.", timeDisplayed: 20);
+    //toastHelperMobile.showToastInfo("Looks like you’ve been away for a while. Please sign in again.", timeDisplayed: 20);
     return null;
   }
 }

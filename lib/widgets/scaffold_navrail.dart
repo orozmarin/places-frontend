@@ -9,12 +9,10 @@ class ScaffoldWithNavigationRail extends StatelessWidget {
     required this.body,
     required this.selectedIndex,
     required this.onDestinationSelected,
-    required this.onAddPlace,
   });
   final Widget body;
   final int selectedIndex;
   final ValueChanged<int> onDestinationSelected;
-  final VoidCallback onAddPlace;
 
   @override
   Widget build(BuildContext context) {
@@ -25,36 +23,33 @@ class ScaffoldWithNavigationRail extends StatelessWidget {
             selectedIndex: selectedIndex,
             onDestinationSelected: onDestinationSelected,
             labelType: NavigationRailLabelType.all,
-            leading: Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: FloatingActionButton.small(
-                heroTag: 'nav_rail_add',
-                backgroundColor: MyColors.primaryDarkColor,
-                foregroundColor: MyColors.navbarItemColor,
-                elevation: 0,
-                shape: const CircleBorder(side: BorderSide(color: MyColors.navbarItemColor, width: 2)),
-                onPressed: onAddPlace,
-                child: const Icon(Icons.add),
-              ),
-            ),
             indicatorColor: MyColors.activeItemColor,
             backgroundColor: MyColors.backgroundNavBarColor,
             destinations: const <NavigationRailDestination>[
               NavigationRailDestination(
-                label: CustomText('Home', style: TextStyle(color: MyColors.navbarItemColor),),
-                icon: Icon(CupertinoIcons.home, color: MyColors.navbarItemColor,),
+                label: CustomText('Home', style: TextStyle(color: MyColors.navbarItemColor)),
+                icon: Icon(CupertinoIcons.house, color: MyColors.navbarItemColor),
+                selectedIcon: Icon(CupertinoIcons.house_fill, color: MyColors.navbarItemColor),
               ),
               NavigationRailDestination(
-                label: CustomText('Places', style: TextStyle(color: MyColors.navbarItemColor),),
-                icon: Icon(CupertinoIcons.map_pin_ellipse, color: MyColors.navbarItemColor,),
+                label: CustomText('Places', style: TextStyle(color: MyColors.navbarItemColor)),
+                icon: Icon(CupertinoIcons.map, color: MyColors.navbarItemColor),
+                selectedIcon: Icon(CupertinoIcons.map_fill, color: MyColors.navbarItemColor),
               ),
               NavigationRailDestination(
-                label: CustomText('Favorites', style: TextStyle(color: MyColors.navbarItemColor),),
-                icon: Icon(CupertinoIcons.heart_fill, color: MyColors.navbarItemColor,),
+                label: CustomText('Add', style: TextStyle(color: MyColors.navbarItemColor)),
+                icon: Icon(Icons.add_circle_outline_rounded, color: MyColors.navbarItemColor),
+                selectedIcon: Icon(Icons.add_circle_rounded, color: MyColors.navbarItemColor),
               ),
               NavigationRailDestination(
-                label: CustomText('Settings', style: TextStyle(color: MyColors.navbarItemColor),),
-                icon: Icon(CupertinoIcons.settings, color: MyColors.navbarItemColor,),
+                label: CustomText('Favorites', style: TextStyle(color: MyColors.navbarItemColor)),
+                icon: Icon(CupertinoIcons.heart, color: MyColors.navbarItemColor),
+                selectedIcon: Icon(CupertinoIcons.heart_fill, color: MyColors.navbarItemColor),
+              ),
+              NavigationRailDestination(
+                label: CustomText('Settings', style: TextStyle(color: MyColors.navbarItemColor)),
+                icon: Icon(Icons.settings_outlined, color: MyColors.navbarItemColor),
+                selectedIcon: Icon(Icons.settings, color: MyColors.navbarItemColor),
               ),
             ],
           ),
