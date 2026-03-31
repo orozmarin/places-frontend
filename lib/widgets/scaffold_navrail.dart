@@ -27,20 +27,29 @@ class ScaffoldWithNavigationRail extends StatelessWidget {
             backgroundColor: MyColors.backgroundNavBarColor,
             destinations: const <NavigationRailDestination>[
               NavigationRailDestination(
-                label: CustomText('Home', style: TextStyle(color: MyColors.navbarItemColor),),
-                icon: Icon(CupertinoIcons.home, color: MyColors.navbarItemColor,),
+                label: CustomText('Home', style: TextStyle(color: MyColors.navbarItemColor)),
+                icon: Icon(CupertinoIcons.house, color: MyColors.navbarItemColor),
+                selectedIcon: Icon(CupertinoIcons.house_fill, color: MyColors.navbarItemColor),
               ),
               NavigationRailDestination(
-                label: CustomText('Places', style: TextStyle(color: MyColors.navbarItemColor),),
-                icon: Icon(CupertinoIcons.map_pin_ellipse, color: MyColors.navbarItemColor,),
+                label: CustomText('Places', style: TextStyle(color: MyColors.navbarItemColor)),
+                icon: Icon(CupertinoIcons.map, color: MyColors.navbarItemColor),
+                selectedIcon: Icon(CupertinoIcons.map_fill, color: MyColors.navbarItemColor),
               ),
               NavigationRailDestination(
-                label: CustomText('Favorites', style: TextStyle(color: MyColors.navbarItemColor),),
-                icon: Icon(CupertinoIcons.heart_fill, color: MyColors.navbarItemColor,),
+                label: CustomText('Add', style: TextStyle(color: MyColors.navbarItemColor)),
+                icon: Icon(Icons.add_circle_outline_rounded, color: MyColors.navbarItemColor),
+                selectedIcon: Icon(Icons.add_circle_rounded, color: MyColors.navbarItemColor),
               ),
               NavigationRailDestination(
-                label: CustomText('Settings', style: TextStyle(color: MyColors.navbarItemColor),),
-                icon: Icon(CupertinoIcons.settings, color: MyColors.navbarItemColor,),
+                label: CustomText('Favorites', style: TextStyle(color: MyColors.navbarItemColor)),
+                icon: Icon(CupertinoIcons.heart, color: MyColors.navbarItemColor),
+                selectedIcon: Icon(CupertinoIcons.heart_fill, color: MyColors.navbarItemColor),
+              ),
+              NavigationRailDestination(
+                label: CustomText('Settings', style: TextStyle(color: MyColors.navbarItemColor)),
+                icon: Icon(Icons.settings_outlined, color: MyColors.navbarItemColor),
+                selectedIcon: Icon(Icons.settings, color: MyColors.navbarItemColor),
               ),
             ],
           ),

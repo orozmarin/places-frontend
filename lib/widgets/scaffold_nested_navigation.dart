@@ -30,7 +30,7 @@ class _ScaffoldWithNestedNavigationState
     if (index != _lastSelectedIndex) {
       setState(() {
         _lastSelectedIndex = index;
-        _bodyKey = UniqueKey(); // Force rebuild
+        _bodyKey = UniqueKey();
       });
     }
   }

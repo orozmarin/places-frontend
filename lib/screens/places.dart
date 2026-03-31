@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:gastrorate/models/auth/user.dart';
 import 'package:gastrorate/models/place.dart';
 import 'package:gastrorate/models/place_search_form.dart';
-import 'package:gastrorate/screens/place_search_page.dart';
 import 'package:gastrorate/theme/my_colors.dart';
 import 'package:gastrorate/tools/place_helper.dart';
 import 'package:gastrorate/widgets/custom_app_bar.dart';
@@ -46,8 +45,6 @@ class _PlacesState extends State<Places> with SingleTickerProviderStateMixin {
   int _currentTabIndex = 0;
 
   final ScrollController _scrollController = ScrollController();
-  bool _isVisible = true;
-  double _previousScrollOffset = 0;
 
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
@@ -71,22 +68,6 @@ class _PlacesState extends State<Places> with SingleTickerProviderStateMixin {
         (p.address?.toLowerCase().contains(q) ?? false)).toList();
   }
 
-  // Detect scroll direction and show or hide the button
-  void _onScroll() {
-    if (_scrollController.offset > _previousScrollOffset && _isVisible) {
-      // Scrolling down, hide the button
-      setState(() {
-        _isVisible = false;
-      });
-    } else if (_scrollController.offset < _previousScrollOffset && !_isVisible) {
-      // Scrolling up, show the button
-      setState(() {
-        _isVisible = true;
-      });
-    }
-    _previousScrollOffset = _scrollController.offset;
-  }
-
   @override
   void didUpdateWidget(covariant Places oldWidget) {
     if (widget.places != null){
@@ -107,13 +88,11 @@ class _PlacesState extends State<Places> with SingleTickerProviderStateMixin {
       _places = widget.places!;
       _places = PlaceHelper.sortPlaces(_places, _selectedSorting);
     }
-    _scrollController.addListener(_onScroll);
   }
 
   @override
   void dispose() {
     _tabController.dispose();
-    _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     _searchController.dispose();
     super.dispose();
@@ -158,14 +137,6 @@ class _PlacesState extends State<Places> with SingleTickerProviderStateMixin {
           ),
         ],
       ),
-      floatingActionButton: showAddPlaceButton()
-          ? AnimatedOpacity(
-              opacity: 1.0, duration: const Duration(milliseconds: 300), child: buildAddPlaceButton(context))
-          : const AnimatedOpacity(
-              opacity: 0.0,
-              duration: Duration(milliseconds: 200),
-              child: SizedBox.shrink(),
-            ),
     );
   }
 
@@ -383,8 +354,6 @@ class _PlacesState extends State<Places> with SingleTickerProviderStateMixin {
     );
   }
 
-  bool showAddPlaceButton() => _currentTabIndex == 0 && (_isVisible || (_places.length < 3));
-
   List<Widget> buildEmptyState() {
     return <Widget>[
       Lottie.asset("assets/empty_state_places.json"),
@@ -393,40 +362,6 @@ class _PlacesState extends State<Places> with SingleTickerProviderStateMixin {
         style: Theme.of(context).textTheme.titleMedium,
       ),
     ];
-  }
-
-  FloatingActionButton buildAddPlaceButton(BuildContext context) {
-    return FloatingActionButton.extended(
-      heroTag: 'places_fab',
-      icon: const Icon(Icons.add, color: MyColors.navbarItemColor),
-      label: const CustomText(
-        "Add Place",
-        style: TextStyle(color: MyColors.navbarItemColor),
-      ),
-      backgroundColor: MyColors.primaryDarkColor,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8.0),
-        side: const BorderSide(
-          color: Colors.black12,
-          width: 1,
-        ),
-      ),
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => PlaceSearchPage(
-              existingPlaces: widget.places,
-              onPlaceSelected: widget.onInitPlaceForm,
-            ),
-          ),
-        );
-      },
-      elevation: 6.0,
-      focusElevation: 10.0,
-      highlightElevation: 8.0,
-      splashColor: Colors.white.withOpacity(0.3),
-    );
   }
 
   PopupMenuButton<PlaceSorting> buildSortingButton() {
