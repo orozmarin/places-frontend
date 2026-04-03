@@ -94,7 +94,7 @@ class PlaceManager {
         headers: {
           'Content-Type': 'application/json',
           'X-Goog-Api-Key': dotenv.env['MAPS_API'],
-          'X-Goog-FieldMask': 'places',
+          'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.location,places.photos,places.rating,places.priceLevel,places.regularOpeningHours,places.internationalPhoneNumber,places.websiteUri,places.googleMapsUri',
         },
       ),
     );

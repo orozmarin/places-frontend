@@ -12,10 +12,10 @@ class PlacesState {
   Place? place;
 
   PlacesState.init() {
-    this.places = List<Place>.empty();
-    this.nearbyPlaces = List<Place>.empty();
-    this.favoritePlaces = List<Place>.empty();
-    this.sharedPlaces = List<Place>.empty();
+    this.places = null;
+    this.nearbyPlaces = null;
+    this.favoritePlaces = null;
+    this.sharedPlaces = null;
   }
 
   factory PlacesState.fromJson(Map<String, dynamic> json) => _$PlacesStateFromJson(json);
@@ -74,14 +74,16 @@ class PlacesState {
     List<Place>? sharedPlaces,
     Place? place,
     List<Place>? searchRecommendations,
+    bool clearNearbyPlaces = false,
+    bool clearSearchRecommendations = false,
   }) {
     return PlacesState(
       places: places ?? this.places,
-      nearbyPlaces: nearbyPlaces ?? this.nearbyPlaces,
+      nearbyPlaces: clearNearbyPlaces ? null : (nearbyPlaces ?? this.nearbyPlaces),
       favoritePlaces: favoritePlaces ?? this.favoritePlaces,
       sharedPlaces: sharedPlaces ?? this.sharedPlaces,
       place: place ?? this.place,
-      searchRecommendations: searchRecommendations ?? this.searchRecommendations,
+      searchRecommendations: clearSearchRecommendations ? null : (searchRecommendations ?? this.searchRecommendations),
     );
   }
 

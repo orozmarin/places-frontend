@@ -58,6 +58,7 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
   String? _lastQuery;
   bool _isLoadingMore = false;
   final ScrollController _listScrollController = ScrollController();
+  final Map<String, List<_Suggestion>> _queryCache = {};
 
   @override
   void initState() {
@@ -126,17 +127,45 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
   Future<void> _getSuggestions(String input) async {
     final generation = ++_searchGeneration;
 
-    // Two parallel queries for better name coverage:
-    // "restaurant X" (English) + "restoran X" (Croatian) — Text Search ranks
-    // differently depending on whether place names use local vs English prefix.
-    final ((resultsEn, tokenEn), (resultsCro, _)) = await (
-      _doSearch('restaurant $input'),
-      _doSearch('restoran $input'),
-    ).wait;
+    final keyEn = 'restaurant $input';
+    final keyHr = 'restoran $input';
 
-    if (!mounted || generation != _searchGeneration) return;
+    final cachedEn = _queryCache[keyEn];
+    final cachedHr = _queryCache[keyHr];
 
-    // Merge and deduplicate, then sort by distance (closest first)
+    List<_Suggestion> resultsEn;
+    List<_Suggestion> resultsCro;
+    String? freshTokenEn;
+
+    if (cachedEn != null && cachedHr != null) {
+      resultsEn = cachedEn;
+      resultsCro = cachedHr;
+    } else if (cachedEn != null) {
+      resultsEn = cachedEn;
+      final (fetched, _) = await _doSearch(keyHr);
+      if (!mounted || generation != _searchGeneration) return;
+      _queryCache[keyHr] = fetched;
+      resultsCro = fetched;
+    } else if (cachedHr != null) {
+      resultsCro = cachedHr;
+      final (fetched, token) = await _doSearch(keyEn);
+      if (!mounted || generation != _searchGeneration) return;
+      _queryCache[keyEn] = fetched;
+      resultsEn = fetched;
+      freshTokenEn = token;
+    } else {
+      final ((fetchedEn, tokenEn), (fetchedHr, _)) = await (
+        _doSearch(keyEn),
+        _doSearch(keyHr),
+      ).wait;
+      if (!mounted || generation != _searchGeneration) return;
+      _queryCache[keyEn] = fetchedEn;
+      _queryCache[keyHr] = fetchedHr;
+      resultsEn = fetchedEn;
+      resultsCro = fetchedHr;
+      freshTokenEn = tokenEn;
+    }
+
     final seen = <String>{};
     final merged = <_Suggestion>[];
     for (final s in [...resultsEn, ...resultsCro]) {
@@ -152,8 +181,8 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
     setState(() {
       _suggestions = merged;
       _hasSearched = true;
-      _nextPageToken = tokenEn;
-      _lastQuery = 'restaurant $input';
+      if (freshTokenEn != null) _nextPageToken = freshTokenEn;
+      _lastQuery = keyEn;
     });
   }
 

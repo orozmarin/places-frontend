@@ -100,7 +100,6 @@ class DeletePlaceAction extends AppAction {
     rootNavigatorKey.currentContext!.pop();
     rootNavigatorKey.currentContext!.pop();
     dispatch(FetchPlacesAction());
-    dispatch(FetchNearbyPlacesAction());
     dispatch(FetchFavoritePlacesAction());
     dispatch(FetchSharedPlacesAction(userId));
     return null;
@@ -269,6 +268,18 @@ class FetchSearchRecommendationsSuccessAction extends ReduxAction<AppState> {
   Future<AppState?> reduce() async {
     return state.copyWith(
       placesState: state.placesState.copyWith(searchRecommendations: payload),
+    );
+  }
+}
+
+class InvalidatePlacesAction extends ReduxAction<AppState> {
+  @override
+  AppState? reduce() {
+    return state.copyWith(
+      placesState: state.placesState.copyWith(
+        clearNearbyPlaces: true,
+        clearSearchRecommendations: true,
+      ),
     );
   }
 }

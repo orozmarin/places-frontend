@@ -18,6 +18,7 @@ class Home extends StatelessWidget {
     required this.onDeletePlace,
     required this.onInitPlaceForm,
     required this.isLoading,
+    required this.onRefresh,
   });
 
   final Function() onFindAllPlaces;
@@ -26,6 +27,7 @@ class Home extends StatelessWidget {
   final Function(Place place) onDeletePlace;
   final Function(Place place) onInitPlaceForm;
   final bool isLoading;
+  final Future<void> Function() onRefresh;
 
   @override
   Widget build(BuildContext context) {
@@ -34,8 +36,10 @@ class Home extends StatelessWidget {
         title: const CustomText("Home", style: TextStyle(color: MyColors.navbarItemColor)),
         backgroundColor: MyColors.appbarColor,
       ),
-      body: SingleChildScrollView(
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      body: RefreshIndicator(
+        onRefresh: onRefresh,
+        child: SingleChildScrollView(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Padding(
             padding: const EdgeInsets.only(left: 18, top: 8, bottom: 8),
             child: CustomText(
@@ -90,7 +94,8 @@ class Home extends StatelessWidget {
               ),
             ),
           ],
-        ]),
+          ]),
+        ),
       ),
     );
   }

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:gastrorate/main.dart';
+import 'package:gastrorate/store/places/places_actions.dart';
 import 'package:gastrorate/widgets/scaffold_navbar.dart';
 import 'package:gastrorate/widgets/scaffold_navrail.dart';
 import 'package:go_router/go_router.dart';
@@ -17,9 +19,29 @@ class ScaffoldWithNestedNavigation extends StatefulWidget {
 }
 
 class _ScaffoldWithNestedNavigationState
-    extends State<ScaffoldWithNestedNavigation> {
+    extends State<ScaffoldWithNestedNavigation>
+    with WidgetsBindingObserver {
   int _lastSelectedIndex = 0;
   Key _bodyKey = UniqueKey();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      store.dispatch(InvalidatePlacesAction());
+    }
+  }
 
   void _goBranch(int index) {
     widget.navigationShell.goBranch(

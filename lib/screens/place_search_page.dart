@@ -13,7 +13,11 @@ class PlaceSearchPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return StoreConnector<AppState, _ViewModel>(
       vm: () => _Factory(this),
-      onInit: (store) => store.dispatch(FetchSearchRecommendationsAction()),
+      onInit: (store) {
+        if (store.state.placesState.searchRecommendations == null) {
+          store.dispatch(FetchSearchRecommendationsAction());
+        }
+      },
       builder: (context, vm) => PlaceSearchScreen(
         existingPlaces: vm.places,
         onPlaceSelected: vm.onInitPlaceForm,

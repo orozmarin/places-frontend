@@ -14,9 +14,13 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return StoreConnector<AppState, ViewModel>(
       vm: () => Factory(this),
-      onInit: (Store<AppState> store) async {
-        store.dispatch(FetchNearbyPlacesAction());
-        store.dispatch(FetchPlacesAction());
+      onInit: (Store<AppState> store) {
+        if (store.state.placesState.nearbyPlaces == null) {
+          store.dispatch(FetchNearbyPlacesAction());
+        }
+        if (store.state.placesState.places == null) {
+          store.dispatch(FetchPlacesAction());
+        }
         store.dispatch(FetchPendingFriendRequestsAction());
       },
       builder: (BuildContext context, ViewModel vm) => Home(
@@ -26,6 +30,7 @@ class HomePage extends StatelessWidget {
         onDeletePlace: vm.onDeletePlace,
         onInitPlaceForm: vm.onInitPlaceForm,
         isLoading: vm.isLoading,
+        onRefresh: vm.onRefresh,
       )
     );
   }
@@ -43,7 +48,11 @@ class Factory extends VmFactory<AppState, HomePage, ViewModel> {
         onInitPlaceForm: (Place place) => dispatch(
           InitNewPlaceAction(payload: place, fromWhere: FromWhere.home),
         ),
-        isLoading: isWaiting(FetchNearbyPlacesAction),
+        isLoading: isWaiting(FetchNearbyPlacesAction) || state.placesState.nearbyPlaces == null,
+        onRefresh: () async {
+          dispatch(FetchNearbyPlacesAction());
+          dispatch(FetchPlacesAction());
+        },
       );
 }
 
@@ -54,6 +63,7 @@ class ViewModel extends Vm {
   final Function(Place place) onDeletePlace;
   final Function(Place place) onInitPlaceForm;
   final bool isLoading;
+  final Future<void> Function() onRefresh;
 
   ViewModel(
       {required this.places,
@@ -62,6 +72,7 @@ class ViewModel extends Vm {
       required this.onDeletePlace,
     required this.onInitPlaceForm,
     required this.isLoading,
+    required this.onRefresh,
   });
 
   @override
@@ -75,7 +86,8 @@ class ViewModel extends Vm {
           onFindAllPlaces == other.onFindAllPlaces &&
           onDeletePlace == other.onDeletePlace &&
           onInitPlaceForm == other.onInitPlaceForm &&
-          isLoading == other.isLoading;
+          isLoading == other.isLoading &&
+          onRefresh == other.onRefresh;
 
   @override
   int get hashCode =>
@@ -85,5 +97,6 @@ class ViewModel extends Vm {
       onFindAllPlaces.hashCode ^
       onDeletePlace.hashCode ^
       onInitPlaceForm.hashCode ^
-      isLoading.hashCode;
+      isLoading.hashCode ^
+      onRefresh.hashCode;
 }
