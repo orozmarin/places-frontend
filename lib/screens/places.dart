@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:gastrorate/models/auth/user.dart';
 import 'package:gastrorate/models/place.dart';
 import 'package:gastrorate/models/place_search_form.dart';
+import 'package:gastrorate/models/visit/place_visit.dart';
 import 'package:gastrorate/theme/my_colors.dart';
 import 'package:gastrorate/tools/place_helper.dart';
 import 'package:gastrorate/widgets/custom_app_bar.dart';
@@ -16,20 +16,14 @@ class Places extends StatefulWidget {
       required this.places,
       required this.sharedPlaces,
       required this.onFindAllPlaces,
-      required this.onDeletePlace,
       required this.onInitPlaceForm,
-      this.friends,
-      this.onInviteCoVisitor,
       this.onLeavePlace,
       this.onAcknowledgeTransfer});
 
   final Function(PlaceSearchForm) onFindAllPlaces;
   final List<Place>? places;
   final List<Place>? sharedPlaces;
-  final Function(Place place) onDeletePlace;
-  final Function(Place place) onInitPlaceForm;
-  final List<User>? friends;
-  final Function(String placeId, String friendId)? onInviteCoVisitor;
+  final Function(Place place, PlaceVisit? visit) onInitPlaceForm;
   final Function(Place place)? onLeavePlace;
   final Function(String placeId)? onAcknowledgeTransfer;
 
@@ -207,10 +201,7 @@ class _PlacesState extends State<Places> with SingleTickerProviderStateMixin {
                             _buildTransferBanner(context, place),
                           PlaceCard(
                             place: place,
-                            onDeletePlace: widget.onDeletePlace,
                             onInitPlaceForm: widget.onInitPlaceForm,
-                            friends: widget.friends,
-                            onInviteCoVisitor: widget.onInviteCoVisitor,
                           ),
                         ],
                       );
@@ -347,7 +338,6 @@ class _PlacesState extends State<Places> with SingleTickerProviderStateMixin {
           child: PlaceCard(
             place: place,
             onInitPlaceForm: widget.onInitPlaceForm,
-            onLeavePlace: widget.onLeavePlace,
           ),
         );
       },
@@ -383,6 +373,7 @@ class _PlacesState extends State<Places> with SingleTickerProviderStateMixin {
         _buildPopupMenuItem("Rating (High to Low)", PlaceSorting.RATING_DESC),
         _buildPopupMenuItem("Date (Oldest First)", PlaceSorting.DATE_ASC),
         _buildPopupMenuItem("Date (Newest First)", PlaceSorting.DATE_DESC),
+        _buildPopupMenuItem("Most Visits", PlaceSorting.MOST_VISITS),
       ],
     );
   }

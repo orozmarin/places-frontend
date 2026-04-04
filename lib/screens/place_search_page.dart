@@ -35,7 +35,7 @@ class _Factory extends VmFactory<AppState, PlaceSearchPage, _ViewModel> {
   _ViewModel fromStore() => _ViewModel(
         places: state.placesState.places,
         onInitPlaceForm: (place) =>
-            dispatch(InitNewPlaceAction(payload: place, fromWhere: FromWhere.places)),
+            dispatch(InitNewPlaceAction(payload: place, fromWhere: FromWhere.places, selectedVisit: null)),
         searchRecommendations: state.placesState.searchRecommendations,
         isLoadingRecs: state.placesState.searchRecommendations == null,
       );

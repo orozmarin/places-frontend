@@ -49,6 +49,16 @@ Place _$PlaceFromJson(Map<String, dynamic> json) => Place(
   ownershipTransferredAt: json['ownershipTransferredAt'] == null
       ? null
       : DateTime.parse(json['ownershipTransferredAt'] as String),
+  visitCount: (json['visitCount'] as num?)?.toInt(),
+  averageRating: json['averageRating'] == null
+      ? null
+      : Rating.fromJson(json['averageRating'] as Map<String, dynamic>),
+  latestVisitedAt: json['latestVisitedAt'] == null
+      ? null
+      : DateTime.parse(json['latestVisitedAt'] as String),
+  visits: (json['visits'] as List<dynamic>?)
+      ?.map((e) => PlaceVisit.fromJson(e as Map<String, dynamic>))
+      .toList(),
 );
 
 Map<String, dynamic> _$PlaceToJson(Place instance) => <String, dynamic>{

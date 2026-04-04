@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:gastrorate/models/place.dart';
+import 'package:gastrorate/models/visit/place_visit.dart';
 import 'package:gastrorate/theme/my_colors.dart';
 import 'package:gastrorate/widgets/custom_text.dart';
 import 'package:gastrorate/widgets/horizontal_spacer.dart';
@@ -9,7 +10,7 @@ import 'package:gastrorate/widgets/vertical_spacer.dart';
 class PlaceSwiperItem extends StatelessWidget {
   final Place place;
   final List<Place>? ratedPlaces;
-  final Function(Place) onInitPlaceForm;
+  final Function(Place, PlaceVisit?) onInitPlaceForm;
 
   const PlaceSwiperItem({
     Key? key,
@@ -43,7 +44,7 @@ class PlaceSwiperItem extends StatelessWidget {
             orElse: () => selectedPlace,
           );
         }
-        onInitPlaceForm(selectedPlace);
+        onInitPlaceForm(selectedPlace, null);
       },
       child: Container(
         width: double.infinity,

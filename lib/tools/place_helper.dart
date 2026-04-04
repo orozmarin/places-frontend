@@ -24,6 +24,9 @@ class PlaceHelper {
       case PlaceSorting.DATE_DESC:
         sorted.sort((a, b) => (b.visitedAt ?? DateTime(0)).compareTo(a.visitedAt ?? DateTime(0)));
         break;
+      case PlaceSorting.MOST_VISITS:
+        sorted.sort((a, b) => (b.visitCount ?? 1).compareTo(a.visitCount ?? 1));
+        break;
     }
 
     return sorted;

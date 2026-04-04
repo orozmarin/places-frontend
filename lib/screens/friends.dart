@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gastrorate/tools/utils_helper.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gastrorate/models/auth/user.dart';
 import 'package:gastrorate/theme/my_colors.dart';
@@ -56,7 +57,7 @@ class _FriendsState extends State<Friends> {
             CircleAvatar(
               radius: 40,
               backgroundImage: friend.profileImageUrl != null
-                  ? NetworkImage(friend.profileImageUrl!)
+                  ? NetworkImage(UtilsHelper.resolveImageUrl(friend.profileImageUrl!))
                   : null,
               child: friend.profileImageUrl == null
                   ? Text(
@@ -157,7 +158,7 @@ class _FriendsState extends State<Friends> {
             ...widget.searchResults!.map((user) => ListTile(
                   leading: CircleAvatar(
                     backgroundImage: user.profileImageUrl != null
-                        ? NetworkImage(user.profileImageUrl!)
+                        ? NetworkImage(UtilsHelper.resolveImageUrl(user.profileImageUrl!))
                         : null,
                     child: user.profileImageUrl == null
                         ? Text(user.getUserInitials())
@@ -209,7 +210,7 @@ class _FriendsState extends State<Friends> {
             ...widget.friends!.map((user) => ListTile(
                   leading: CircleAvatar(
                     backgroundImage: user.profileImageUrl != null
-                        ? NetworkImage(user.profileImageUrl!)
+                        ? NetworkImage(UtilsHelper.resolveImageUrl(user.profileImageUrl!))
                         : null,
                     child: user.profileImageUrl == null
                         ? Text(user.getUserInitials())

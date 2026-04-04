@@ -2,6 +2,7 @@ import 'package:async_redux/async_redux.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:gastrorate/models/from_where.dart';
 import 'package:gastrorate/models/place.dart';
+import 'package:gastrorate/models/visit/place_visit.dart';
 import 'package:gastrorate/screens/home.dart';
 import 'package:gastrorate/store/app_state.dart';
 import 'package:gastrorate/store/friendships/friendships_actions.dart';
@@ -45,8 +46,8 @@ class Factory extends VmFactory<AppState, HomePage, ViewModel> {
         nearbyPlaces: state.placesState.nearbyPlaces,
         onFindAllPlaces: () => dispatch(FetchPlacesAction()),
         onDeletePlace: (place) => dispatch(DeletePlaceAction(place)),
-        onInitPlaceForm: (Place place) => dispatch(
-          InitNewPlaceAction(payload: place, fromWhere: FromWhere.home),
+        onInitPlaceForm: (Place place, PlaceVisit? visit) => dispatch(
+          InitNewPlaceAction(payload: place, fromWhere: FromWhere.home, selectedVisit: visit),
         ),
         isLoading: isWaiting(FetchNearbyPlacesAction) || state.placesState.nearbyPlaces == null,
         onRefresh: () async {
@@ -61,7 +62,7 @@ class ViewModel extends Vm {
   final List<Place>? nearbyPlaces;
   final Function() onFindAllPlaces;
   final Function(Place place) onDeletePlace;
-  final Function(Place place) onInitPlaceForm;
+  final Function(Place place, PlaceVisit? visit) onInitPlaceForm;
   final bool isLoading;
   final Future<void> Function() onRefresh;
 

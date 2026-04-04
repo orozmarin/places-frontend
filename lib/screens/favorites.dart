@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gastrorate/models/place.dart';
 import 'package:gastrorate/models/place_search_form.dart';
+import 'package:gastrorate/models/visit/place_visit.dart';
 import 'package:gastrorate/theme/my_colors.dart';
 import 'package:gastrorate/tools/place_helper.dart';
 import 'package:gastrorate/widgets/custom_app_bar.dart';
@@ -13,7 +14,7 @@ import '../widgets/custom_text.dart';
 class Favorites extends StatefulWidget {
   final List<Place>? favoritePlaces;
   final Function(Place place) onDeletePlace;
-  final Function(Place place) onInitPlaceForm;
+  final Function(Place place, PlaceVisit? visit) onInitPlaceForm;
 
   Favorites({super.key, required this.favoritePlaces, required this.onDeletePlace, required this.onInitPlaceForm});
 
@@ -87,7 +88,6 @@ class _FavoritesState extends State<Favorites> {
                       Place place = _displayedPlaces[index];
                       return PlaceCard(
                         place: place,
-                        onDeletePlace: widget.onDeletePlace,
                         onInitPlaceForm: widget.onInitPlaceForm,
                       );
                     },

@@ -26,4 +26,5 @@ const _$PlaceSortingEnumMap = {
   PlaceSorting.RATING_DESC: 'RATING_DESC',
   PlaceSorting.DATE_ASC: 'DATE_ASC',
   PlaceSorting.DATE_DESC: 'DATE_DESC',
+  PlaceSorting.MOST_VISITS: 'MOST_VISITS',
 };

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gastrorate/models/auth/user.dart';
+import 'package:gastrorate/tools/utils_helper.dart';
 import 'package:gastrorate/models/place.dart';
 import 'package:gastrorate/theme/my_colors.dart';
 import 'package:gastrorate/widgets/custom_text.dart';
@@ -66,7 +67,7 @@ class _AddVisitorsSheetState extends State<AddVisitorsSheet> {
                   return ListTile(
                     leading: CircleAvatar(
                       backgroundImage: friend.profileImageUrl != null
-                          ? NetworkImage(friend.profileImageUrl!)
+                          ? NetworkImage(UtilsHelper.resolveImageUrl(friend.profileImageUrl!))
                           : null,
                       child: friend.profileImageUrl == null
                           ? Text(friend.getUserInitials())

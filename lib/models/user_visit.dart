@@ -11,6 +11,7 @@ class UserVisit {
   Rating? rating;
   DateTime? visitedAt;
   String? status; // "PENDING" | "VISITED"
+  String? placeVisitId; // nullable, backward compat
 
   factory UserVisit.fromJson(Map<String, dynamic> json) => _$UserVisitFromJson(json);
   Map<String, dynamic> toJson() => _$UserVisitToJson(this);
@@ -22,6 +23,7 @@ class UserVisit {
     this.rating,
     this.visitedAt,
     this.status,
+    this.placeVisitId,
   });
 
   @override
@@ -34,7 +36,8 @@ class UserVisit {
           userId == other.userId &&
           rating == other.rating &&
           visitedAt == other.visitedAt &&
-          status == other.status);
+          status == other.status &&
+          placeVisitId == other.placeVisitId);
 
   @override
   int get hashCode =>
@@ -43,11 +46,12 @@ class UserVisit {
       userId.hashCode ^
       rating.hashCode ^
       visitedAt.hashCode ^
-      status.hashCode;
+      status.hashCode ^
+      placeVisitId.hashCode;
 
   @override
   String toString() =>
-      'UserVisit{ id: $id, placeId: $placeId, userId: $userId, rating: $rating, visitedAt: $visitedAt, status: $status }';
+      'UserVisit{ id: $id, placeId: $placeId, userId: $userId, rating: $rating, visitedAt: $visitedAt, status: $status, placeVisitId: $placeVisitId }';
 
   UserVisit copyWith({
     String? id,
@@ -56,6 +60,7 @@ class UserVisit {
     Rating? rating,
     DateTime? visitedAt,
     String? status,
+    String? placeVisitId,
   }) {
     return UserVisit(
       id: id ?? this.id,
@@ -64,6 +69,7 @@ class UserVisit {
       rating: rating ?? this.rating,
       visitedAt: visitedAt ?? this.visitedAt,
       status: status ?? this.status,
+      placeVisitId: placeVisitId ?? this.placeVisitId,
     );
   }
 
@@ -74,6 +80,7 @@ class UserVisit {
         'rating': rating?.toMap(),
         'visitedAt': visitedAt?.toIso8601String(),
         'status': status,
+        'placeVisitId': placeVisitId,
       };
 
   factory UserVisit.fromMap(Map<String, dynamic> map) => UserVisit(
@@ -83,5 +90,6 @@ class UserVisit {
         rating: map['rating'] != null ? Rating.fromMap(map['rating']) : null,
         visitedAt: map['visitedAt'] != null ? DateTime.parse(map['visitedAt']) : null,
         status: map['status'] as String?,
+        placeVisitId: map['placeVisitId'] as String?,
       );
 }

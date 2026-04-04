@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:gastrorate/http/auth_helper.dart';
 import 'package:gastrorate/models/auth/user.dart';
+import 'package:gastrorate/models/visit/place_visit.dart';
 import 'package:gastrorate/screens/onboarding/onboarding_page.dart';
 import 'package:gastrorate/screens/favorites_page.dart';
 import 'package:gastrorate/screens/friend_requests_page.dart';
@@ -16,6 +17,7 @@ import 'package:gastrorate/screens/edit_profile/edit_profile_page.dart';
 import 'package:gastrorate/screens/profile_page.dart';
 import 'package:gastrorate/screens/place_search_page.dart';
 import 'package:gastrorate/screens/rate_shared_place_page.dart';
+import 'package:gastrorate/screens/visit/add_edit_visit_page.dart';
 import 'package:gastrorate/widgets/scaffold_nested_navigation.dart';
 import 'package:go_router/go_router.dart';
 
@@ -90,6 +92,17 @@ final goRouter = GoRouter(
       path: '/rate-shared-place',
       parentNavigatorKey: rootNavigatorKey,
       builder: (context, state) => const RateSharedPlacePage(),
+    ),
+    GoRoute(
+      path: '/visit-form',
+      parentNavigatorKey: rootNavigatorKey,
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>?;
+        return AddEditVisitPage(
+          placeId: extra?['placeId'] as String?,
+          existingVisit: extra?['visit'] as PlaceVisit?,
+        );
+      },
     ),
     // Stateful nested navigation based on:
     // https://github.com/flutter/packages/blob/main/packages/go_router/example/lib/stateful_shell_route.dart

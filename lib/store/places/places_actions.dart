@@ -8,6 +8,8 @@ import 'package:gastrorate/models/from_where.dart';
 import 'package:gastrorate/models/nearby_places_search_form.dart';
 import 'package:gastrorate/models/place.dart';
 import 'package:gastrorate/models/place_search_form.dart';
+import 'package:gastrorate/models/visit/place_visit.dart';
+import 'package:gastrorate/models/visit/update_place_visit_request.dart';
 import 'package:gastrorate/router.dart';
 import 'package:gastrorate/service/place_manager.dart';
 import 'package:gastrorate/store/app_action.dart';
@@ -40,14 +42,21 @@ class FetchPlacesAction extends AppAction {
 }
 
 class InitNewPlaceAction extends ReduxAction<AppState> {
-  InitNewPlaceAction({required this.payload, required this.fromWhere});
+  InitNewPlaceAction({required this.payload, required this.fromWhere, this.selectedVisit});
   final Place payload;
   final FromWhere fromWhere;
+  final PlaceVisit? selectedVisit;
 
   @override
   Future<AppState?> reduce() async {
     rootNavigatorKey.currentContext!.push('/${fromWhere.name}/details');
-    return state.copyWith(placesState: state.placesState.copyWith(place: payload));
+    return state.copyWith(
+      placesState: state.placesState.copyWith(
+        place: payload,
+        selectedVisit: selectedVisit,
+        clearSelectedVisit: selectedVisit == null,
+      ),
+    );
   }
 }
 
@@ -281,5 +290,64 @@ class InvalidatePlacesAction extends ReduxAction<AppState> {
         clearSearchRecommendations: true,
       ),
     );
+  }
+}
+
+class FetchPlaceVisitsAction extends AppAction {
+  final String placeId;
+  FetchPlaceVisitsAction(this.placeId);
+
+  @override
+  Future<AppState?> reduce() async {
+    final visits = await PlaceManager().getPlaceVisits(placeId);
+    return state.copyWith(
+      placesState: state.placesState.copyWith(currentPlaceVisits: visits),
+    );
+  }
+}
+
+class AddPlaceVisitAction extends AppAction {
+  final PlaceVisit visit;
+  AddPlaceVisitAction(this.visit);
+
+  @override
+  Future<AppState?> reduce() async {
+    try {
+      await PlaceManager().createPlaceVisit(visit);
+      dispatch(FetchPlacesAction());
+      dispatch(FetchPlaceVisitsAction(visit.placeId!));
+    } catch (e) {
+      toastHelperMobile.showToastError('Greška pri dodavanju posjeta');
+    }
+    return null;
+  }
+}
+
+class UpdatePlaceVisitAction extends AppAction {
+  final String visitId;
+  final String placeId;
+  final UpdatePlaceVisitRequest req;
+  UpdatePlaceVisitAction(this.visitId, this.placeId, this.req);
+
+  @override
+  Future<AppState?> reduce() async {
+    await PlaceManager().updatePlaceVisit(visitId, req);
+    dispatch(FetchPlacesAction());
+    dispatch(FetchPlaceVisitsAction(placeId));
+    return null;
+  }
+}
+
+class DeletePlaceVisitAction extends AppAction {
+  final String visitId;
+  final String placeId;
+  DeletePlaceVisitAction(this.visitId, this.placeId);
+
+  @override
+  Future<AppState?> reduce() async {
+    await PlaceManager().deletePlaceVisit(visitId);
+    dispatch(FetchPlacesAction());
+    dispatch(FetchPlaceVisitsAction(placeId));
+    return null;
   }
 }

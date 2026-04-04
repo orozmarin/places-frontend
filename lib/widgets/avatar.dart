@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gastrorate/router.dart';
+import 'package:gastrorate/tools/utils_helper.dart';
 import 'package:go_router/go_router.dart';
 
 class AvatarWidget extends StatelessWidget {
@@ -71,11 +72,11 @@ class AvatarWidget extends StatelessWidget {
         ),
         child: ClipOval(
           child: Image.network(
-            imageUrl!,
+            UtilsHelper.resolveImageUrl(imageUrl!),
             fit: BoxFit.cover,
             width: _avatarSize,
             height: _avatarSize,
-            errorBuilder: (_, __, ___) => _renderFallback(),
+            errorBuilder: (context, error, stack) => _renderFallback(),
           ),
         ),
       );

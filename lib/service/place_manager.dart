@@ -1,8 +1,11 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:gastrorate/models/co_visitor.dart';
 import 'package:gastrorate/models/nearby_places_search_form.dart';
 import 'package:gastrorate/models/place.dart';
 import 'package:gastrorate/models/place_search_form.dart';
+import 'package:gastrorate/models/visit/place_visit.dart';
+import 'package:gastrorate/models/visit/update_place_visit_request.dart';
 import 'package:gastrorate/service/api_service.dart';
 import 'package:gastrorate/tools/services_uri_helper.dart';
 
@@ -14,6 +17,9 @@ class PlaceManager {
   static const String FIND_FAVORITE_PLACES = "/places/find/favorites/{userId}";
   static const String FIND_SHARED_PLACES = "/places/find/shared/{userId}";
   static const String REMOVE_CO_VISITOR = "/visits/{placeId}/co-visitors/{coVisitorUserId}/remove";
+  static const String PLACE_VISITS = "/visits/place-visits";
+  static const String PLACE_VISITS_BY_PLACE = "/visits/place-visits/{placeId}";
+  static const String PLACE_VISIT_BY_ID = "/visits/place-visits/visit/{visitId}";
 
   static const String FIND_NEARBY_PLACES_API = "https://places.googleapis.com/v1/places:searchNearby";
 
@@ -84,6 +90,44 @@ class PlaceManager {
         dotenv.env['API_BASE_URI'].toString() + REMOVE_CO_VISITOR, params);
     final Response<dynamic> response = await client.post(url);
     return Place.fromJson(response.data);
+  }
+
+  Future<PlaceVisit?> createPlaceVisit(PlaceVisit visit) async {
+    final String url = dotenv.env['API_BASE_URI'].toString() + PLACE_VISITS;
+    final Response<dynamic> response = await client.post(url, data: visit.toJson());
+    return _parsePlaceVisitResponse(response.data);
+  }
+
+  Future<List<PlaceVisit>> getPlaceVisits(String placeId) async {
+    final Map<String, dynamic> params = <String, dynamic>{"placeId": placeId};
+    final String url = ServicesUriHelper.getUrlWithParams(
+        dotenv.env['API_BASE_URI'].toString() + PLACE_VISITS_BY_PLACE, params);
+    final Response<dynamic> response = await client.get(url);
+    return (response.data as List<dynamic>).map((e) => _parsePlaceVisitResponse(e)).toList();
+  }
+
+  Future<PlaceVisit?> updatePlaceVisit(String visitId, UpdatePlaceVisitRequest req) async {
+    final Map<String, dynamic> params = <String, dynamic>{"visitId": visitId};
+    final String url = ServicesUriHelper.getUrlWithParams(
+        dotenv.env['API_BASE_URI'].toString() + PLACE_VISIT_BY_ID, params);
+    final Response<dynamic> response = await client.patch(url, data: req.toJson());
+    return _parsePlaceVisitResponse(response.data);
+  }
+
+  Future<bool> deletePlaceVisit(String visitId) async {
+    final Map<String, dynamic> params = <String, dynamic>{"visitId": visitId};
+    final String url = ServicesUriHelper.getUrlWithParams(
+        dotenv.env['API_BASE_URI'].toString() + PLACE_VISIT_BY_ID, params);
+    await client.delete(url);
+    return true;
+  }
+
+  PlaceVisit _parsePlaceVisitResponse(dynamic data) {
+    final visit = PlaceVisit.fromJson(data['visit'] as Map<String, dynamic>);
+    final coVisitors = (data['coVisitors'] as List<dynamic>?)
+        ?.map((e) => CoVisitor.fromJson(e as Map<String, dynamic>))
+        .toList();
+    return visit.copyWith(coVisitors: coVisitors);
   }
 
   Future<List<Place>> findNearbyPlaces(NearbyPlacesSearchForm npsf) async {

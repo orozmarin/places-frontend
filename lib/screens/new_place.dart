@@ -10,6 +10,8 @@ import 'package:gastrorate/models/place.dart';
 import 'package:gastrorate/models/place_review.dart';
 import 'package:gastrorate/models/price_level.dart';
 import 'package:gastrorate/models/rating.dart';
+import 'package:gastrorate/models/visit/place_visit.dart';
+import 'package:gastrorate/models/visit/update_place_visit_request.dart';
 import 'package:gastrorate/screens/dialogs/place_review_dialog.dart';
 import 'package:gastrorate/theme/my_colors.dart';
 import 'package:gastrorate/widgets/add_visitors_sheet.dart';
@@ -19,7 +21,9 @@ import 'package:gastrorate/widgets/photo_gallery.dart';
 import 'package:gastrorate/widgets/place_rating_dialog.dart';
 import 'package:gastrorate/widgets/rating_summary_card.dart';
 import 'package:gastrorate/widgets/review_swiper.dart';
+import 'package:gastrorate/widgets/horizontal_spacer.dart';
 import 'package:gastrorate/widgets/vertical_spacer.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:gastrorate/tools/utils_helper.dart';
@@ -35,6 +39,10 @@ class NewPlace extends StatefulWidget {
     required this.friends,
     required this.loggedInUserId,
     required this.onRemoveCoVisitor,
+    this.selectedVisit,
+    this.onAddVisit,
+    this.onUpdateVisit,
+    this.onDeleteVisit,
   });
 
   final Place? place;
@@ -44,6 +52,10 @@ class NewPlace extends StatefulWidget {
   final List<User>? friends;
   final String? loggedInUserId;
   final Function(String placeId, String coVisitorUserId) onRemoveCoVisitor;
+  final PlaceVisit? selectedVisit;
+  final Function(PlaceVisit visit)? onAddVisit;
+  final Function(String visitId, String placeId, UpdatePlaceVisitRequest req)? onUpdateVisit;
+  final Function(String visitId, String placeId)? onDeleteVisit;
 
   @override
   State<StatefulWidget> createState() => _NewPlaceState();
@@ -64,7 +76,16 @@ class _NewPlaceState extends State<NewPlace> {
     // Copy the place so local mutations don't bleed into Redux state
     currentPlace = source.copyWith(rating: source.rating?.copyWith());
     _isNewPlace = source.userId == null;
-    _visitedAt = currentPlace.visitedAt ?? DateTime.now();
+
+    // If a specific visit was selected, show its date and rating
+    if (widget.selectedVisit != null) {
+      _visitedAt = widget.selectedVisit!.visitedAt ?? currentPlace.visitedAt ?? DateTime.now();
+      if (widget.selectedVisit!.ownerRating != null) {
+        currentPlace.rating = widget.selectedVisit!.ownerRating!.copyWith();
+      }
+    } else {
+      _visitedAt = currentPlace.visitedAt ?? DateTime.now();
+    }
     currentPlace.visitedAt = _visitedAt;
     final now = DateTime.now();
     _latestDate = DateTime(now.year, now.month, now.day, 23, 59, 59);
@@ -100,17 +121,17 @@ class _NewPlaceState extends State<NewPlace> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 12),
+                const VerticalSpacer(12),
                 _buildInfoStrip(),
-                const SizedBox(height: 16),
+                const VerticalSpacer(16),
                 _buildRatingSection(),
-                const SizedBox(height: 16),
+                const VerticalSpacer(16),
                 if (currentPlace.userId != null) ...[
                   _buildCoVisitorsSection(),
-                  const SizedBox(height: 16),
+                  const VerticalSpacer(16),
                 ],
                 _buildVisitDateChip(),
-                const SizedBox(height: 16),
+                const VerticalSpacer(16),
                 if (currentPlace.reviews != null && currentPlace.reviews!.isNotEmpty) ...[
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -119,12 +140,12 @@ class _NewPlaceState extends State<NewPlace> {
                       style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600),
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const VerticalSpacer(8),
                   ReviewSwiper(
                     reviews: currentPlace.reviews ?? [],
                     onTap: (PlaceReview review) => showReviewDialog(review),
                   ),
-                  const SizedBox(height: 16),
+                  const VerticalSpacer(16),
                 ],
                 if (currentPlace.photos != null && currentPlace.photos!.isNotEmpty) ...[
                   Padding(
@@ -134,14 +155,14 @@ class _NewPlaceState extends State<NewPlace> {
                       style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600),
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const VerticalSpacer(8),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: PhotoGallery(photos: currentPlace.photos ?? []),
                   ),
-                  const SizedBox(height: 16),
+                  const VerticalSpacer(16),
                 ],
-                const SizedBox(height: 80),
+                const VerticalSpacer(80),
               ],
             ),
           ),
@@ -176,7 +197,7 @@ class _NewPlaceState extends State<NewPlace> {
         ),
         if (currentPlace.url != null)
           _buildAppBarIconButton(Icons.location_on, _launchMaps),
-        const SizedBox(width: 4),
+        const HorizontalSpacer(4),
       ],
       flexibleSpace: FlexibleSpaceBar(
         background: _buildHeroBackground(),
@@ -229,7 +250,7 @@ class _NewPlaceState extends State<NewPlace> {
                 children: [
                   if (_priceLevelText(currentPlace.priceLevel) != null) ...[
                     _buildHeroPill(_priceLevelText(currentPlace.priceLevel)!),
-                    const SizedBox(width: 6),
+                    const HorizontalSpacer(6),
                   ],
                   if (currentPlace.openingHours != null)
                     _buildHeroPill(
@@ -240,7 +261,7 @@ class _NewPlaceState extends State<NewPlace> {
                     ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const VerticalSpacer(8),
               Text(
                 currentPlace.name ?? 'N/A',
                 style: GoogleFonts.outfit(
@@ -359,7 +380,7 @@ class _NewPlaceState extends State<NewPlace> {
                   Row(
                     children: [
                       Icon(Icons.location_on_outlined, size: 14, color: Colors.grey[600]),
-                      const SizedBox(width: 4),
+                      const HorizontalSpacer(4),
                       Expanded(
                         child: Text(
                           [
@@ -374,12 +395,12 @@ class _NewPlaceState extends State<NewPlace> {
                     ],
                   ),
                   if (currentPlace.googleRating != null || currentPlace.distance != null) ...[
-                    const SizedBox(height: 4),
+                    const VerticalSpacer(4),
                     Row(
                       children: [
                         if (currentPlace.googleRating != null) ...[
                           const Icon(Icons.star_rounded, size: 14, color: Color(0xFFFFC107)),
-                          const SizedBox(width: 2),
+                          const HorizontalSpacer(2),
                           Text(
                             '${currentPlace.googleRating}',
                             style: GoogleFonts.outfit(fontSize: 12, color: Colors.grey[700]),
@@ -422,27 +443,61 @@ class _NewPlaceState extends State<NewPlace> {
   // ─── Rating Section ───────────────────────────────────────────────────────
 
   Widget _buildRatingSection() {
+    final visitCount = currentPlace.visitCount ?? 1;
+    final selectedVisit = widget.selectedVisit;
+
+    // When a specific visit is selected, show that visit's rating (editable for owner)
+    // When no visit is selected and there are multiple visits, show the average (read-only)
+    // Otherwise, show the place rating (editable)
+    final showVisitRating = selectedVisit != null;
+    final showAvgRating = !showVisitRating && visitCount > 1 && currentPlace.averageRating != null;
+
+    String sectionTitle;
+    String? sectionSubtitle;
+    if (showVisitRating) {
+      sectionTitle = 'Ocjena posjeta';
+    } else if (showAvgRating) {
+      sectionTitle = 'Prosjecna ocjena';
+      sectionSubtitle = '(bazira se na $visitCount posjeta)';
+    } else {
+      sectionTitle = 'My Rating';
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'My Rating',
+            sectionTitle,
             style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600),
           ),
-          const SizedBox(height: 12),
-          currentPlace.rating == null
-              ? _buildAddRatingCard()
-              : RatingSummaryCard(
-                  rating: currentPlace.rating!,
-                  onEditRating: () => showRatingDialog(currentPlace.rating),
-                  onDeleteRating: () {
-                    setState(() {
-                      currentPlace.rating = null;
-                    });
-                  },
-                ),
+          if (sectionSubtitle != null) ...[
+            const VerticalSpacer(4),
+            Text(
+              sectionSubtitle,
+              style: GoogleFonts.outfit(fontSize: 12, color: Colors.grey.shade600),
+            ),
+          ],
+          const VerticalSpacer(12),
+          if (showAvgRating)
+            RatingSummaryCard(
+              rating: currentPlace.averageRating!,
+              onEditRating: () {},
+              onDeleteRating: () {},
+            )
+          else
+            currentPlace.rating == null
+                ? _buildAddRatingCard()
+                : RatingSummaryCard(
+                    rating: currentPlace.rating!,
+                    onEditRating: () => showRatingDialog(currentPlace.rating),
+                    onDeleteRating: () {
+                      setState(() {
+                        currentPlace.rating = null;
+                      });
+                    },
+                  ),
         ],
       ),
     );
@@ -467,7 +522,7 @@ class _NewPlaceState extends State<NewPlace> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Icon(Icons.star_border_rounded, size: 32, color: Colors.black54),
-              const SizedBox(height: 8),
+              const VerticalSpacer(8),
               Text(
                 '+ Rate this place',
                 style: GoogleFonts.outfit(
@@ -486,7 +541,11 @@ class _NewPlaceState extends State<NewPlace> {
   // ─── Co-visitors ──────────────────────────────────────────────────────────
 
   Widget _buildCoVisitorsSection() {
-    final allCoVisitors = currentPlace.coVisitors ?? [];
+    // When a specific visit is selected, show that visit's co-visitors
+    final sourceCoVisitors = (widget.selectedVisit != null && widget.selectedVisit!.coVisitors != null)
+        ? widget.selectedVisit!.coVisitors!
+        : (currentPlace.coVisitors ?? []);
+    final allCoVisitors = sourceCoVisitors;
     final filtered =
         allCoVisitors.where((cv) => cv.userId != widget.loggedInUserId).toList();
     final isOwner = currentPlace.userId == widget.loggedInUserId;
@@ -517,7 +576,7 @@ class _NewPlaceState extends State<NewPlace> {
             ],
           ),
           if (filtered.isNotEmpty || isOwner) ...[
-            const SizedBox(height: 12),
+            const VerticalSpacer(12),
             SizedBox(
               height: 88,
               child: ListView(
@@ -555,7 +614,7 @@ class _NewPlaceState extends State<NewPlace> {
                     )
                   : null,
             ),
-            const SizedBox(height: 4),
+            const VerticalSpacer(4),
             SizedBox(
               width: 64,
               child: Text(
@@ -589,7 +648,7 @@ class _NewPlaceState extends State<NewPlace> {
                 child: Center(child: Icon(Icons.add, size: 24, color: Colors.grey)),
               ),
             ),
-            const SizedBox(height: 4),
+            const VerticalSpacer(4),
             SizedBox(
               width: 64,
               child: Text(
@@ -624,7 +683,7 @@ class _NewPlaceState extends State<NewPlace> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(Icons.calendar_today_outlined, size: 16, color: Colors.grey[600]),
-              const SizedBox(width: 8),
+              const HorizontalSpacer(8),
               Text(
                 'Visited: $dateLabel',
                 style: GoogleFonts.outfit(
@@ -701,79 +760,192 @@ class _NewPlaceState extends State<NewPlace> {
     final isCoVisitor = widget.loggedInUserId != null &&
         currentPlace.userId != null &&
         currentPlace.userId != widget.loggedInUserId;
+    final placeId = currentPlace.id;
+    final selectedVisit = widget.selectedVisit;
+    final canDeleteVisit = isOwner &&
+        selectedVisit != null &&
+        (currentPlace.visitCount ?? 1) > 1;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          if (currentPlace.rating != null && isOwner) ...[
-            OutlinedButton(
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.red,
-                side: const BorderSide(color: Colors.red),
-                minimumSize: const Size(56, 52),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
-              ),
-              onPressed: () => _showDeleteConfirmationDialog(context),
-              child: const Icon(CupertinoIcons.delete_simple),
-            ),
-            const SizedBox(width: 12),
-          ],
-          if (currentPlace.rating != null && isCoVisitor) ...[
-            OutlinedButton(
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.amber.shade700,
-                side: BorderSide(color: Colors.amber.shade700),
-                minimumSize: const Size(56, 52),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
-              ),
-              onPressed: () => _showLeaveConfirmationSheet(context),
-              child: const Icon(Icons.exit_to_app),
-            ),
-            const SizedBox(width: 12),
-          ],
-          Expanded(
-            child: SizedBox(
-              height: 52,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black,
-                  foregroundColor: Colors.white,
-                  disabledBackgroundColor: Colors.grey.shade300,
-                  disabledForegroundColor: Colors.grey.shade600,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+          // Visit action row (only for owners with a saved place)
+          if (isOwner && placeId != null) ...[
+            Row(
+              children: [
+                // Add new visit
+                Expanded(
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.black87,
+                      side: BorderSide(color: Colors.grey.shade400),
+                      minimumSize: const Size(0, 44),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                    ),
+                    onPressed: () => context.push('/visit-form', extra: {'placeId': placeId}),
+                    icon: const Icon(Icons.add, size: 16),
+                    label: Text('New visit', style: GoogleFonts.outfit(fontSize: 13)),
+                  ),
                 ),
-                onPressed: _isSaving || currentPlace.rating == null
-                    ? null
-                    : () {
-                        // Co-visitors (visitId != null) pop immediately after save.
-                        // Owners stay on screen until post-save sheet is handled.
-                        if (currentPlace.visitId != null) {
-                          widget.onSavePlace(currentPlace);
-                          Navigator.pop(context);
-                        } else {
-                          setState(() => _isSaving = true);
-                          widget.onSavePlace(currentPlace);
-                        }
-                      },
-                child: _isSaving
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : Text(
-                        'Save',
-                        style: GoogleFonts.outfit(
-                            fontSize: 16, fontWeight: FontWeight.w600),
+                if (selectedVisit != null) ...[
+                  const HorizontalSpacer(8),
+                  // Edit this visit
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.black87,
+                        side: BorderSide(color: Colors.grey.shade400),
+                        minimumSize: const Size(0, 44),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                       ),
-              ),
+                      onPressed: () => context.push('/visit-form', extra: {
+                        'placeId': placeId,
+                        'visit': selectedVisit,
+                      }),
+                      icon: const Icon(Icons.edit_outlined, size: 16),
+                      label: Text('Edit visit', style: GoogleFonts.outfit(fontSize: 13)),
+                    ),
+                  ),
+                  if (canDeleteVisit) ...[
+                    const HorizontalSpacer(8),
+                    // Delete this visit
+                    OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.red,
+                        side: const BorderSide(color: Colors.red),
+                        minimumSize: const Size(44, 44),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                      ),
+                      onPressed: () => _showDeleteVisitConfirmationDialog(context, selectedVisit, placeId),
+                      child: const Icon(CupertinoIcons.delete_simple, size: 18),
+                    ),
+                  ],
+                ],
+              ],
             ),
+            const VerticalSpacer(8),
+          ],
+          // Main action row
+          Row(
+            children: [
+              if (currentPlace.rating != null && isOwner) ...[
+                OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red,
+                    side: const BorderSide(color: Colors.red),
+                    minimumSize: const Size(56, 52),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: () => _showDeleteConfirmationDialog(context),
+                  child: const Icon(CupertinoIcons.delete_simple),
+                ),
+                const HorizontalSpacer(12),
+              ],
+              if (currentPlace.rating != null && isCoVisitor) ...[
+                OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.amber.shade700,
+                    side: BorderSide(color: Colors.amber.shade700),
+                    minimumSize: const Size(56, 52),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: () => _showLeaveConfirmationSheet(context),
+                  child: const Icon(Icons.exit_to_app),
+                ),
+                const HorizontalSpacer(12),
+              ],
+              Expanded(
+                child: SizedBox(
+                  height: 52,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: Colors.grey.shade300,
+                      disabledForegroundColor: Colors.grey.shade600,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                    ),
+                    onPressed: _isSaving || currentPlace.rating == null
+                        ? null
+                        : () {
+                            // Co-visitors (visitId != null) pop immediately after save.
+                            // Owners stay on screen until post-save sheet is handled.
+                            if (currentPlace.visitId != null) {
+                              widget.onSavePlace(currentPlace);
+                              Navigator.pop(context);
+                            } else {
+                              setState(() => _isSaving = true);
+                              widget.onSavePlace(currentPlace);
+                            }
+                          },
+                    child: _isSaving
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Text(
+                            'Save',
+                            style: GoogleFonts.outfit(
+                                fontSize: 16, fontWeight: FontWeight.w600),
+                          ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteVisitConfirmationDialog(BuildContext context, PlaceVisit visit, String placeId) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        surfaceTintColor: MyColors.mainBackgroundColor,
+        title: Text(
+          'Izbriši posjet',
+          style: Theme.of(context).textTheme.headlineSmall,
+        ),
+        content: const CustomText('Jesi li siguran da želiš izbrisati ovaj posjet?'),
+        actions: [
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: ButtonComponent.outlinedButtonSmall(
+                      onPressed: () => Navigator.of(ctx).pop(),
+                      text: 'Odustani',
+                    ),
+                  ),
+                  const HorizontalSpacer(8),
+                  Expanded(
+                    child: ButtonComponent.smallButton(
+                      onPressed: () {
+                        Navigator.of(ctx).pop();
+                        widget.onDeleteVisit?.call(visit.id!, placeId);
+                        Navigator.of(context).pop();
+                      },
+                      text: 'Izbriši',
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ],
       ),
@@ -859,7 +1031,7 @@ class _NewPlaceState extends State<NewPlace> {
                       text: "Cancel",
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const HorizontalSpacer(8),
                   Expanded(
                     child: ButtonComponent.smallButton(
                       onPressed: () {
@@ -906,12 +1078,12 @@ class _NewPlaceState extends State<NewPlace> {
               "Leave ${currentPlace.name ?? 'this place'}?",
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 10),
+            const VerticalSpacer(10),
             Text(
               "Your rating and visit will be removed. The place stays saved for the host and other visitors.",
               style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
             ),
-            const SizedBox(height: 24),
+            const VerticalSpacer(24),
             Row(
               children: [
                 Expanded(
@@ -924,7 +1096,7 @@ class _NewPlaceState extends State<NewPlace> {
                     child: const Text("Cancel"),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const HorizontalSpacer(12),
                 Expanded(
                   child: ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
@@ -998,18 +1170,18 @@ class _NewPlaceState extends State<NewPlace> {
               ),
               child: const Icon(Icons.check_rounded, color: Color(0xFF4CAF50), size: 32),
             ),
-            const SizedBox(height: 16),
+            const VerticalSpacer(16),
             Text(
               'Place saved!',
               style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 8),
+            const VerticalSpacer(8),
             Text(
               'Would you like to invite co-visitors?',
               style: GoogleFonts.outfit(fontSize: 14, color: Colors.grey[600]),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
+            const VerticalSpacer(24),
             Row(
               children: [
                 Expanded(
@@ -1023,7 +1195,7 @@ class _NewPlaceState extends State<NewPlace> {
                     child: Text('Done', style: GoogleFonts.outfit()),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const HorizontalSpacer(12),
                 Expanded(
                   child: ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(

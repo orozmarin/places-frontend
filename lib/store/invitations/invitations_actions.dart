@@ -72,12 +72,13 @@ class DeclineInvitationAction extends AppAction {
 class SendVisitInvitationAction extends AppAction {
   final String placeId;
   final String inviteeId;
-  SendVisitInvitationAction(this.placeId, this.inviteeId);
+  final String? placeVisitId;
+  SendVisitInvitationAction(this.placeId, this.inviteeId, {this.placeVisitId});
 
   @override
   Future<AppState?> reduce() async {
     try {
-      await InvitationManager().sendInvitation(placeId, inviteeId);
+      await InvitationManager().sendInvitation(placeId, inviteeId, placeVisitId: placeVisitId);
       toastHelperMobile.showToastSuccess("Invitation sent");
     } catch (_) {
       toastHelperMobile.showToastError("Failed to send invitation");

@@ -1,4 +1,18 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 class UtilsHelper {
+  /// Resolves a potentially relative image URL (e.g. /uploads/...) to a full URL
+  /// by prepending the server base derived from API_BASE_URI in .env.
+  static String resolveImageUrl(String url) {
+    if (url.startsWith('/')) {
+      final apiBase = dotenv.env['API_BASE_URI'] ?? '';
+      final serverBase = apiBase.endsWith('/rest')
+          ? apiBase.substring(0, apiBase.length - 5)
+          : apiBase;
+      return '$serverBase$url';
+    }
+    return url;
+  }
   static String extractFirstLetter(String name) {
     if (name.isNotEmpty) {
       return name[0];

@@ -1,4 +1,5 @@
 import 'package:gastrorate/models/place.dart';
+import 'package:gastrorate/models/visit/place_visit.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'places_state.g.dart';
@@ -16,6 +17,8 @@ class PlacesState {
     this.nearbyPlaces = null;
     this.favoritePlaces = null;
     this.sharedPlaces = null;
+    this.currentPlaceVisits = null;
+    this.selectedVisit = null;
   }
 
   factory PlacesState.fromJson(Map<String, dynamic> json) => _$PlacesStateFromJson(json);
@@ -24,6 +27,10 @@ class PlacesState {
 
 //<editor-fold desc="Data Methods">
   List<Place>? searchRecommendations;
+  @JsonKey(includeToJson: false, includeFromJson: false)
+  List<PlaceVisit>? currentPlaceVisits;
+  @JsonKey(includeToJson: false, includeFromJson: false)
+  PlaceVisit? selectedVisit;
 
   PlacesState({
     this.places,
@@ -32,6 +39,8 @@ class PlacesState {
     this.sharedPlaces,
     this.place,
     this.searchRecommendations,
+    this.currentPlaceVisits,
+    this.selectedVisit,
   });
 
   @override
@@ -44,7 +53,9 @@ class PlacesState {
           favoritePlaces == other.favoritePlaces &&
           sharedPlaces == other.sharedPlaces &&
           place == other.place &&
-          searchRecommendations == other.searchRecommendations);
+          searchRecommendations == other.searchRecommendations &&
+          currentPlaceVisits == other.currentPlaceVisits &&
+          selectedVisit == other.selectedVisit);
 
   @override
   int get hashCode =>
@@ -53,7 +64,9 @@ class PlacesState {
       favoritePlaces.hashCode ^
       sharedPlaces.hashCode ^
       place.hashCode ^
-      searchRecommendations.hashCode;
+      searchRecommendations.hashCode ^
+      currentPlaceVisits.hashCode ^
+      selectedVisit.hashCode;
 
   @override
   String toString() {
@@ -64,6 +77,8 @@ class PlacesState {
         ' sharedPlaces: $sharedPlaces,' +
         ' place: $place,' +
         ' searchRecommendations: $searchRecommendations,' +
+        ' currentPlaceVisits: $currentPlaceVisits,' +
+        ' selectedVisit: $selectedVisit,' +
         '}';
   }
 
@@ -74,8 +89,11 @@ class PlacesState {
     List<Place>? sharedPlaces,
     Place? place,
     List<Place>? searchRecommendations,
+    List<PlaceVisit>? currentPlaceVisits,
+    PlaceVisit? selectedVisit,
     bool clearNearbyPlaces = false,
     bool clearSearchRecommendations = false,
+    bool clearSelectedVisit = false,
   }) {
     return PlacesState(
       places: places ?? this.places,
@@ -84,6 +102,8 @@ class PlacesState {
       sharedPlaces: sharedPlaces ?? this.sharedPlaces,
       place: place ?? this.place,
       searchRecommendations: clearSearchRecommendations ? null : (searchRecommendations ?? this.searchRecommendations),
+      currentPlaceVisits: currentPlaceVisits ?? this.currentPlaceVisits,
+      selectedVisit: clearSelectedVisit ? null : (selectedVisit ?? this.selectedVisit),
     );
   }
 

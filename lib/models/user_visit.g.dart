@@ -17,6 +17,7 @@ UserVisit _$UserVisitFromJson(Map<String, dynamic> json) => UserVisit(
       ? null
       : DateTime.parse(json['visitedAt'] as String),
   status: json['status'] as String?,
+  placeVisitId: json['placeVisitId'] as String?,
 );
 
 Map<String, dynamic> _$UserVisitToJson(UserVisit instance) => <String, dynamic>{
@@ -26,4 +27,5 @@ Map<String, dynamic> _$UserVisitToJson(UserVisit instance) => <String, dynamic>{
   'rating': instance.rating?.toJson(),
   'visitedAt': instance.visitedAt?.toIso8601String(),
   'status': instance.status,
+  'placeVisitId': instance.placeVisitId,
 };

@@ -21,9 +21,14 @@ class InvitationManager {
 
   Dio client = ApiService.client;
 
-  Future<VisitInvitation> sendInvitation(String placeId, String inviteeId) async {
+  Future<VisitInvitation> sendInvitation(String placeId, String inviteeId, {String? placeVisitId}) async {
     final String url = dotenv.env['API_BASE_URI'].toString() + SEND_INVITATION;
-    final response = await client.post(url, data: {'placeId': placeId, 'inviteeId': inviteeId});
+    final Map<String, dynamic> body = {
+      'placeId': placeId,
+      'inviteeId': inviteeId,
+      if (placeVisitId != null) 'placeVisitId': placeVisitId,
+    };
+    final response = await client.post(url, data: body);
     return VisitInvitation.fromJson(response.data);
   }
 

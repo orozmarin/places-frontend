@@ -19,6 +19,7 @@ VisitInvitation _$VisitInvitationFromJson(Map<String, dynamic> json) =>
       createdAt: json['createdAt'] == null
           ? null
           : DateTime.parse(json['createdAt'] as String),
+      placeVisitId: json['placeVisitId'] as String?,
     );
 
 Map<String, dynamic> _$VisitInvitationToJson(VisitInvitation instance) =>
@@ -32,4 +33,5 @@ Map<String, dynamic> _$VisitInvitationToJson(VisitInvitation instance) =>
       'inviteeId': instance.inviteeId,
       'status': instance.status,
       'createdAt': instance.createdAt?.toIso8601String(),
+      'placeVisitId': instance.placeVisitId,
     };

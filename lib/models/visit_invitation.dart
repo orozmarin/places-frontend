@@ -13,6 +13,7 @@ class VisitInvitation {
   String? inviteeId;
   String? status; // "PENDING" | "ACCEPTED" | "DECLINED"
   DateTime? createdAt;
+  String? placeVisitId; // nullable, backward compat
 
   factory VisitInvitation.fromJson(Map<String, dynamic> json) => _$VisitInvitationFromJson(json);
   Map<String, dynamic> toJson() => _$VisitInvitationToJson(this);
@@ -27,6 +28,7 @@ class VisitInvitation {
     this.inviteeId,
     this.status,
     this.createdAt,
+    this.placeVisitId,
   });
 
   @override
@@ -42,7 +44,8 @@ class VisitInvitation {
           inviterProfileImageUrl == other.inviterProfileImageUrl &&
           inviteeId == other.inviteeId &&
           status == other.status &&
-          createdAt == other.createdAt);
+          createdAt == other.createdAt &&
+          placeVisitId == other.placeVisitId);
 
   @override
   int get hashCode =>
@@ -54,11 +57,12 @@ class VisitInvitation {
       inviterProfileImageUrl.hashCode ^
       inviteeId.hashCode ^
       status.hashCode ^
-      createdAt.hashCode;
+      createdAt.hashCode ^
+      placeVisitId.hashCode;
 
   @override
   String toString() =>
-      'VisitInvitation{ id: $id, placeId: $placeId, placeName: $placeName, inviterId: $inviterId, inviterName: $inviterName, inviteeId: $inviteeId, status: $status, createdAt: $createdAt }';
+      'VisitInvitation{ id: $id, placeId: $placeId, placeName: $placeName, inviterId: $inviterId, inviterName: $inviterName, inviteeId: $inviteeId, status: $status, createdAt: $createdAt, placeVisitId: $placeVisitId }';
 
   VisitInvitation copyWith({
     String? id,
@@ -70,6 +74,7 @@ class VisitInvitation {
     String? inviteeId,
     String? status,
     DateTime? createdAt,
+    String? placeVisitId,
   }) {
     return VisitInvitation(
       id: id ?? this.id,
@@ -81,6 +86,7 @@ class VisitInvitation {
       inviteeId: inviteeId ?? this.inviteeId,
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
+      placeVisitId: placeVisitId ?? this.placeVisitId,
     );
   }
 
@@ -94,6 +100,7 @@ class VisitInvitation {
         'inviteeId': inviteeId,
         'status': status,
         'createdAt': createdAt?.toIso8601String(),
+        'placeVisitId': placeVisitId,
       };
 
   factory VisitInvitation.fromMap(Map<String, dynamic> map) => VisitInvitation(
@@ -106,5 +113,6 @@ class VisitInvitation {
         inviteeId: map['inviteeId'] as String?,
         status: map['status'] as String?,
         createdAt: map['createdAt'] != null ? DateTime.parse(map['createdAt']) : null,
+        placeVisitId: map['placeVisitId'] as String?,
       );
 }

@@ -2,6 +2,7 @@ import 'package:async_redux/async_redux.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:gastrorate/models/from_where.dart';
 import 'package:gastrorate/models/place.dart';
+import 'package:gastrorate/models/visit/place_visit.dart';
 import 'package:gastrorate/screens/favorites.dart';
 import 'package:gastrorate/store/app_state.dart';
 import 'package:gastrorate/store/places/places_actions.dart';
@@ -32,7 +33,9 @@ class Factory extends VmFactory<AppState, FavoritesPage, ViewModel> {
   ViewModel? fromStore() => ViewModel(
       favoritePlaces: state.placesState.favoritePlaces,
       onDeletePlace: (place) => dispatch(DeletePlaceAction(place)),
-      onInitPlaceForm: (Place place) => dispatch(InitNewPlaceAction(payload: place, fromWhere: FromWhere.favorites)));
+      onInitPlaceForm: (Place place, PlaceVisit? visit) => dispatch(
+        InitNewPlaceAction(payload: place, fromWhere: FromWhere.favorites, selectedVisit: visit),
+      ));
 }
 
 class ViewModel extends Vm {
@@ -40,7 +43,7 @@ class ViewModel extends Vm {
 
   final List<Place>? favoritePlaces;
   final Function(Place place) onDeletePlace;
-  final Function(Place place) onInitPlaceForm;
+  final Function(Place place, PlaceVisit? visit) onInitPlaceForm;
 
   @override
   bool operator ==(Object other) =>

@@ -7,6 +7,7 @@ import 'package:gastrorate/models/place_opening_hours_time.dart';
 import 'package:gastrorate/models/place_review.dart';
 import 'package:gastrorate/models/price_level.dart';
 import 'package:gastrorate/models/rating.dart';
+import 'package:gastrorate/models/visit/place_visit.dart';
 import 'package:html/dom.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -41,6 +42,14 @@ class Place {
   String? ownershipTransferredFromName;
   @JsonKey(includeToJson: false)
   DateTime? ownershipTransferredAt;
+  @JsonKey(includeToJson: false)
+  int? visitCount;
+  @JsonKey(includeToJson: false)
+  Rating? averageRating;
+  @JsonKey(includeToJson: false)
+  DateTime? latestVisitedAt;
+  @JsonKey(includeToJson: false)
+  List<PlaceVisit>? visits;
 
   factory Place.fromJson(Map<String, dynamic> json) => _$PlaceFromJson(json);
 
@@ -131,6 +140,10 @@ class Place {
     this.visitId,
     this.ownershipTransferredFromName,
     this.ownershipTransferredAt,
+    this.visitCount,
+    this.averageRating,
+    this.latestVisitedAt,
+    this.visits,
   });
 
   @override
@@ -160,7 +173,11 @@ class Place {
               distance == other.distance &&
               visitId == other.visitId &&
               ownershipTransferredFromName == other.ownershipTransferredFromName &&
-              ownershipTransferredAt == other.ownershipTransferredAt);
+              ownershipTransferredAt == other.ownershipTransferredAt &&
+              visitCount == other.visitCount &&
+              averageRating == other.averageRating &&
+              latestVisitedAt == other.latestVisitedAt &&
+              visits == other.visits);
 
   @override
   int get hashCode =>
@@ -187,7 +204,11 @@ class Place {
       distance.hashCode ^
       visitId.hashCode ^
       ownershipTransferredFromName.hashCode ^
-      ownershipTransferredAt.hashCode;
+      ownershipTransferredAt.hashCode ^
+      visitCount.hashCode ^
+      averageRating.hashCode ^
+      latestVisitedAt.hashCode ^
+      visits.hashCode;
 
   @override
   String toString() {
@@ -219,6 +240,10 @@ class Place {
     String? visitId,
     String? ownershipTransferredFromName,
     DateTime? ownershipTransferredAt,
+    int? visitCount,
+    Rating? averageRating,
+    DateTime? latestVisitedAt,
+    List<PlaceVisit>? visits,
   }) {
     return Place(
       id: id ?? this.id,
@@ -245,6 +270,10 @@ class Place {
       visitId: visitId ?? this.visitId,
       ownershipTransferredFromName: ownershipTransferredFromName ?? this.ownershipTransferredFromName,
       ownershipTransferredAt: ownershipTransferredAt ?? this.ownershipTransferredAt,
+      visitCount: visitCount ?? this.visitCount,
+      averageRating: averageRating ?? this.averageRating,
+      latestVisitedAt: latestVisitedAt ?? this.latestVisitedAt,
+      visits: visits ?? this.visits,
     );
   }
 

@@ -1,13 +1,14 @@
 import 'package:card_swiper/card_swiper.dart';
 import 'package:flutter/material.dart';
 import 'package:gastrorate/models/place.dart';
+import 'package:gastrorate/models/visit/place_visit.dart';
 import 'package:gastrorate/widgets/place_swiper_item.dart';
 
 class PlaceCardSwiper extends StatelessWidget {
   final List<Place> places;
   final List<Place>? ratedPlaces;
   final Function(Place) onDeletePlace;
-  final Function(Place) onInitPlaceForm;
+  final Function(Place, PlaceVisit?) onInitPlaceForm;
 
   const PlaceCardSwiper({
     required this.places,

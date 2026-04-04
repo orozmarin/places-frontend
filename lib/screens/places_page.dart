@@ -1,12 +1,11 @@
 import 'package:async_redux/async_redux.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:gastrorate/models/auth/user.dart';
 import 'package:gastrorate/models/from_where.dart';
 import 'package:gastrorate/models/place.dart';
 import 'package:gastrorate/models/place_search_form.dart';
+import 'package:gastrorate/models/visit/place_visit.dart';
 import 'package:gastrorate/screens/places.dart';
 import 'package:gastrorate/store/app_state.dart';
-import 'package:gastrorate/store/invitations/invitations_actions.dart';
 import 'package:gastrorate/store/places/places_actions.dart';
 
 class PlacesPage extends StatelessWidget {
@@ -17,9 +16,11 @@ class PlacesPage extends StatelessWidget {
     return StoreConnector<AppState, ViewModel>(
       vm: () => Factory(this),
       onInit: (Store<AppState> store) {
-        store.dispatch(FetchPlacesAction());
+        if (store.state.placesState.places == null) {
+          store.dispatch(FetchPlacesAction());
+        }
         final userId = store.state.authState.loggedUser?.id;
-        if (userId != null) {
+        if (userId != null && store.state.placesState.sharedPlaces == null) {
           store.dispatch(FetchSharedPlacesAction(userId));
         }
       },
@@ -27,10 +28,7 @@ class PlacesPage extends StatelessWidget {
         places: vm.places,
         sharedPlaces: vm.sharedPlaces,
         onFindAllPlaces: vm.onFindAllPlaces,
-        onDeletePlace: vm.onDeletePlace,
         onInitPlaceForm: vm.onInitPlaceForm,
-        friends: vm.friends,
-        onInviteCoVisitor: vm.onInviteCoVisitor,
         onLeavePlace: vm.onLeavePlace,
         onAcknowledgeTransfer: vm.onAcknowledgeTransfer,
       ),
@@ -45,11 +43,10 @@ class Factory extends VmFactory<AppState, PlacesPage, ViewModel> {
   ViewModel? fromStore() => ViewModel(
     places: state.placesState.places,
     sharedPlaces: state.placesState.sharedPlaces,
-    friends: state.friendshipsState.friends,
     onFindAllPlaces: (PlaceSearchForm psf) => dispatch(FetchPlacesAction(placeSearchForm: psf)),
-    onDeletePlace: (place) => dispatch(DeletePlaceAction(place)),
-    onInitPlaceForm: (Place place) => dispatch(InitNewPlaceAction(payload: place, fromWhere: FromWhere.places)),
-    onInviteCoVisitor: (placeId, friendId) => dispatch(SendVisitInvitationAction(placeId, friendId)),
+    onInitPlaceForm: (Place place, PlaceVisit? visit) => dispatch(
+      InitNewPlaceAction(payload: place, fromWhere: FromWhere.places, selectedVisit: visit),
+    ),
     onLeavePlace: (place) => dispatch(RemoveCoVisitorAction(place.id!, state.authState.loggedUser!.id!)),
     onAcknowledgeTransfer: (placeId) => dispatch(AcknowledgeOwnershipTransferAction(placeId)),
   );
@@ -58,22 +55,16 @@ class Factory extends VmFactory<AppState, PlacesPage, ViewModel> {
 class ViewModel extends Vm {
   final List<Place>? places;
   final List<Place>? sharedPlaces;
-  final List<User>? friends;
   final Function(PlaceSearchForm) onFindAllPlaces;
-  final Function(Place place) onDeletePlace;
-  final Function(Place place) onInitPlaceForm;
-  final Function(String placeId, String friendId) onInviteCoVisitor;
+  final Function(Place place, PlaceVisit? visit) onInitPlaceForm;
   final Function(Place place) onLeavePlace;
   final Function(String placeId) onAcknowledgeTransfer;
 
   ViewModel({
     required this.places,
     required this.sharedPlaces,
-    required this.friends,
     required this.onFindAllPlaces,
-    required this.onDeletePlace,
     required this.onInitPlaceForm,
-    required this.onInviteCoVisitor,
     required this.onLeavePlace,
     required this.onAcknowledgeTransfer,
   });
@@ -86,11 +77,8 @@ class ViewModel extends Vm {
               runtimeType == other.runtimeType &&
               places == other.places &&
               sharedPlaces == other.sharedPlaces &&
-              friends == other.friends &&
               onFindAllPlaces == other.onFindAllPlaces &&
-              onDeletePlace == other.onDeletePlace &&
               onInitPlaceForm == other.onInitPlaceForm &&
-              onInviteCoVisitor == other.onInviteCoVisitor &&
               onLeavePlace == other.onLeavePlace &&
               onAcknowledgeTransfer == other.onAcknowledgeTransfer;
 
@@ -99,11 +87,8 @@ class ViewModel extends Vm {
       super.hashCode ^
       places.hashCode ^
       sharedPlaces.hashCode ^
-      friends.hashCode ^
       onFindAllPlaces.hashCode ^
-      onDeletePlace.hashCode ^
       onInitPlaceForm.hashCode ^
-      onInviteCoVisitor.hashCode ^
       onLeavePlace.hashCode ^
       onAcknowledgeTransfer.hashCode;
 }
